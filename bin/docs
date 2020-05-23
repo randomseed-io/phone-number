@@ -1,0 +1,5 @@
+#!/bin/sh
+
+echo "[phone-number] Building docs, please wait..."
+
+clojure -A:docs

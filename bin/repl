@@ -1,0 +1,5 @@
+#!/bin/sh
+
+echo "[phone-number] Starting development environment, please wait..."
+
+clojure -A:dev:dev-nrepl:dev-rebel

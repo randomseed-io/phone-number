@@ -1,0 +1,65 @@
+{
+ :paths ["src" "resources"]
+
+ :deps {org.clojure/algo.generic                      {:mvn/version "0.1.3"}
+        trptr/java-wrapper                            {:mvn/version "0.2.3"}
+        com.googlecode.libphonenumber/libphonenumber  {:mvn/version "8.12.4"}
+        com.googlecode.libphonenumber/geocoder        {:mvn/version "2.140"}
+        com.googlecode.libphonenumber/carrier         {:mvn/version "1.130"}
+        org.clojure/spec.alpha                        {:mvn/version "0.2.176"}}
+
+ :aliases {
+           :dev {
+                 :extra-deps {org.clojure/tools.namespace          {:mvn/version "0.2.11"}
+                              org.clojure/test.check               {:mvn/version "0.10.0-alpha4"}
+                              io.aviso/pretty                      {:mvn/version "0.1.34"}
+                              spyscope                             {:mvn/version "0.1.6"}
+                              fipp                                 {:mvn/version "0.6.12"}
+                              cljfmt                               {:mvn/version "0.6.4"}
+                              ns-tracker                           {:mvn/version "0.4.0"}
+                              mvxcvi/puget                         {:mvn/version "1.3.0"}}
+                 :extra-paths ["dev/src" "test"]
+                 :jvm-opts ["-Dclojure.spec.compile-asserts=true"]}
+
+           :test {
+                  :extra-paths ["test"]
+                  :extra-deps {org.clojure/test.check               {:mvn/version "0.10.0-alpha4"}}
+                  :main-opts ["--config-file" "tests.edn"]
+                  :jvm-opts  ["-Xmx512m"]}
+
+           :docs {
+                  :extra-paths ["aliases/codox"]
+                  :extra-deps {org.clojure/tools.deps.alpha         {:mvn/version "0.7.527"}
+                               codox                                {:mvn/version "0.10.7"}}
+                  :main-opts ["-m" "phone-number.codox.main"]}
+
+           :dev-nrepl {
+                       :jvm-opts ["-Dnrepl.load=true"]
+                       :extra-paths ["aliases/nrepl"]
+                       :extra-deps {cider/cider-nrepl               {:mvn/version "0.22.0-beta6"}
+                                    ;;refactor-nrepl                {:mvn/version "2.3.1"}
+                                    cider/piggieback                {:mvn/version "0.4.1"}
+                                    nrepl/nrepl                     {:mvn/version "0.6.0"}
+                                    acyclic/squiggly-clojure        {:mvn/version "0.1.9-SNAPSHOT"}
+                                    mvxcvi/puget                    {:mvn/version "1.3.0"}}}
+
+           :dev-rebel {
+                       :extra-paths ["aliases/rebel"]
+                       :extra-deps {com.bhauman/rebel-readline      {:mvn/version "0.1.4"}
+                                    com.bhauman/rebel-readline-cljs {:mvn/version "0.1.4"}
+                                    io.aviso/pretty                 {:mvn/version "0.1.37"}
+                                    mvxcvi/puget                    {:mvn/version "1.3.0"}}
+                       :main-opts ["-m" "phone-number.rebel.main"]}
+           :pack {
+                  :extra-deps {pack/pack.alpha {:git/url "https://github.com/juxt/pack.alpha.git"
+                                                :sha "2769a6224bfb938e777906ea311b3daf7d2220f5"}}}}
+
+ :codox {:name        "phone-number"
+         :description "Clojure interface for Google's libphonenumber library"
+         :license     "GNU Lesser General Public License 3.0"
+         :package     io.randomseed/phone-number
+         :version     "8.12.4-0"
+         :output-path "docs"
+         :source-uri "https://github.com/randomseed-io/phone-number/blob/{version}/{filepath}#L{line}"
+         :metadata {:doc/format :markdown}
+         :themes [:default :randomseed]}}
