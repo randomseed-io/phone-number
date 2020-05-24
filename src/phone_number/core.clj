@@ -120,12 +120,12 @@
   ([^phone_number.core.Phoneable phone-number, ^String country-code]
    (.isPossibleNumber (util/instance) (number phone-number country-code))))
 
-(defn all-formats
+(defn formats
   "Returns all possible phone number formats as a sequence of keywords."
   []
   (keys util/formats))
 
-(defn all-types
+(defn types
   "Returns all possible phone number types as a sequence of keywords."
   []
   (keys util/types))
