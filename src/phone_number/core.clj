@@ -296,6 +296,7 @@
         number
         (.getTimeZonesForNumber (util/time-zones-mapper))
         (remove #{"Etc/Unknown"})
+        dedupe
         seq))
   ([^phone_number.core.Phoneable phone-number
     ^phone_number.core.RegionCodeable region-code
@@ -305,6 +306,7 @@
          f (util/time-zone-formats format-specification)]
      (->> (time-zones phone-number region-code)
           (map #(util/zone-id-format % l f))
+          dedupe
           seq))))
 
 (defn info
