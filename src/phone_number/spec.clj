@@ -1,23 +1,19 @@
 (ns
 
-    ^{:doc    "Specs for phone-number library."
+    ^{:doc    "Public specs of phone-number library."
       :author "Paweł Wilk"
-      :added  "8.12.4-0"
-      :no-doc true}
+      :added  "8.12.4-0"}
 
     phone-number.spec
 
-  (:require [phone-number.util            :as      util]
-            [phone-number.proto           :as     proto]
-            [phone-number.core            :as     phone]
-            [trptr.java-wrapper.locale    :as         l]
-            [clojure.algo.generic.functor :refer [fmap]])
+  (:require [clojure.spec.alpha           :as         s]
+            [phone-number.util            :as      util]
+            [phone-number.core            :as     phone]))
 
-  (:import [phone_number.proto Phoneable]
-           [com.google.i18n.phonenumbers
-            Phonenumber$PhoneNumber
-            ShortNumberInfo
-            geocoding.PhoneNumberOfflineGeocoder
-            PhoneNumberToCarrierMapper
-            PhoneNumberToTimeZonesMapper
-            NumberParseException]))
+(s/def ::possible-number phone/possible?)
+(s/def ::valid-number    phone/valid?)
+
+(s/def ::mobile-number   (s/and ::valid-number #(= :mobile       (phone/type %))))
+(s/def ::landline-number (s/and ::valid-number #(= :fixed-line   (phone/type %))))
+(s/def ::voip-number     (s/and ::valid-number #(= :voip         (phone/type %))))
+(s/def ::premium-number  (s/and ::valid-number #(= :premium-rate (phone/type %))))
