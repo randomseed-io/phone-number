@@ -9,12 +9,22 @@
   (:import [com.google.i18n.phonenumbers
             PhoneNumberUtil
             PhoneNumberUtil$PhoneNumberFormat
-            PhoneNumberUtil$PhoneNumberType]))
+            PhoneNumberUtil$PhoneNumberType
+            geocoding.PhoneNumberOfflineGeocoder
+            PhoneNumberToCarrierMapper
+            PhoneNumberToTimeZonesMapper
+            NumberParseException]))
 
-(defn ^PhoneNumberUtil instance
-  "Returns an instance of PhoneNumberUtil (a singleton)."
-  []
-  (PhoneNumberUtil/getInstance))
+(defmacro try-parse
+  [& body]
+  `(try ~@body
+        (catch NumberParseException  e# nil)
+        (catch NumberFormatException e# nil)))
+
+(defn ^PhoneNumberUtil              instance         [] (PhoneNumberUtil/getInstance))
+(defn ^PhoneNumberOfflineGeocoder   geo-coder        [] (PhoneNumberOfflineGeocoder/getInstance))
+(defn ^PhoneNumberToCarrierMapper   carrier-mapper   [] (PhoneNumberToCarrierMapper/getInstance))
+(defn ^PhoneNumberToTimeZonesMapper timezones-mapper [] (PhoneNumberToTimeZonesMapper/getInstance))
 
 (def formats
   "Map of possible format identifiers (keywords) to PhoneNumberFormat values."
