@@ -60,6 +60,7 @@
   CharSequence
 
   (region [region-code] (region (apply str region-code)))
+  (region [region-code] (region (apply str (seq region-code))))
 
   clojure.lang.Keyword
 
