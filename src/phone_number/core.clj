@@ -80,10 +80,8 @@
   (valid?
     ([obj] (valid? obj nil))
     ([obj ^phone_number.core.RegionCodeable region-code]
-     (try
-       (.isValidNumber (util/instance) obj)
-       (catch NumberParseException  e false)
-       (catch NumberFormatException e false))))
+     (or (util/try-parse
+          (.isValidNumber (util/instance) obj)) false)))
 
   String
   (number
@@ -93,10 +91,8 @@
   (valid?
     ([obj](valid? obj nil))
     ([obj ^phone_number.core.RegionCodeable region-code]
-     (try
-       (.isValidNumber (util/instance) (number obj region-code))
-       (catch NumberParseException  e false)
-       (catch NumberFormatException e false))))
+     (or (util/try-parse
+          (.isValidNumber (util/instance) (number obj region-code)) false))))
 
   Number
   (number
@@ -135,7 +131,8 @@
    (possible? phone-number nil))
   ([^phone_number.core.Phoneable phone-number
     ^phone_number.core.RegionCodeable region-code]
-   (.isPossibleNumber (util/instance) (number phone-number region-code))))
+   (or (util/try-parse
+        (.isPossibleNumber (util/instance) (number phone-number region-code))) false)))
 
 (defn formats
   "Returns all possible phone number formats as a sequence of keywords."
