@@ -12,7 +12,7 @@ Clojure library that uses Google's Libphonenumber to help validate and inspect p
 ;; region taken from a phone number
 ;; system's default locale
 
-(phone/info "+44 29 2018 3133"))
+(phone/info "+44 29 2018 3133")
 
      {:carrier  nil,
       :country-code         44,
