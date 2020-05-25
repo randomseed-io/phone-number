@@ -10,8 +10,7 @@
 
   (:require [phone-number.util            :as      util]
             [clojure.string               :as        st]
-            [trptr.java-wrapper.locale    :as         l]
-            [clojure.algo.generic.functor :refer [fmap]])
+            [trptr.java-wrapper.locale    :as         l])
 
   (:import [com.google.i18n.phonenumbers
             Phonenumber$PhoneNumber

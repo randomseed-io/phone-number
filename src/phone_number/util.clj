@@ -83,6 +83,14 @@
    :short-standalone      TextStyle/SHORT_STANDALONE
    :narrow-standalone     TextStyle/NARROW_STANDALONE
    :full-standalone       TextStyle/FULL_STANDALONE})
+(defn fmap-k
+  "For each key and value of the given map m calls a function passed as the second
+  argument (passing successive keys during calls to it) and generates a map with
+  values updated by the results returned by the function."
+  {:added "8.12.4-0" :tag clojure.lang.IPersistentMap}
+  [^clojure.lang.IFn f
+   ^clojure.lang.IPersistentMap m]
+  (into (empty m) (for [[k v] m] [k (f k)])))
 
 ;; Time Zone IDs
 
