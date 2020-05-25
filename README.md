@@ -14,7 +14,7 @@ Clojure library that uses Google's Libphonenumber to help validate and inspect p
 
 (phone/info "+44 29 2018 3133")
 
-    '{:carrier  nil,
+    '{:carrier              nil,
       :country-code         44,
       :location             "Cardiff",
       :possible?            true,
