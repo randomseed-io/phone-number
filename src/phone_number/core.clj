@@ -386,15 +386,17 @@
          phone-obj (number phone-number region)]
      (merge
       (all-formats phone-obj nil)
-      (time-zones-all-formats phone-obj nil locale)
       #:phone-number
-      {:valid?       (valid?       phone-obj nil)
-       :possible?    (possible?    phone-obj nil)
-       :type         (type         phone-obj nil)
-       :country-code (country-code phone-obj nil)
-       :region-code  (rcode-fn     phone-obj nil)
-       :location     (location     phone-obj nil locale)
-       :carrier      (carrier      phone-obj nil locale)}))))
+      {:valid?                      (valid?       phone-obj nil)
+       :possible?                   (possible?    phone-obj nil)
+       :type                        (type         phone-obj nil)
+       :country-code                (country-code phone-obj nil)
+       :region-code                 (rcode-fn     phone-obj nil)
+       :location                    (location     phone-obj nil locale)
+       :carrier                     (carrier      phone-obj nil locale)
+       ::tz-format/id               (time-zones   phone-obj nil locale ::tz-format/id)
+       ::tz-format/full-standalone  (time-zones   phone-obj nil locale ::tz-format/full-standalone)
+       ::tz-format/short-standalone (time-zones   phone-obj nil locale ::tz-format/short-standalone)}))))
 
 (defn match
   "Returns matching level of two numbers or nil if there is no match. Optionally each
