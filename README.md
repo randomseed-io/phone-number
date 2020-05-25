@@ -2,7 +2,7 @@
 
 [![Phone-number on Clojars](https://img.shields.io/clojars/v/io.randomseed/phone-number.svg)](https://clojars.org/io.randomseed/phone-number)
 
-Clojure library that uses Google's Libphonenumber to help validate and inspect phone numbers.
+Clojure library which uses Google's Libphonenumber to validate, inspect and generate phone numbers.
 
 * It **shows information** about phone numbers:
 

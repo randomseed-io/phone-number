@@ -1,5 +1,5 @@
 (defproject io.randomseed/phone-number "8.12.4-0"
-  :description "Clojure interface for Google's libphonenumber library"
+  :description "Clojure interface to Libphonenumber"
   :url          "https://randomseed.io/software/phone-number"
   :scm          {:name "git", :url "https://github.com/randomseed-io/phone-number"}
   :license      {:name "GNU Lesser General Public License 3.0"
