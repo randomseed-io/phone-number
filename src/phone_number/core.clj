@@ -9,7 +9,10 @@
   (:refer-clojure :exclude [format type])
 
   (:require [phone-number.util            :as      util]
+            [phone-number.type            :as      type]
             [phone-number.match           :as     match]
+            [phone-number.format          :as    format]
+            [phone-number.tz-format       :as tz-format]
             [clojure.string               :as        st]
             [trptr.java-wrapper.locale    :as         l]
             [clojure.algo.generic.functor :refer [fmap]])
@@ -83,12 +86,12 @@
   Phonenumber$PhoneNumber
   (number
     ([phone-number] phone-number)
-    ([phone-number ^phone_number.core.RegionCodeable region-code] phone-number))
+    ([phone-number^phone_number.core.RegionCodeable region-code] phone-number))
   (valid?
     ([obj] (valid? obj nil))
     ([obj ^phone_number.core.RegionCodeable region-code]
-     (or (util/try-parse
-          (.isValidNumber (util/instance) obj)) false)))
+     (util/try-parse-or-false
+      (.isValidNumber (util/instance) obj))))
 
   String
   (number
@@ -98,8 +101,8 @@
   (valid?
     ([obj](valid? obj nil))
     ([obj ^phone_number.core.RegionCodeable region-code]
-     (or (util/try-parse
-          (.isValidNumber (util/instance) (number obj region-code)) false))))
+     (util/try-parse-or-false
+      (.isValidNumber (util/instance) (number obj region-code)))))
 
   Number
   (number
@@ -138,20 +141,20 @@
    (possible? phone-number nil))
   ([^phone_number.core.Phoneable phone-number
     ^phone_number.core.RegionCodeable region-code]
-   (or (util/try-parse
-        (.isPossibleNumber (util/instance) (number phone-number region-code))) false)))
+   (util/try-parse-or-false
+    (.isPossibleNumber (util/instance) (number phone-number region-code)))))
 
 (defn formats
   "Returns all possible phone number formats as a sequence of keywords."
   {:added "8.12.4-0" :tag clojure.lang.APersistentMap$KeySeq}
   []
-  (keys util/formats))
+  (keys format/all))
 
 (defn types
   "Returns all possible phone number types as a sequence of keywords."
   {:added "8.12.4-0" :tag clojure.lang.APersistentMap$KeySeq}
   []
-  (keys util/types))
+  (keys type/all))
 
 (defn format
   "Takes a phone number (expressed as a string, a number or a PhoneNumber object) and
@@ -163,14 +166,16 @@
   the given phone number does not contain region information."
   {:added "8.12.4-0" :tag String}
   ([^phone_number.core.Phoneable phone-number
-    ^clojure.lang.Keyword format]
+    ^clojure.lang.Keyword format-specification]
    (format phone-number nil))
   ([^phone_number.core.Phoneable phone-number
-    ^clojure.lang.Keyword format
-    ^phone_number.core.RegionCodeable region-code]
+    ^phone_number.core.RegionCodeable region-code
+    ^clojure.lang.Keyword format-specification]
    (.format (util/instance)
             (number phone-number region-code)
-            (if (keyword? format) (format util/formats) format))))
+            (if (keyword? format-specification)
+              (format-specification format/all format/default)
+              format-specification))))
 
 (defn all-formats
   "Takes a phone number (expressed as a string, a number or a PhoneNumber object) and
@@ -180,11 +185,12 @@
   If the second argument is present then it should be a valid region code used when
   the given phone number does not contain region information."
   {:added "8.12.4-0" :tag clojure.lang.PersistentArrayMap}
-  ([^phone_number.core.Phoneable phone-number]
+  ([^phone_number.core.Phoneable      phone-number]
    (all-formats phone-number nil))
-  ([^phone_number.core.Phoneable phone-number
+  ([^phone_number.core.Phoneable      phone-number
     ^phone_number.core.RegionCodeable region-code]
-   (fmap #(format phone-number % region-code) util/formats)))
+   (let [p (number phone-number region-code)]
+     (fmap #(format p nil %) format/all))))
 
 (defn type
   "Takes a phone number (expressed as a string, a number or a PhoneNumber object) and
@@ -197,9 +203,9 @@
    (type phone-number nil))
   ([^phone_number.core.Phoneable phone-number
     ^phone_number.core.RegionCodeable region-code]
-   (util/types-by-type
+   (type/by-val
     (.getNumberType (util/instance) (number phone-number region-code))
-    :unknown)))
+    ::type/unknown)))
 
 (defn country-code
   "Takes a phone number (expressed as a string, a number or a PhoneNumber object) and
@@ -291,27 +297,59 @@
   If the second argument is present then it should be a valid region code used when
   the given phone number does not contain region information. It is acceptable to
   pass nil as a value to tell the function that there is no region information."
-  {:added "8.12.4-0" :tag clojure.lang.Cons}
-  ([^phone_number.core.Phoneable phone-number]
+  {:added "8.12.4-0" :tag clojure.lang.LazySeq}
+  ([^phone_number.core.Phoneable      phone-number]
    (time-zones phone-number nil))
-  ([^phone_number.core.Phoneable phone-number
+  ([^phone_number.core.Phoneable      phone-number
     ^phone_number.core.RegionCodeable region-code]
    (->> phone-number
         number
         (.getTimeZonesForNumber (util/time-zones-mapper))
         (remove #{"Etc/Unknown"})
         dedupe
-        seq))
-  ([^phone_number.core.Phoneable phone-number
+        not-empty))
+  ([^phone_number.core.Phoneable      phone-number
     ^phone_number.core.RegionCodeable region-code
-    ^java.util.Locale locale-specification
-    ^clojure.lang.Keyword format-specification]
+    ^clojure.lang.Keyword             format-specification]
+   (time-zones phone-number region-code nil format-specification))
+  ([^phone_number.core.Phoneable      phone-number
+    ^phone_number.core.RegionCodeable region-code
+    ^java.util.Locale                 locale-specification
+    ^clojure.lang.Keyword             format-specification]
    (let [l (l/locale locale-specification)
-         f (util/time-zone-formats format-specification)]
+         f (if (keyword? format-specification)
+             (tz-format/all format-specification tz-format/default)
+             format-specification)]
      (->> (time-zones phone-number region-code)
-          (map #(util/zone-id-format % l f))
+          (map #(tz-format/transform % l f))
           dedupe
-          seq))))
+          not-empty))))
+
+(defn time-zones-all-formats
+  "Takes a phone number (expressed as a string, a number or a PhoneNumber object) and
+  returns a map which keys are all possible time zone formats expressed as keywords and values
+  are sequences of the number's time zones formatted accordingly.
+
+  If the second argument is present then it should be a valid region code used when
+  the given phone number does not contain region information. It is possible to pass
+  a nil value as this argument to ignore extra processing when region can be inferred
+  from the number.
+
+  The third argument should be a Locale object or a string describing locale settings
+  to be used when rendering locale-dependent time zone information. When there is no
+  third argument or it is nil then default locale settings will be used."
+  {:added "8.12.4-0" :tag clojure.lang.PersistentArrayMap}
+  ([^phone_number.core.Phoneable      phone-number]
+   (time-zones-all-formats phone-number nil nil))
+  ([^phone_number.core.Phoneable      phone-number
+    ^phone_number.core.RegionCodeable region-code]
+   (time-zones-all-formats phone-number region-code nil))
+  ([^phone_number.core.Phoneable      phone-number
+    ^phone_number.core.RegionCodeable region-code
+    ^java.util.Locale                 locale-specification]
+   (let [l (l/locale locale-specification)
+         p (number phone-number region-code)]
+     (fmap #(time-zones p nil l %) tz-format/all))))
 
 (defn info
   "Takes a phone number (expressed as a string, a number or a PhoneNumber object) and
@@ -324,7 +362,7 @@
   * type of the number (:type),
   * approximate geographic location of  a phone line (:location),
   * carrier information (:carrier),
-  * time zones (:time-zone/full, :time-zone/short, :time-zone/ids) and
+  * time zones (:id, :full, :short-standalone, :full-standalone) and
   * all of the possible formats (keywords with the format namespace).
 
   If the second argument is present then it should be a valid region code used when
@@ -334,7 +372,7 @@
   If the third argument is present then it should be a string specifying locale
   information or a Locale object. It will be used during rendering strings describing
   geographic location, carrier data and full time zone information. When nil is
-  passed then the default locale settings will be used."
+  passed then default locale settings will be used."
   {:added "8.12.4-0" :tag clojure.lang.PersistentArrayMap}
   ([^phone_number.core.Phoneable phone-number]
    (info phone-number nil nil))
@@ -350,17 +388,18 @@
          rcode-fn  phone-number.core/region-code
          phone-obj (number phone-number region)]
      (merge
-      (all-formats phone-obj region)
-      {:valid?           (valid?       phone-obj nil)
-       :possible?        (possible?    phone-obj nil)
-       :type             (type         phone-obj nil)
-       :country-code     (country-code phone-obj nil)
-       :region-code      (rcode-fn     phone-obj nil)
-       :location         (location     phone-obj nil locale)
-       :carrier          (carrier      phone-obj nil locale)
-       :time-zones/full  (time-zones   phone-obj nil locale :full-standalone)
-       :time-zones/short (time-zones   phone-obj nil locale :short-standalone)
-       :time-zones/ids   (time-zones   phone-obj nil)}))))
+      (all-formats phone-obj nil)
+      #:phone-number
+      {:valid?                      (valid?       phone-obj nil)
+       :possible?                   (possible?    phone-obj nil)
+       :type                        (type         phone-obj nil)
+       :country-code                (country-code phone-obj nil)
+       :region-code                 (rcode-fn     phone-obj nil)
+       :location                    (location     phone-obj nil locale)
+       :carrier                     (carrier      phone-obj nil locale)
+       ::tz-format/id               (time-zones   phone-obj nil locale ::tz-format/id)
+       ::tz-format/full-standalone  (time-zones   phone-obj nil locale ::tz-format/full-standalone)
+       ::tz-format/short-standalone (time-zones   phone-obj nil locale ::tz-format/short-standalone)}))))
 
 (defn match
   "Returns matching level of two numbers or nil if there is no match. Optionally each
