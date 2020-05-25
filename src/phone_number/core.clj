@@ -9,6 +9,7 @@
   (:refer-clojure :exclude [format type])
 
   (:require [phone-number.util            :as      util]
+            [phone-number.match           :as     match]
             [clojure.string               :as        st]
             [trptr.java-wrapper.locale    :as         l]
             [clojure.algo.generic.functor :refer [fmap]])
@@ -49,7 +50,13 @@
   (^{:added "8.12.4-0" :tag Boolean} valid?
    [phone-number] [phone-number region-code]
    "Takes a phone number represented as a string, a number or a PhoneNumber object
-    and validates it. Returns true or false."))
+    and validates it. Returns true or false.")
+
+  (^{:added "8.12.4-0" :tag Boolean} matches?
+   [phone-number-a phone-number-b]
+   [phone-number-a region-code-a phone-number-b]
+   [phone-number-a region-code-a phone-number-b region-code-b]
+   "Compares two phone numbers with optional region codes."))
 
 (extend-protocol RegionCodeable
 
@@ -354,3 +361,62 @@
        :time-zones/full  (time-zones   phone-obj nil locale :full-standalone)
        :time-zones/short (time-zones   phone-obj nil locale :short-standalone)
        :time-zones/ids   (time-zones   phone-obj nil)}))))
+
+(defn match
+  "Returns matching level of two numbers or nil if there is no match. Optionally each
+  second argument can be a region code (if the given phone number is not a kind of
+  PhoneNumber)."
+  {:added "8.12.4-0" :tag clojure.lang.Keyword}
+  ([^phone_number.core.Phoneable phone-number-a
+    ^phone_number.core.RegionCodeable region-code-a
+    ^phone_number.core.Phoneable phone-number-b
+    ^phone_number.core.RegionCodeable region-code-b]
+   (match/all
+    (util/try-parse
+     (.isNumberMatch
+      (util/instance)
+      (number phone-number-a region-code-a)
+      (number phone-number-b region-code-b)))
+    ::match/none))
+  ([^phone_number.core.Phoneable phone-number-a
+    ^phone_number.core.RegionCodeable region-code-a
+    ^phone_number.core.Phoneable phone-number-b]
+   (match phone-number-a
+          region-code-a
+          phone-number-b
+          nil))
+  ([^phone_number.core.Phoneable phone-number-a
+    ^phone_number.core.Phoneable phone-number-b]
+   (match phone-number-a
+          nil
+          phone-number-b
+          nil)))
+
+(defn match?
+  "Returns true if two numbers match, false otherwise. Optionally each second argument
+  can be a region code (if the given phone number is not a kind of PhoneNumber)."
+  {:added "8.12.4-0" :tag Boolean}
+  ([^phone_number.core.Phoneable phone-number-a
+    ^phone_number.core.RegionCodeable region-code-a
+    ^phone_number.core.Phoneable phone-number-b
+    ^phone_number.core.RegionCodeable region-code-b]
+   (= ::match/exact
+      (match phone-number-a
+             region-code-a
+             phone-number-b
+             region-code-b)))
+  ([^phone_number.core.Phoneable phone-number-a
+    ^phone_number.core.RegionCodeable region-code-a
+    ^phone_number.core.Phoneable phone-number-b]
+   (= ::match/exact
+      (match phone-number-a
+             region-code-a
+             phone-number-b
+             nil)))
+  ([^phone_number.core.Phoneable phone-number-a
+    ^phone_number.core.Phoneable phone-number-b]
+   (= ::match/exact
+      (match phone-number-a
+             nil
+             phone-number-b
+             nil))))
