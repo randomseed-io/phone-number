@@ -7,7 +7,6 @@
   :global-vars {*warn-on-reflection* true}
   :dependencies [[org.clojure/clojure                          "1.10.1"]
                  [org.clojure/spec.alpha                      "0.2.176"]
-                 [org.clojure/algo.generic                      "0.1.3"]
                  [trptr/java-wrapper                            "0.2.3"]
                  [com.googlecode.libphonenumber/libphonenumber "8.12.4"]
                  [com.googlecode.libphonenumber/geocoder        "2.140"]
