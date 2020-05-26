@@ -136,9 +136,9 @@
   it should be a valid region code used when the given phone number does not contain
   region information."
   {:added "8.12.4-0" :tag Boolean}
-  ([^phone_number.core.Phoneable phone-number]
+  ([^phone_number.core.Phoneable      phone-number]
    (possible? phone-number nil))
-  ([^phone_number.core.Phoneable phone-number
+  ([^phone_number.core.Phoneable      phone-number
     ^phone_number.core.RegionCodeable region-code]
    (util/try-parse-or-false
     (.isPossibleNumber (util/instance) (number phone-number region-code)))))
@@ -164,12 +164,12 @@
   If the third argument is present then it should be a valid region code used when
   the given phone number does not contain region information."
   {:added "8.12.4-0" :tag String}
-  ([^phone_number.core.Phoneable phone-number
-    ^clojure.lang.Keyword format-specification]
+  ([^phone_number.core.Phoneable      phone-number
+    ^clojure.lang.Keyword             format-specification]
    (format phone-number nil))
-  ([^phone_number.core.Phoneable phone-number
+  ([^phone_number.core.Phoneable      phone-number
     ^phone_number.core.RegionCodeable region-code
-    ^clojure.lang.Keyword format-specification]
+    ^clojure.lang.Keyword             format-specification]
    (.format (util/instance)
             (number phone-number region-code)
             (if (keyword? format-specification)
@@ -213,9 +213,9 @@
   If the second argument is present then it should be a valid region code used when
   the given phone number does not contain region information."
   {:added "8.12.4-0" :tag Integer}
-  ([^phone_number.core.Phoneable phone-number]
+  ([^phone_number.core.Phoneable      phone-number]
    (country-code phone-number nil))
-  ([^phone_number.core.Phoneable phone-number
+  ([^phone_number.core.Phoneable      phone-number
     ^phone_number.core.RegionCodeable region-code]
    (.getCountryCode (number phone-number region-code))))
 
@@ -226,9 +226,9 @@
   If the second argument is present then it should be a valid region code used when
   the given phone number does not contain region information."
   {:added "8.12.4-0" :tag String}
-  ([^phone_number.core.Phoneable phone-number]
+  ([^phone_number.core.Phoneable      phone-number]
    (region-code phone-number nil))
-  ([^phone_number.core.Phoneable phone-number
+  ([^phone_number.core.Phoneable      phone-number
     ^phone_number.core.RegionCodeable region-code]
    (not-empty (.getRegionCodeForNumber (util/instance) (number phone-number region-code)))))
 
@@ -246,14 +246,14 @@
   describing geographic location and carrier data. When nil is passed then the
   default locale settings will be used."
   {:added "8.12.4-0" :tag String}
-  ([^phone_number.core.Phoneable phone-number]
+  ([^phone_number.core.Phoneable      phone-number]
    (location phone-number nil nil))
-  ([^phone_number.core.Phoneable phone-number
+  ([^phone_number.core.Phoneable      phone-number
     ^phone_number.core.RegionCodeable region-code]
    (location phone-number region-code nil))
-  ([^phone_number.core.Phoneable phone-number
+  ([^phone_number.core.Phoneable      phone-number
     ^phone_number.core.RegionCodeable region-code
-    ^java.util.Locale locale-specification]
+    ^java.util.Locale                 locale-specification]
    (not-empty
     (.getDescriptionForNumber
      (util/geo-coder)
@@ -273,14 +273,14 @@
   information or a java.util.Locale object. It will be used during rendering carrier
   name. When nil is passed then the default locale settings will be used."
   {:added "8.12.4-0" :tag String}
-  ([^phone_number.core.Phoneable phone-number]
+  ([^phone_number.core.Phoneable      phone-number]
    (carrier phone-number nil nil))
-  ([^phone_number.core.Phoneable phone-number
+  ([^phone_number.core.Phoneable      phone-number
     ^phone_number.core.RegionCodeable region-code]
    (carrier phone-number region-code nil))
-  ([^phone_number.core.Phoneable phone-number
+  ([^phone_number.core.Phoneable      phone-number
     ^phone_number.core.RegionCodeable region-code
-    ^java.util.Locale locale-specification]
+    ^java.util.Locale                 locale-specification]
    (not-empty
     (.getNameForNumber
      (util/carrier-mapper)
@@ -371,12 +371,12 @@
   geographic location, carrier data and full time zone information. When nil is
   passed then default locale settings will be used."
   {:added "8.12.4-0" :tag clojure.lang.PersistentArrayMap}
-  ([^phone_number.core.Phoneable phone-number]
+  ([^phone_number.core.Phoneable      phone-number]
    (info phone-number nil nil))
-  ([^phone_number.core.Phoneable phone-number
+  ([^phone_number.core.Phoneable      phone-number
     ^phone_number.core.RegionCodeable region-code]
    (info phone-number region-code nil))
-  ([^phone_number.core.Phoneable phone-number
+  ([^phone_number.core.Phoneable      phone-number
     ^phone_number.core.RegionCodeable region-code
     ^String locale-specification]
    (let [number-util (util/instance)
@@ -403,9 +403,9 @@
   second argument can be a region code (if the given phone number is not a kind of
   PhoneNumber)."
   {:added "8.12.4-0" :tag clojure.lang.Keyword}
-  ([^phone_number.core.Phoneable phone-number-a
+  ([^phone_number.core.Phoneable      phone-number-a
     ^phone_number.core.RegionCodeable region-code-a
-    ^phone_number.core.Phoneable phone-number-b
+    ^phone_number.core.Phoneable      phone-number-b
     ^phone_number.core.RegionCodeable region-code-b]
    (match/by-val
     (.isNumberMatch
@@ -413,9 +413,9 @@
      (number phone-number-a region-code-a)
      (number phone-number-b region-code-b))
     ::match/none))
-  ([^phone_number.core.Phoneable phone-number-a
+  ([^phone_number.core.Phoneable      phone-number-a
     ^phone_number.core.RegionCodeable region-code-a
-    ^phone_number.core.Phoneable phone-number-b]
+    ^phone_number.core.Phoneable      phone-number-b]
    (match phone-number-a
           region-code-a
           phone-number-b
@@ -431,27 +431,30 @@
   "Returns true if two numbers match, false otherwise. Optionally each second argument
   can be a region code (if the given phone number is not a kind of PhoneNumber)."
   {:added "8.12.4-0" :tag Boolean}
-  ([^phone_number.core.Phoneable phone-number-a
+  ([^phone_number.core.Phoneable      phone-number-a
     ^phone_number.core.RegionCodeable region-code-a
-    ^phone_number.core.Phoneable phone-number-b
+    ^phone_number.core.Phoneable      phone-number-b
     ^phone_number.core.RegionCodeable region-code-b]
-   (= ::match/exact
-      (match phone-number-a
-             region-code-a
-             phone-number-b
-             region-code-b)))
-  ([^phone_number.core.Phoneable phone-number-a
+   (util/try-parse-or-false
+    (= ::match/exact
+       (match phone-number-a
+              region-code-a
+              phone-number-b
+              region-code-b))))
+  ([^phone_number.core.Phoneable      phone-number-a
     ^phone_number.core.RegionCodeable region-code-a
-    ^phone_number.core.Phoneable phone-number-b]
-   (= ::match/exact
-      (match phone-number-a
-             region-code-a
-             phone-number-b
-             nil)))
+    ^phone_number.core.Phoneable      phone-number-b]
+   (util/try-parse-or-false
+    (= ::match/exact
+       (match phone-number-a
+              region-code-a
+              phone-number-b
+              nil))))
   ([^phone_number.core.Phoneable phone-number-a
     ^phone_number.core.Phoneable phone-number-b]
-   (= ::match/exact
-      (match phone-number-a
-             nil
-             phone-number-b
-             nil))))
+   (util/try-parse-or-false
+    (= ::match/exact
+       (match phone-number-a
+              nil
+              phone-number-b
+              nil)))))
