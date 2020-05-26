@@ -144,9 +144,7 @@
     ^clojure.lang.Keyword          format-specification]
    (.format (util/instance)
             (number phone-number region-specification)
-            (if (keyword? format-specification)
-              (format-specification format/all format/default)
-              format-specification))))
+            (format/all format-specification format/default))))
 
 (defn all-formats
   "Takes a phone number (expressed as a string, a number or a PhoneNumber object) and
