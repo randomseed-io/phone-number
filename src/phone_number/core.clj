@@ -407,12 +407,11 @@
     ^phone_number.core.RegionCodeable region-code-a
     ^phone_number.core.Phoneable phone-number-b
     ^phone_number.core.RegionCodeable region-code-b]
-   (match/all
-    (util/try-parse
-     (.isNumberMatch
-      (util/instance)
-      (number phone-number-a region-code-a)
-      (number phone-number-b region-code-b)))
+   (match/by-val
+    (.isNumberMatch
+     (util/instance)
+     (number phone-number-a region-code-a)
+     (number phone-number-b region-code-b))
     ::match/none))
   ([^phone_number.core.Phoneable phone-number-a
     ^phone_number.core.RegionCodeable region-code-a
