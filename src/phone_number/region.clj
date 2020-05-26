@@ -11,10 +11,9 @@
   (:require [phone-number.util            :as      util]
             [clojure.string               :as        st])
 
-  (:import [com.google.i18n.phonenumbers
-            Phonenumber$PhoneNumber
-            ShortNumberInfo
-            NumberParseException]))
+ (:import [com.google.i18n.phonenumbers
+           PhoneNumberUtil
+           NumberParseException]))
 
 ;;
 ;; Protocol
@@ -50,13 +49,19 @@
   nil
   (code [region-specification] region-specification))
 
+;;
+;; Supported Regions
+;;
+
+(def ^{:added "8.12.4-0"
+       :tag clojure.lang.IPersistentSet}
+  all
+  "Set of all supported regions."
+  (set (.getSupportedRegions (util/instance))))
+
 (defn valid?
   "Returns true if the given region-specification is a valid region code, false
   otherwise."
   {:added "8.12.4-0" :tag Boolean}
   [region-specification]
-  (util/try-parse-or-false
-   (some?
-    (.getCountryCodeForRegion
-     (util/instance)
-     (code region-specification)))))
+  (contains? all (code region-specification)))
