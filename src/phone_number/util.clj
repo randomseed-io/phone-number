@@ -53,6 +53,16 @@
    (fn [^clojure.lang.IPersistentMap mp k v]
      (assoc mp k (f k)))
    m m))
+
+(defn remove-empty-vals
+  "Removes empty values from a map."
+  {:added "8.12.4-0" :tag clojure.lang.IPersistentMap}
+  [^clojure.lang.IPersistentMap m]
+  (reduce-kv
+   (fn [^clojure.lang.IPersistentMap mp k v]
+     (if (nil? v) (dissoc mp k) mp))
+   m m))
+
 ;; Singletons
 
 (defn instance          {:tag PhoneNumberUtil,              :added  "8.12.4-0"} [] (PhoneNumberUtil/getInstance))
