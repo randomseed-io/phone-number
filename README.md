@@ -14,60 +14,58 @@ Clojure library which uses Google's Libphonenumber to validate, inspect and gene
 
 (phone/info "+44 29 2018 3133")
 
-    '{:carrier              nil,
-      :country-code         44,
-      :location             "Cardiff",
-      :possible?            true,
-      :region-code          "GB",
-      :type                 :fixed-line,
-      :valid?               true,
-      :format/e164          "+442920183133",
-      :format/international "+44 29 2018 3133",
-      :format/national      "029 2018 3133",
-      :format/rfc3966       "tel:+44-29-2018-3133",
-      :time-zones/full      ("Greenwich Mean Time"),
-      :time-zones/ids       ("Europe/London"),
-      :time-zones/short     ("GMT")}
+    '{:phone-number/carrier                    nil,
+      :phone-number/country-code               44,
+      :phone-number/location                   "Cardiff",
+      :phone-number/possible?                  true,
+      :phone-number/region-code                "GB",
+      :phone-number/type                       :fixed-line,
+      :phone-number/valid?                     true,
+      :phone-number.format/e164                "+442920183133",
+      :phone-number.format/international       "+44 29 2018 3133",
+      :phone-number.format/national            "029 2018 3133",
+      :phone-number.format/rfc3966             "tel:+44-29-2018-3133",
+      :phone-number.tz-format/id               ("Europe/London"),
+      :phone-number.tz-format/full-standalone  ("Greenwich Mean Time"),
+      :phone-number.tz-format/short-standalone ("GMT")}
 
 ;; region passed as an argument
 ;; locale setting passed as an argument
 
 (phone/info "601 100 601" :pl :pl)
 
-    '{:carrier              "Plus",
-      :country-code         48,
-      :location             "Polska",
-      :possible?            true,
-      :region-code          "PL",
-      :type                 :mobile,
-      :valid?               true,
-      :format/e164          "+48601100601",
-      :format/international "+48 601 100 601",
-      :format/national      "601 100 601",
-      :format/rfc3966       "tel:+48-601-100-601",
-      :time-zones/full      ("Czas środkowoeuropejski"),
-      :time-zones/ids       ("Europe/Warsaw"),
-      :time-zones/short     ("CET")}
+    '{:phone-number/carrier                    "Plus",
+      :phone-number/country-code               48,
+      :phone-number/location                   "Polska",
+      :phone-number/possible?                  true,
+      :phone-number/region-code                "PL",
+      :phone-number/type                       :phone-number.type/mobile,
+      :phone-number/valid?                     true,
+      :phone-number.format/e164                "+48601100601",
+      :phone-number.format/international       "+48 601 100 601",
+      :phone-number.format/national            "601 100 601",
+      :phone-number.format/rfc3966             "tel:+48-601-100-601",
+      :phone-number.tz-format/id               ("Europe/Warsaw"),
+      :phone-number.tz-format/full-standalone  ("Czas środkowoeuropejski"),
+      :phone-number.tz-format/short-standalone ("CET")}
 
 (phone/info "8081 570001" :GB :JP)
 
-    '{:carrier              nil,
-      :country-code         44,
-      :location             nil,
-      :possible?            true,
-      :region-code          "GB",
-      :type                 :toll-free,
-      :valid?               true,
-      :format/e164          "+448081570001",
-      :format/international "+44 808 157 0001",
-      :format/national      "0808 157 0001",
-      :format/rfc3966       "tel:+44-808-157-0001",
-      :time-zones/full      ("Greenwich Mean Time" "British Time"),
-      :time-zones/ids       ("Europe/Guernsey"
-                             "Europe/Isle_of_Man"
-                             "Europe/Jersey"
-                             "Europe/London"),
-      :time-zones/short     ("GMT" "BT")}
+    '{:phone-number/carrier                    nil,
+      :phone-number/country-code               44,
+      :phone-number/location                   nil,
+      :phone-number/possible?                  true,
+      :phone-number/region-code                nil,
+      :phone-number/type                       :phone-number.type/unknown,
+      :phone-number/valid?                     false,
+      :phone-number.format/e164                "+44808157000",
+      :phone-number.format/international       "+44 808157000",
+      :phone-number.format/national            "808157000",
+      :phone-number.format/rfc3966             "tel:+44-808157000",
+      :phone-number.tz-format/full-standalone  nil,
+      :phone-number.tz-format/id               nil,
+      :phone-number.tz-format/short-standalone nil}
+
 ```
 
 * It **validates** phone numbers:
@@ -92,25 +90,25 @@ Clojure library which uses Google's Libphonenumber to validate, inspect and gene
 
 (phone/formats)
 
-(:format/e164
- :format/international
- :format/national
- :format/rfc3966)
+(:phone-number.format/e164
+ :phone-number.format/international
+ :phone-number.format/national
+ :phone-number.format/rfc3966)
 
 (phone/types)
 
-(:personal-number
- :uan
- :unknown
- :voicemail
- :premium-rate
- :fixed-line
- :shared-cost
- :pager
- :mobile
- :voip
- :toll-free
- :fixed-line-or-mobile)
+(:phone-number.type/personal-number
+ :phone-number.type/uan
+ :phone-number.type/unknown
+ :phone-number.type/voicemail
+ :phone-number.type/premium-rate
+ :phone-number.type/fixed-line
+ :phone-number.type/shared-cost
+ :phone-number.type/pager
+ :phone-number.type/mobile
+ :phone-number.type/voip
+ :phone-number.type/toll-free
+ :phone-number.type/fixed-line-or-mobile)
 ```
 
 And more…
