@@ -26,6 +26,18 @@
             NumberParseException]))
 
 ;;
+;; Settings
+;;
+
+(def ^{:added "8.12.4-0"
+       :dynamic true
+       :tag Boolean}
+  *info-removed-nils*
+  "Decides whether results of info function should contain properties having nil
+  values. They are removed by default."
+  true)
+
+;;
 ;; Protocol
 ;;
 
@@ -277,7 +289,7 @@
    (->> phone-number
         number
         (.getTimeZonesForNumber (util/time-zones-mapper))
-        (remove #{"Etc/Unknown"})
+        (remove #{nil false :none :unknown "Etc/Unknown"})
         dedupe
         not-empty))
   ([^phone_number.core.Phoneable      phone-number
@@ -321,19 +333,27 @@
          p (number phone-number region-specification)]
      (util/fmap-k #(time-zones p nil l %) tz-format/all))))
 
+(defn- ^clojure.lang.PersistentArrayMap info-remove-nils
+  [^clojure.lang.PersistentArrayMap m]
+  (if *info-removed-nils*
+    (util/remove-empty-vals m)
+    m))
+
 (defn info
   "Takes a phone number (expressed as a string, a number or a PhoneNumber object) and
   returns a map containing all possible information about the number with keywords as
   keys. These include:
-  * validity (:valid?)
-  * possibility of being a phone number (:possible?),
-  * numerical country code (:country-code),
-  * short region code (:region-specification),
-  * type of the number (:type),
-  * approximate geographic location of  a phone line (:location),
-  * carrier information (:carrier),
-  * time zones (:id, :full, :short-standalone, :full-standalone) and
-  * all of the possible formats (keywords with the format namespace).
+  * validity (:phone-number/valid?)
+  * possibility of being a phone number (:phone-number/possible?),
+  * numerical country code (:phone-number/country-code),
+  * short region code (:phone-number/region-code),
+  * type of the number (:phone-number/type),
+  * approximate geographic location of  a phone line (:phone-number/location),
+  * carrier information (:phone-number/carrier),
+  * time zones (:phone-number.tz-format/id,
+                :phone-number.tz-format/short-standalone,
+                :phone-number.tz-format/full-standalone) and
+  * all of the possible formats (keywords with the :phone-number.format/ namespace).
 
   If the second argument is present then it should be a valid region code used when
   the given phone number does not contain region information. It is acceptable to
@@ -367,7 +387,7 @@
            ::tz-format/full-standalone  (time-zones   phone-obj nil locale ::tz-format/full-standalone)
            ::tz-format/short-standalone (time-zones   phone-obj nil locale ::tz-format/short-standalone)}
           (merge (all-formats phone-obj nil))
-          util/remove-empty-vals))))
+          info-remove-nils))))
 
 (defn match
   "Returns matching level of two numbers or nil if there is no match. Optionally each
