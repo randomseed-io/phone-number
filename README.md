@@ -51,21 +51,14 @@ Clojure library which uses Google's Libphonenumber to validate, inspect and gene
 
 (phone/info "8081 570001" :GB :JP)
 
-    '{:phone-number/carrier                    nil,
-      :phone-number/country-code               44,
-      :phone-number/location                   nil,
+    '{:phone-number/country-code               44,
       :phone-number/possible?                  true,
-      :phone-number/region-code                nil,
       :phone-number/type                       :phone-number.type/unknown,
       :phone-number/valid?                     false,
       :phone-number.format/e164                "+44808157000",
       :phone-number.format/international       "+44 808157000",
       :phone-number.format/national            "808157000",
-      :phone-number.format/rfc3966             "tel:+44-808157000",
-      :phone-number.tz-format/full-standalone  nil,
-      :phone-number.tz-format/id               nil,
-      :phone-number.tz-format/short-standalone nil}
-
+      :phone-number.format/rfc3966             "tel:+44-808157000"}
 ```
 
 * It **validates** phone numbers:
