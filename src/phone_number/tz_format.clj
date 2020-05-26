@@ -40,3 +40,9 @@
   (if (nil? style)
     zone-id
     (.getDisplayName (java.time.ZoneId/of zone-id) style l)))
+
+(defn valid?
+  "Returns true if the given tz-format is valid, false otherwise."
+  {:added "8.12.4-0" :tag Boolean}
+  [^clojure.lang.Keyword tz-format]
+  (contains? all tz-format))

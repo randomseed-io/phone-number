@@ -28,3 +28,9 @@
 (def ^{:added "8.12.4-0"
        :tag PhoneNumberUtil$PhoneNumberFormat}
   default PhoneNumberUtil$PhoneNumberFormat/INTERNATIONAL)
+
+(defn valid?
+  "Returns true if the given format is valid, false otherwise."
+  {:added "8.12.4-0" :tag Boolean}
+  [^clojure.lang.Keyword format]
+  (contains? all format))

@@ -54,7 +54,7 @@
 ;;
 
 (def ^{:added "8.12.4-0"
-       :tag clojure.lang.IPersistentSet}
+       :tag clojure.lang.PersistentHashSet}
   all
   "Set of all supported regions."
   (set (.getSupportedRegions (util/instance))))
@@ -63,5 +63,5 @@
   "Returns true if the given region-specification is a valid region code, false
   otherwise."
   {:added "8.12.4-0" :tag Boolean}
-  [region-specification]
+  [^phone_number.region.RegionCodeable region-specification]
   (contains? all (code region-specification)))

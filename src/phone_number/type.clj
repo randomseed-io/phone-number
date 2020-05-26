@@ -37,3 +37,8 @@
        :tag PhoneNumberUtil$PhoneNumberType}
   default PhoneNumberUtil$PhoneNumberType/UNKNOWN)
 
+(defn valid?
+  "Returns true if the given number-type is valid, false otherwise."
+  {:added "8.12.4-0" :tag Boolean}
+  [^clojure.lang.Keyword number-type]
+  (contains? all number-type))
