@@ -42,6 +42,17 @@
    ^clojure.lang.IPersistentMap m]
   (into (empty m) (for [[k v] m] [k (f k)])))
 
+(defn fmap-k
+  "For each key and value of the given map m calls a function passed as the second
+  argument (passing successive keys during calls to it) and generates a map with
+  values updated by the results returned by the function."
+  {:added "8.12.4-0" :tag clojure.lang.IPersistentMap}
+  [^clojure.lang.IFn f
+   ^clojure.lang.IPersistentMap m]
+  (reduce-kv
+   (fn [^clojure.lang.IPersistentMap mp k v]
+     (assoc mp k (f k)))
+   m m))
 ;; Singletons
 
 (defn instance          {:tag PhoneNumberUtil,              :added  "8.12.4-0"} [] (PhoneNumberUtil/getInstance))
