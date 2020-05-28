@@ -6,6 +6,8 @@
 
     phone-number.type
 
+  (:require [phone-number.util :as util])
+
   (:import [com.google.i18n.phonenumbers
             PhoneNumberUtil
             PhoneNumberUtil$PhoneNumberType]))
@@ -21,7 +23,7 @@
       :premium-rate          PhoneNumberUtil$PhoneNumberType/PREMIUM_RATE
       :shared-cost           PhoneNumberUtil$PhoneNumberType/SHARED_COST
       :voip                  PhoneNumberUtil$PhoneNumberType/VOIP
-      :personal-number       PhoneNumberUtil$PhoneNumberType/PERSONAL_NUMBER
+      :personal              PhoneNumberUtil$PhoneNumberType/PERSONAL_NUMBER
       :pager                 PhoneNumberUtil$PhoneNumberType/PAGER
       :uan                   PhoneNumberUtil$PhoneNumberType/UAN
       :voicemail             PhoneNumberUtil$PhoneNumberType/VOICEMAIL
