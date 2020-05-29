@@ -38,6 +38,25 @@
   true)
 
 ;;
+;; Constants
+;;
+
+(def ^{:added "8.12.4-0"
+       :const true
+       :tag clojure.lang.PersistentHashSet}
+  none
+  "A set containing values considered to be none, unknown or empty."
+  #{nil 0 false "" () {}
+    :zero :nil :null
+    :none :unknown      :etc/unknown
+    ::type/unknown      ::type/none
+    ::region/unknown    ::region/none
+    ::format/unknown    ::format/none
+    ::tz-format/unknown ::tz-format/none
+    ::match/none
+    "Etc/Unknown" "unknown" "none" "nil" "0"})
+
+;;
 ;; Protocol
 ;;
 
