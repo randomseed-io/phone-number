@@ -6,57 +6,72 @@
 
     phone-number.spec
 
-  (:require [phone-number.core]
-            [clojure.spec.alpha :as s]))
+  (:require [phone-number.core  :as phone]
+            [clojure.spec.alpha :as     s]))
 
-(s/def :phone-number/valid-number    phone-number.core/valid?)
-(s/def :phone-number/possible-number phone-number.core/possible?)
+;;
+;; Phone number specs
+;;
+
+(ns phone-number
+  (:require [clojure.spec.alpha :as s]))
+
+(s/def ::valid                phone-number.core/valid?)
+(s/def ::possible             phone-number.core/possible?)
+(s/def ::has-region-code      phone-number.core/has-region-code?)
+(s/def ::has-country-code     phone-number.core/has-country-code?)
+(s/def ::has-location         phone-number.core/has-location?)
+(s/def ::has-time-zone        phone-number.core/has-time-zone?)
+(s/def ::has-known-type       phone-number.core/has-known-type?)
+
+(s/def ::mobile               phone-number.core/is-mobile?)
+(s/def ::fixed-line           phone-number.core/is-fixed-line?)
+(s/def ::toll-free            phone-number.core/is-toll-free?)
+(s/def ::premium-rate         phone-number.core/is-premium-rate?)
+(s/def ::shared-cost          phone-number.core/is-shared-cost?)
+(s/def ::voip                 phone-number.core/is-voip?)
+(s/def ::personal             phone-number.core/is-personal?)
+(s/def ::pager                phone-number.core/is-pager?)
+(s/def ::uan                  phone-number.core/is-uan?)
+(s/def ::voicemail            phone-number.core/is-voicemail?)
+(s/def ::unknown              phone-number.core/is-unknown?)
+(s/def ::maybe-mobile         phone-number.core/is-maybe-mobile?)
+(s/def ::maybe-fixed-line     phone-number.core/is-maybe-fixed-line?)
+(s/def ::fixed-line-or-mobile phone-number.core/is-fixed-line-or-mobile?)
+(s/def ::uncertain-fixed-line-or-mobile phone-number.core/is-uncertain-fixed-line-or-mobile?)
+
+;;
+;; Phone number region specs
+;;
+
+(ns phone-number.region
+  (:require [clojure.spec.alpha :as s]))
+
+(s/def ::valid valid?)
+
+;;
+;; Phone number type specs
+;;
 
 (ns phone-number.type
-  (:require [clojure.spec.alpha  :as      s]
-            [phone-number.core   :as  phone]
-            [phone-number.util   :as   util]))
+  (:require [clojure.spec.alpha :as s]))
 
-(util/gen-ises (remove #{::fixed-line-or-mobile} (keys all)) phone/type)
+(s/def ::valid valid?)
 
-(defn is-fixed-line-or-mobile?
-  [num]
-  (util/try-parse-or-false
-   (contains?
-    #{::fixed-line-or-mobile ::fixed-line ::mobile}
-    (phone/type num))))
+;;
+;; Phone number format specs
+;;
 
-(defn is-uncertain-fixed-line-or-mobile?
-  [num]
-  (util/try-parse-or-false
-   (= ::fixed-line-or-mobile (phone/type num))))
+(ns phone-number.format
+  (:require [clojure.spec.alpha :as s]))
 
-(defn is-maybe-mobile?
-  [num]
-  (util/try-parse-or-false
-   (contains?
-    #{::fixed-line-or-mobile ::mobile}
-    (phone/type num))))
+(s/def ::valid valid?)
 
-(defn is-maybe-fixed-line?
-  [num]
-  (util/try-parse-or-false
-   (contains?
-    #{::fixed-line-or-mobile ::fixed-line}
-    (phone/type num))))
+;;
+;; Phone number time zone format specs
+;;
 
-(s/def ::mobile               is-mobile?)
-(s/def ::fixed-line           is-fixed-line?)
-(s/def ::toll-free            is-toll-free?)
-(s/def ::premium-rate         is-premium-rate?)
-(s/def ::shared-cost          is-shared-cost?)
-(s/def ::voip                 is-voip?)
-(s/def ::personal             is-personal?)
-(s/def ::pager                is-pager?)
-(s/def ::uan                  is-uan?)
-(s/def ::voicemail            is-voicemail?)
-(s/def ::unknown              is-unknown?)
-(s/def ::maybe-mobile         is-maybe-mobile?)
-(s/def ::maybe-fixed-line     is-maybe-fixed-line?)
-(s/def ::fixed-line-or-mobile is-fixed-line-or-mobile?)
-(s/def ::uncertain-fixed-line-or-mobile is-uncertain-fixed-line-or-mobile?)
+(ns phone-number.tz-format
+  (:require [clojure.spec.alpha :as s]))
+
+(s/def ::valid valid?)
