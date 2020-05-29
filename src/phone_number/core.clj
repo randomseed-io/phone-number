@@ -14,16 +14,13 @@
             [phone-number.format          :as    format]
             [phone-number.tz-format       :as tz-format]
             [phone-number.region          :as    region]
-            [trptr.java-wrapper.locale    :as         l])
+            [trptr.java-wrapper.locale    :as         l]
+            [lazy-map.core                :refer   :all])
 
   (:import [phone_number.region RegionCodeable]
            [com.google.i18n.phonenumbers
             Phonenumber$PhoneNumber
-            ShortNumberInfo
-            geocoding.PhoneNumberOfflineGeocoder
-            PhoneNumberToCarrierMapper
-            PhoneNumberToTimeZonesMapper
-            NumberParseException]))
+            ShortNumberInfo]))
 
 ;;
 ;; Settings
@@ -123,7 +120,7 @@
     ([phone-number ^RegionCodeable region-specification] false)))
 
 ;;
-;; Public functions
+;; Basic checks
 ;;
 
 (defn native?
@@ -146,17 +143,15 @@
    (util/try-parse-or-false
     (.isPossibleNumber (util/instance) (number phone-number region-specification)))))
 
+;;
+;; Formatting
+;;
+
 (defn formats
   "Returns all possible phone number formats as a sequence of keywords."
   {:added "8.12.4-0" :tag clojure.lang.APersistentMap$KeySeq}
   []
   (keys format/all))
-
-(defn types
-  "Returns all possible phone number types as a sequence of keywords."
-  {:added "8.12.4-0" :tag clojure.lang.APersistentMap$KeySeq}
-  []
-  (keys type/all))
 
 (defn format
   "Takes a phone number (expressed as a string, a number or a PhoneNumber object) and
@@ -192,6 +187,16 @@
    (let [p (number phone-number region-specification)]
      (util/fmap-k #(format p nil %) format/all))))
 
+;;
+;; Number type
+;;
+
+(defn types
+  "Returns all possible phone number types as a sequence of keywords."
+  {:added "8.12.4-0" :tag clojure.lang.APersistentMap$KeySeq}
+  []
+  (keys type/all))
+
 (defn type
   "Takes a phone number (expressed as a string, a number or a PhoneNumber object) and
   returns its type as a keyword.
@@ -206,6 +211,10 @@
    (type/by-val
     (.getNumberType (util/instance) (number phone-number region-specification))
     ::type/unknown)))
+
+;;
+;; Country and region
+;;
 
 (defn country-code
   "Takes a phone number (expressed as a string, a number or a PhoneNumber object) and
@@ -236,6 +245,11 @@
      (util/instance)
      (number phone-number region-specification)))))
 
+
+;;
+;; Location
+;;
+
 (defn location
   "Takes a phone number (expressed as a string, a number or a PhoneNumber object) and
   returns its possible geographic location as a string or nil if the location happens
@@ -264,6 +278,10 @@
      (number phone-number)
      (l/locale locale-specification)))))
 
+;;
+;; Carrier
+;;
+
 (defn carrier
   "Takes a phone number (expressed as a string, a number or a PhoneNumber object) and
   returns its possible carrier name as a string or nil if the carrier name happens to
@@ -291,6 +309,10 @@
      (number phone-number)
      (l/locale locale-specification)))))
 
+;;
+;; Time zones
+;;
+
 (defn time-zones
   "Takes a phone number (expressed as a string, a number or a PhoneNumber object) and
   returns all possible time zones which relate to its geographical location as a lazy
@@ -308,7 +330,8 @@
    (->> phone-number
         number
         (.getTimeZonesForNumber (util/time-zones-mapper))
-        (remove #{nil false :none :unknown "Etc/Unknown"})
+        util/lazy-iterator-seq
+        (remove none)
         dedupe
         not-empty))
   ([^phone_number.core.Phoneable      phone-number
@@ -352,6 +375,11 @@
          p (number phone-number region-specification)]
      (util/fmap-k #(time-zones p nil l %) tz-format/all))))
 
+
+;;
+;; Generic reporting
+;;
+
 (defn- ^clojure.lang.PersistentArrayMap info-remove-nils
   [^clojure.lang.PersistentArrayMap m]
   (if *info-removed-nils*
@@ -374,6 +402,9 @@
                 :phone-number.tz-format/full-standalone) and
   * all of the possible formats (keywords with the :phone-number.format/ namespace).
 
+  Keys with nil values assigned will be removed from the map unless the dynamic
+  variable *info-removed-nils* is rebound to false.
+
   If the second argument is present then it should be a valid region code used when
   the given phone number does not contain region information. It is acceptable to
   pass nil as a value to tell the function that there is no region information.
@@ -390,7 +421,7 @@
    (info phone-number region-specification nil))
   ([^phone_number.core.Phoneable  phone-number
     ^RegionCodeable               region-specification
-    ^String locale-specification]
+    ^String                       locale-specification]
    (let [number-util (util/instance)
          locale      (l/locale            locale-specification)
          phone-obj   (number phone-number region-specification)]
@@ -407,6 +438,10 @@
            ::tz-format/short-standalone (time-zones   phone-obj nil locale ::tz-format/short-standalone)}
           (merge (all-formats phone-obj nil))
           info-remove-nils))))
+
+;;
+;; Matching
+;;
 
 (defn match
   "Returns matching level of two numbers or nil if there is no match. Optionally each
@@ -460,11 +495,188 @@
               region-specification-a
               phone-number-b
               nil))))
-  ([^phone_number.core.Phoneable phone-number-a
-    ^phone_number.core.Phoneable phone-number-b]
+  ([^phone_number.core.Phoneable      phone-number-a
+    ^phone_number.core.Phoneable      phone-number-b]
    (util/try-parse-or-false
     (= ::match/exact
        (match phone-number-a
               nil
               phone-number-b
               nil)))))
+
+;;
+;; Number type checking
+;;
+
+(util/gen-ises  ; Auto-generated is-(type)? functions.
+ (remove #{::type/fixed-line-or-mobile} (keys type/all))
+ type)
+
+(defn is-fixed-line-or-mobile?
+  "Returns true if the given number is a kind of fixed-line number or a mobile number,
+  false otherwise. Returns true also when there is a chance that a number is either
+  mobile or fixed-line but it cannot be certainly decided."
+  {:added "8.12.4-0" :tag Boolean}
+  ([^phone_number.core.Phoneable phone-number]
+   (is-fixed-line-or-mobile? phone-number nil))
+  ([^phone_number.core.Phoneable phone-number
+    ^RegionCodeable              region-specification]
+   (util/try-parse-or-false
+    (contains?
+     #{::type/fixed-line-or-mobile
+       ::type/fixed-line ::mobile}
+     (type phone-number)))))
+
+(defn is-uncertain-fixed-line-or-mobile?
+  "Returns true if the given number belongs to a class of numbers that cannot be
+  certainly decided as being mobile or fixed-line, false otherwise. Please note that
+  it will return false for mobile or fixed-line numbers that are certainly classified
+  as such."
+  {:added "8.12.4-0" :tag Boolean}
+  ([^phone_number.core.Phoneable phone-number]
+   (is-uncertain-fixed-line-or-mobile? phone-number nil))
+  ([^phone_number.core.Phoneable phone-number
+    ^RegionCodeable              region-specification]
+   (util/try-parse-or-false
+    (= ::type/fixed-line-or-mobile
+       (type phone-number region-specification)))))
+
+(defn is-maybe-mobile?
+  "Returns true if the given number is a kind of a mobile number or a number that
+  belongs to a class where it cannot be fully decided whether it is mobile or
+  fixed-line. Returns false otherwise."
+  {:added "8.12.4-0" :tag Boolean}
+  ([^phone_number.core.Phoneable phone-number]
+   (is-maybe-mobile? phone-number nil))
+  ([^phone_number.core.Phoneable phone-number
+    ^RegionCodeable              region-specification]
+   (util/try-parse-or-false
+    (contains?
+     #{::type/fixed-line-or-mobile
+       ::type/mobile}
+     (type phone-number region-specification)))))
+
+(defn is-maybe-fixed-line?
+  "Returns true if the given number is a kind of a fixed-line number or a number that
+  belongs to a class where it cannot be fully decided whether it is mobile or
+  fixed-line. Returns false otherwise."
+  {:added "8.12.4-0" :tag Boolean}
+  ([^phone_number.core.Phoneable phone-number]
+   (is-maybe-fixed-line? phone-number nil))
+  ([^phone_number.core.Phoneable phone-number
+    ^RegionCodeable              region-specification]
+   (util/try-parse-or-false
+    (contains?
+     #{::type/fixed-line-or-mobile
+       ::type/fixed-line}
+     (type phone-number region-specification)))))
+
+(defn has-known-type?
+  "Returns true if the given number is of a known type, false otherwise."
+  {:added "8.12.4-0" :tag Boolean}
+  ([^phone_number.core.Phoneable phone-number]
+   (has-known-type? phone-number nil))
+  ([^phone_number.core.Phoneable phone-number
+    ^RegionCodeable              region-specification]
+   (util/try-parse-or-false
+    (not (contains? none (type phone-number region-specification))))))
+
+;;
+;; Region and country checking
+;;
+
+(defn has-region-code?
+  "For the given phone number returns true if the region code is present in it, false
+  otherwise."
+  {:added "8.12.4-0" :tag Boolean}
+  ([^phone_number.core.Phoneable phone-number]
+   (has-region-code? phone-number nil))
+  ([^phone_number.core.Phoneable phone-number
+    ^RegionCodeable              region-specification]
+   (util/try-parse-or-false
+    (not (contains? none (region-code phone-number region-specification))))))
+
+(defn has-country-code?
+  "For the given phone number returns true if the country code is present in it, false
+  otherwise."
+  {:added "8.12.4-0" :tag Boolean}
+  ([^phone_number.core.Phoneable phone-number]
+   (has-country-code? phone-number nil))
+  ([^phone_number.core.Phoneable phone-number
+    ^RegionCodeable              region-specification]
+   (util/try-parse-or-false
+    (not (contains? none (country-code phone-number region-specification))))))
+
+(defn has-location?
+  "For the given phone number returns true if the approximate geographic location is
+  present in it, false otherwise."
+  {:added "8.12.4-0" :tag Boolean}
+  ([^phone_number.core.Phoneable phone-number]
+   (has-location? phone-number nil))
+  ([^phone_number.core.Phoneable phone-number
+    ^RegionCodeable              region-specification]
+   (util/try-parse-or-false
+    (not (contains? none (location phone-number region-specification))))))
+
+(defn has-time-zone?
+  "For the given phone number returns true if any time zone information is present in
+  it, false otherwise."
+  {:added "8.12.4-0" :tag Boolean}
+  ([^phone_number.core.Phoneable phone-number]
+   (has-time-zone? phone-number nil))
+  ([^phone_number.core.Phoneable phone-number
+    ^RegionCodeable              region-specification]
+   (util/try-parse-or-false
+    (not (contains? none (time-zones phone-number region-specification))))))
+
+;;
+;; Finding numbers
+;;
+
+(defn- enrich-match
+  "Used to enrich the results of find-numbers with phone number information map."
+  {:added "8.12.4-0" :tag lazy_map.core.LazyMap}
+  [^java.util.Locale      locale-specification
+   ^lazy_map.core.LazyMap m]
+  (if-some [n (::match/number m)]
+    (assoc m ::match/info (delay (info (::match/number m) nil locale-specification)))
+    m))
+
+(defn find-numbers
+  "Searches for phone numbers in the given text. Returns a lazy sequence of maps where
+  each element is a map representing a match and having the following keys:
+
+  * :phone-number.match/start       - start index of a phone number substring
+  * :phone-number.match/end         - end index of a phone number substring
+  * :phone-number.match/raw-string  - phone number substring
+  * :phone-number.match/number      - phone number object
+  * :phone-number.match/info        - phone number properties map
+
+  Phone number object is suitable to be used with majority of functions from
+  core. The info key is associated with a map holding all information rendered by
+  calling info function. This map is lazily evaluated (as a whole), meaning the info
+  function will be called when the value is accessed.
+
+  Optional, but highly recommended, second argument should be a region specification
+  used as a hint when looking for numbers without any country code prefix.
+
+  The third optional argument should be a locale specification (Locale object or any
+  other object that can initialize one, like a string with language and/or
+  dialect). It will be used to render a value associated with
+  the :phone-number.match/info key."
+  {:added "8.12.4-0" :tag clojure.lang.LazySeq}
+  ([^String           text]
+   (find-numbers text nil nil))
+  ([^String           text
+    ^RegionCodeable   region-specification]
+   (find-numbers text region-specification nil))
+  ([^String           text
+    ^RegionCodeable   region-specification
+    ^java.util.Locale locale-specification]
+   (->> region-specification
+        region/code
+        (.findNumbers (util/instance) text)
+        util/lazy-iterator-seq
+        (map (comp
+              (partial enrich-match locale-specification)
+              match/mapper)))))
