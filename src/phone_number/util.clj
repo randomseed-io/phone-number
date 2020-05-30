@@ -8,6 +8,7 @@
 
   (:import [com.google.i18n.phonenumbers
             PhoneNumberUtil
+            ShortNumberInfo
             geocoding.PhoneNumberOfflineGeocoder
             PhoneNumberToCarrierMapper
             PhoneNumberToTimeZonesMapper
@@ -16,6 +17,7 @@
 ;; Singletons
 
 (defn instance          {:tag PhoneNumberUtil,              :added  "8.12.4-0"} [] (PhoneNumberUtil/getInstance))
+(defn short             {:tag ShortNumberInfo,              :added  "8.12.4-0"} [] (ShortNumberInfo/getInstance))
 (defn geo-coder         {:tag PhoneNumberOfflineGeocoder,   :added  "8.12.4-0"} [] (PhoneNumberOfflineGeocoder/getInstance))
 (defn carrier-mapper    {:tag PhoneNumberToCarrierMapper,   :added  "8.12.4-0"} [] (PhoneNumberToCarrierMapper/getInstance))
 (defn time-zones-mapper {:tag PhoneNumberToTimeZonesMapper, :added  "8.12.4-0"} [] (PhoneNumberToTimeZonesMapper/getInstance))
@@ -39,6 +41,12 @@
   `(try ~@body
         (catch NumberParseException  e# false)
         (catch NumberFormatException e# false)))
+
+(defn ns-infer
+  {:added "8.12.4-0" :tag clojure.lang.Keyword}
+  [^String ns-name
+   ^clojure.lang.Keyword k]
+  (if (simple-keyword? k) (keyword ns-name (name k)) k))
 
 (defn fmap-k
   "For each key and value of the given map m calls a function passed as the second

@@ -6,9 +6,11 @@
 
     phone-number.format
 
-  (:import [com.google.i18n.phonenumbers
-            PhoneNumberUtil
-            PhoneNumberUtil$PhoneNumberFormat]))
+  (:refer-clojure :exclude [get])
+  (:require [phone-number.util :as util])
+  (:import  [com.google.i18n.phonenumbers
+             PhoneNumberUtil
+             PhoneNumberUtil$PhoneNumberFormat]))
 
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentArrayMap}
@@ -26,8 +28,25 @@
   (clojure.set/map-invert all))
 
 (def ^{:added "8.12.4-0"
+       :const true
+       :tag clojure.lang.Keyword}
+  default ::international)
+
+(def ^{:added "8.12.4-0"
        :tag PhoneNumberUtil$PhoneNumberFormat}
-  default PhoneNumberUtil$PhoneNumberFormat/INTERNATIONAL)
+  default-val (all default))
+
+(defn get
+  "Parses a format specification and returns a value that can be supplied to
+  Libphonenumber methods."
+  {:added "8.12.4-0" :tag PhoneNumberUtil$PhoneNumberFormat}
+  ([^clojure.lang.Keyword k]
+   (get k true))
+  ([^clojure.lang.Keyword k
+    ^Boolean use-infer]
+   (if (nil? k)
+     default-val
+     (all (if use-infer (util/ns-infer "phone-number.format" k) k)))))
 
 (defn valid?
   "Returns true if the given format is valid, false otherwise."

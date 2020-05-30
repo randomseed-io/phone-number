@@ -6,7 +6,9 @@
 
     phone-number.tz-format
 
-  (:import [java.time.format TextStyle]))
+  (:refer-clojure :exclude [get])
+  (:require [phone-number.util :as util])
+  (:import  [java.time.format TextStyle]))
 
 ;; Time Zone Formats
 
@@ -23,8 +25,13 @@
       :full-standalone   TextStyle/FULL_STANDALONE})
 
 (def ^{:added "8.12.4-0"
-       :tag nil}
-  default nil)
+       :const true
+       :tag clojure.lang.Keyword}
+  default ::id)
+
+(def ^{:added "8.12.4-0"
+       :tag TextStyle}
+  default-val (all default))
 
 ;; Time Zone IDs
 
@@ -40,6 +47,18 @@
   (if (nil? style)
     zone-id
     (.getDisplayName (java.time.ZoneId/of zone-id) style l)))
+
+(defn get
+  "Parses a time zone format specification and returns a value that can be supplied to
+  phone-number functions.  If nil is given it returns the default value."
+  {:added "8.12.4-0" :tag TextStyle}
+  ([^clojure.lang.Keyword k]
+   (get k true))
+  ([^clojure.lang.Keyword k
+    ^Boolean use-infer]
+   (if (nil? k)
+     default-val
+     (all (if use-infer (util/ns-infer "phone-number.tz-format" k) k)))))
 
 (defn valid?
   "Returns true if the given tz-format is valid, false otherwise."

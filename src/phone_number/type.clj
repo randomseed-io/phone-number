@@ -6,11 +6,11 @@
 
     phone-number.type
 
+  (:refer-clojure :exclude [get])
   (:require [phone-number.util :as util])
-
-  (:import [com.google.i18n.phonenumbers
-            PhoneNumberUtil
-            PhoneNumberUtil$PhoneNumberType]))
+  (:import  [com.google.i18n.phonenumbers
+             PhoneNumberUtil
+             PhoneNumberUtil$PhoneNumberType]))
 
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentHashMap}
@@ -36,8 +36,25 @@
   (clojure.set/map-invert all))
 
 (def ^{:added "8.12.4-0"
+       :const true
+       :tag clojure.lang.Keyword}
+  default ::fixed-line)
+
+(def ^{:added "8.12.4-0"
        :tag PhoneNumberUtil$PhoneNumberType}
-  default PhoneNumberUtil$PhoneNumberType/UNKNOWN)
+  default-val (all default))
+
+(defn get
+  "Parses a type and returns a value that can be supplied to Libphonenumber methods. If
+  nil is given it returns the default value."
+  {:added "8.12.4-0" :tag PhoneNumberUtil$PhoneNumberType}
+  ([^clojure.lang.Keyword k]
+   (get k true))
+  ([^clojure.lang.Keyword k
+    ^Boolean use-infer]
+   (if (nil? k)
+     default-val
+     (all (if use-infer (util/ns-infer "phone-number.type" k) k)))))
 
 (defn valid?
   "Returns true if the given number-type is valid, false otherwise."

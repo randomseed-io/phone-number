@@ -7,7 +7,6 @@
     phone-number.match
 
   (:require [lazy-map.core :refer :all])
-
   (:import [com.google.i18n.phonenumbers
             PhoneNumberUtil
             PhoneNumberUtil$MatchType
