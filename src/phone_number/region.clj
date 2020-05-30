@@ -16,6 +16,17 @@
 ;; Supported Regions
 ;;
 
+
+(def ^{:added "8.12.4-0"
+       :const true
+       :tag clojure.lang.Keyword}
+  unknown :unknown)
+
+(def ^{:added "8.12.4-0"
+       :const true
+       :tag String}
+  unknown-val "ZZ")
+
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentHashMap}
   all
@@ -50,7 +61,11 @@
    (get k true))
   ([^clojure.lang.Keyword k
     ^Boolean use-infer]
-   (all (if use-infer (util/ns-infer "phone-number.region" k) k))))
+   (if (keyword? k)
+     (all (if use-infer (util/ns-infer "phone-number.region" k) k))
+     (if (contains? by-val k) ;; internal performance boost (passing the actual value)
+       k
+       nil))))
 
 (defn valid?
   "Returns true if the given region-specification is a valid region code, false

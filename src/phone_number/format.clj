@@ -19,7 +19,8 @@
   #::{:e164          PhoneNumberUtil$PhoneNumberFormat/E164
       :international PhoneNumberUtil$PhoneNumberFormat/INTERNATIONAL
       :national      PhoneNumberUtil$PhoneNumberFormat/NATIONAL
-      :rfc3966       PhoneNumberUtil$PhoneNumberFormat/RFC3966})
+      :rfc3966       PhoneNumberUtil$PhoneNumberFormat/RFC3966
+      :raw-input     :raw})
 
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentArrayMap}

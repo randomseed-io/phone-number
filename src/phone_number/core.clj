@@ -14,12 +14,12 @@
             [phone-number.format          :as    format]
             [phone-number.tz-format       :as tz-format]
             [phone-number.region          :as    region]
+            [phone-number.cost            :as      cost]
             [trptr.java-wrapper.locale    :as         l]
             [lazy-map.core                :refer   :all])
 
   (:import  [com.google.i18n.phonenumbers
-             Phonenumber$PhoneNumber
-             ShortNumberInfo]))
+             Phonenumber$PhoneNumber]))
 
 ;;
 ;; Settings
@@ -103,6 +103,10 @@
     was given. If the region code argument is passed and the first argument is
     already a kind of PhoneNumber then it will be ignored.")
 
+  (^{:added "8.12.4-0" :tag Phonenumber$PhoneNumber} number-noraw
+   [phone-number] [phone-number region-code]
+   "Like number but does not preserve raw input.")
+
   (^{:added "8.12.4-0" :tag Boolean} valid?
    [phone-number] [phone-number region-code]
    "Takes a phone number represented as a string, a number or a PhoneNumber object
@@ -111,11 +115,12 @@
 (extend-protocol Phoneable
 
   Phonenumber$PhoneNumber
+  (number-noraw
+    ([phone-number] phone-number)
+    ([phone-number ^clojure.lang.Keyword region-code] phone-number))
   (number
     ([phone-number] phone-number)
-    ([phone-number
-      ^clojure.lang.Keyword region-code]
-     phone-number))
+    ([phone-number ^clojure.lang.Keyword region-code] phone-number))
   (valid?
     ([obj] (valid? obj nil))
     ([obj
@@ -124,13 +129,22 @@
       (.isValidNumber (util/instance) obj))))
 
   String
+  (number-noraw
+    ([phone-number] (number-noraw phone-number nil))
+    ([phone-number
+      ^clojure.lang.Keyword region-code]
+     (.parse
+      (util/instance)
+      phone-number
+      (region/get region-code *inferred-namespaces*))))
   (number
     ([phone-number] (number phone-number nil))
     ([phone-number
       ^clojure.lang.Keyword region-code]
-     (.parse (util/instance)
-             phone-number
-             (region/get region-code *inferred-namespaces*))))
+     (.parseAndKeepRawInput
+      (util/instance)
+      phone-number
+      (region/get region-code *inferred-namespaces*))))
   (valid?
     ([obj](valid? obj nil))
     ([obj
@@ -138,9 +152,14 @@
      (util/try-parse-or-false
       (.isValidNumber
        (util/instance)
-       (number obj region-code)))))
+       (number-noraw obj region-code)))))
 
   Number
+  (number-noraw
+    ([phone-number] (number-noraw (str phone-number)))
+    ([phone-number
+      ^clojure.lang.Keyword region-code]
+     (number-noraw (str phone-number) region-code)))
   (number
     ([phone-number] (number (str phone-number)))
     ([phone-number
@@ -153,6 +172,11 @@
      (valid? (str phone-number) region-code)))
 
   nil
+  (number-noraw
+    ([phone-number] phone-number)
+    ([phone-number
+      ^clojure.lang.Keyword region-code]
+     phone-number))
   (number
     ([phone-number] phone-number)
     ([phone-number
@@ -188,7 +212,7 @@
    (util/try-parse-or-false
     (.isPossibleNumber
      (util/instance)
-     (number phone-number region-code)))))
+     (number-noraw phone-number region-code)))))
 
 (defn possible-short?
   "Takes a phone number (expressed as a string, a number or a PhoneNumber object) and
@@ -201,27 +225,26 @@
   should be a valid region code for the origination of a possible call. That hint
   will be used to restrict the check according to rules. For example 112 may be valid
   in multiple regions but if one calls it from some particular region it might not be
-  reachable number."
+  reachable."
   {:added "8.12.4-0" :tag Boolean}
   ([^phone_number.core.Phoneable phone-number]
-   (util/try-parse-or-false
-    (.isPossibleShortNumber
-     (util/short)
-     (number phone-number nil))))
+   (possible-short? phone-number nil))
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code]
    (util/try-parse-or-false
     (.isPossibleShortNumber
      (util/short)
-     (number phone-number region-code))))
+     (number-noraw phone-number region-code))))
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
     ^clojure.lang.Keyword        region-from]
-   (util/try-parse-or-false
-    (.isPossibleShortNumberForRegion
-     (util/short)
-     (number phone-number region-code)
-     (region/get region-from *inferred-namespaces*)))))
+   (if (nil? region-from)
+     (possible-short? phone-number region-code)
+     (util/try-parse-or-false
+      (.isPossibleShortNumberForRegion
+       (util/short)
+       (number-noraw phone-number region-code)
+       (region/get region-from *inferred-namespaces*))))))
 
 (defn valid-short?
   "Takes a phone number (expressed as a string, a number or a PhoneNumber object) and
@@ -234,27 +257,26 @@
   should be a valid region code for the origination of a possible call. That hint
   will be used to restrict the check according to rules. For example 112 may be valid
   in multiple regions but if one calls it from some particular region it might not be
-  reachable number."
+  reachable."
   {:added "8.12.4-0" :tag Boolean}
   ([^phone_number.core.Phoneable phone-number]
-   (util/try-parse-or-false
-    (.isPossibleShortNumber
-     (util/short)
-     (number phone-number nil))))
+   (valid-short? phone-number nil))
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code]
    (util/try-parse-or-false
     (.isValidShortNumber
      (util/short)
-     (number phone-number region-code))))
+     (number-noraw phone-number region-code))))
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
     ^clojure.lang.Keyword        region-from]
-   (util/try-parse-or-false
-    (.isValidShortNumberForRegion
-     (util/short)
-     (number phone-number region-code)
-     (region/get region-from *inferred-namespaces*)))))
+   (if (nil? region-from)
+     (valid-short? phone-number region-code)
+     (util/try-parse-or-false
+      (.isValidShortNumberForRegion
+       (util/short)
+       (number-noraw phone-number region-code)
+       (region/get region-from *inferred-namespaces*))))))
 
 ;;
 ;; Formatting
@@ -262,22 +284,31 @@
 
 (defn format
   "Takes a phone number (expressed as a string, a number or a PhoneNumber object) and
-  returns it as a formatted string. The second argument should be a format expressed
+  returns it as a formatted string. The last argument should be a format expressed
   as a keyword (use the all-formats function to list them) or a
   PhoneNumberType.
 
-  If the third argument is present then it should be a valid region code (a keyword)
-  to be used when the given phone number does not contain region information."
+  If the second argument is present (and there are 3 arguments) then it should be a
+  valid region code (a keyword) to be used when the given phone number does not
+  contain region information."
   {:added "8.12.4-0" :tag String}
+  ([^phone_number.core.Phoneable phone-number]
+   (format phone-number nil format/default))
   ([^phone_number.core.Phoneable phone-number
-    ^clojure.lang.Keyword        format-specification]
-   (format phone-number nil))
+    ^clojure.lang.Keyword        region-code]
+   (format phone-number region-code format/default))
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
     ^clojure.lang.Keyword        format-specification]
-   (.format (util/instance)
-            (number phone-number region-code)
-            (format/get format-specification *inferred-namespaces*))))
+   (let [f (format/get format-specification *inferred-namespaces*)]
+     (not-empty
+      (if (= :raw f)
+        (if (native? phone-number)
+          (.getRawInput phone-number)
+          (str phone-number))
+        (.format (util/instance)
+                 (number-noraw phone-number region-code)
+                 f))))))
 
 (defn all-formats
   "Takes a phone number (expressed as a string, a number or a PhoneNumber object) and
@@ -312,7 +343,7 @@
    (type/by-val
     (.getNumberType
      (util/instance)
-     (number phone-number region-code))
+     (number-noraw phone-number region-code))
     ::type/unknown)))
 
 ;;
@@ -330,7 +361,7 @@
    (country-code phone-number nil))
   ([^phone_number.core.Phoneable    phone-number
     ^clojure.lang.Keyword           region-code]
-   (.getCountryCode (number phone-number region-code))))
+   (.getCountryCode (number-noraw phone-number region-code))))
 
 (defn region-code
   "Takes a phone number (expressed as a string, a number or a PhoneNumber object) and
@@ -347,7 +378,7 @@
     (not-empty
      (.getRegionCodeForNumber
       (util/instance)
-      (number phone-number region-code))))))
+      (number-noraw phone-number region-code))))))
 
 ;;
 ;; Location
@@ -360,8 +391,8 @@
 
   If the second argument is present then it should be a valid region code (a keyword)
   to be used when the given phone number does not contain region information. It is
-  acceptable to pass nil as a value to tell the function that there is no region
-  information.
+  acceptable to pass nil as a value to tell the function that there is no explicit
+  region information and it should extract it from a number.
 
   If the third argument is present then it should be a string specifying locale
   information or a java.util.Locale object. It will be used during rendering strings
@@ -379,7 +410,7 @@
    (not-empty
     (.getDescriptionForNumber
      (util/geo-coder)
-     (number phone-number region-code)
+     (number-noraw phone-number region-code)
      (l/locale locale-specification)))))
 
 ;;
@@ -393,8 +424,8 @@
 
   If the second argument is present then it should be a valid region code (a keyword)
   to be used when the given phone number does not contain region information. It is
-  acceptable to pass nil as a value to tell the function that there is no region
-  information.
+  acceptable to pass nil as a value to tell the function that there is no explicit
+  region information and it should extract it from a number.
 
   If the third argument is present then it should be a string specifying locale
   information or a java.util.Locale object. It will be used during rendering carrier
@@ -411,7 +442,7 @@
    (not-empty
     (.getNameForNumber
      (util/carrier-mapper)
-     (number phone-number region-code)
+     (number-noraw phone-number region-code)
      (l/locale locale-specification)))))
 
 ;;
@@ -426,15 +457,15 @@
 
   If the second argument is present then it should be a valid region code (a keyword)
   to be used when the given phone number does not contain region information. It is
-  acceptable to pass nil as a value to tell the function that there is no region
-  information."
+  acceptable to pass nil as a value to tell the function that there is no explicit
+  region information and it should extract it from a number."
   {:added "8.12.4-0" :tag clojure.lang.LazySeq}
   ([^phone_number.core.Phoneable  phone-number]
    (time-zones phone-number nil))
   ([^phone_number.core.Phoneable  phone-number
     ^clojure.lang.Keyword         region-code]
    (->> region-code
-        (number phone-number)
+        (number-noraw phone-number)
         (.getTimeZonesForNumber (util/time-zones-mapper))
         util/lazy-iterator-seq
         (remove none)
@@ -478,8 +509,76 @@
     ^clojure.lang.Keyword        region-code
     ^java.util.Locale            locale-specification]
    (let [l (l/locale locale-specification)
-         p (number phone-number region-code)]
+         p (number-noraw phone-number region-code)]
      (util/fmap-k #(time-zones p nil l %) tz-format/all))))
+
+;;
+;; Short number specific
+;;
+
+(defn cost-short
+  "Takes a short (like an emergency) phone number (expressed as a string, a number or a
+  PhoneNumber object) and returns the expected cost class of that number as a
+  keyword.
+
+  The second, optional argument should be a valid region code (a keyword) to be used
+  when the given phone number does not contain region information. It is acceptable
+  to pass nil as a value to tell the function that there is no explicit region
+  information and it should extract it from a number.
+
+  If the third argument is present then it should be a valid region code for the
+  origination of a possible call. That hint will be used to restrict the check
+  according to rules. For example 112 may be valid in multiple regions but if one
+  calls it from some particular region it might not be reachable."
+  {:added "8.12.4-0" :tag clojure.lang.Keyword}
+  ([^phone_number.core.Phoneable phone-number]
+   (cost-short phone-number nil))
+  ([^phone_number.core.Phoneable phone-number
+    ^clojure.lang.Keyword        region-code]
+   (cost/by-val
+    (.getExpectedCost
+     (util/short)
+     (number-noraw phone-number region-code))))
+  ([^phone_number.core.Phoneable phone-number
+    ^clojure.lang.Keyword        region-code
+    ^clojure.lang.Keyword        region-from]
+   (cost/by-val
+    (if (nil? region-from)
+      (cost-short phone-number region-code)
+      (.getExpectedCostForRegion
+       (util/short)
+       (number-noraw phone-number region-code)
+       (region/get region-from *inferred-namespaces*))))))
+
+(defn emergency?
+  "Takes a short (like an emergency) phone number (expressed as a string!) and returns
+  true if it is exactly the emergency number. The second argument should be a valid
+  region code (a keyword).
+
+  When the region-code argument is nil it returns nil."
+  {:added "8.12.4-0" :tag clojure.lang.Keyword}
+  ([^String                phone-number
+    ^clojure.lang.Keyword  region-code]
+   (when (some? region-code)
+     (.isEmergencyNumber
+      (util/short)
+      (str phone-number)
+      (region/get region-code *inferred-namespaces*)))))
+
+(defn to-emergency?
+  "Takes a short (like an emergency) phone number (expressed as a string!) and returns
+  true if it can be used to connect to emergency services. The second argument should
+  be a valid region code (a keyword).
+
+  When the region-code argument is nil it returns nil."
+  {:added "8.12.4-0" :tag clojure.lang.Keyword}
+  ([^String                phone-number
+    ^clojure.lang.Keyword  region-code]
+   (when (some? region-code)
+     (.connectsToEmergencyNumber
+      (util/short)
+      (str phone-number)
+      (region/get region-code *inferred-namespaces*)))))
 
 ;;
 ;; Generic reporting
@@ -491,6 +590,51 @@
     (util/remove-empty-vals m)
     m))
 
+(defn short-number-info
+  "Takes a short (like an emergency) phone number (expressed as a string, a number or a
+  PhoneNumber object) and returns a map containing all possible information about the
+  number with keywords as keys.
+
+  Keys with nil values assigned will be removed from the map unless the dynamic
+  variable *info-removed-nils* is rebound to false.
+
+  If the second argument is present then it should be a valid region code (a keyword)
+  to be used when the given phone number does not contain region information. It is
+  acceptable to pass nil as a value to tell the function that there is no explicit
+  region information and it should extract it from a number.
+
+  If the third argument is present then it should be a valid region code for the
+  origination of a possible call. That hint will be used to restrict the check
+  according to rules. For example 112 may be valid in multiple regions but if one
+  calls it from some particular region it might not be reachable."
+  {:added "8.12.4-0" :tag clojure.lang.PersistentArrayMap}
+  ([^phone_number.core.Phoneable phone-number]
+   (short-number-info phone-number nil nil))
+  ([^phone_number.core.Phoneable phone-number
+    ^clojure.lang.Keyword        region-code]
+   (short-number-info phone-number region-code nil))
+  ([^phone_number.core.Phoneable phone-number
+    ^clojure.lang.Keyword        region-code
+    ^clojure.lang.Keyword        region-from]
+   (let [region-from  (region/get region-from *inferred-namespaces*)
+         phone-obj    (number-noraw phone-number region-code)
+         region-code  (phone-number.core/region-code phone-obj nil)
+         phone-number (not-empty
+                       (if (native? phone-number)
+                         (.getRawInput phone-number)
+                         (str phone-number)))
+         phone-number (if (nil? phone-number)
+                        (format phone-obj nil ::format/national) ;; fallback
+                        phone-number)]
+     (->> #:phone-number.short
+          {:calling-region (region/by-val   region-from)
+           :valid?         (valid-short?    phone-obj nil region-from)
+           :possible?      (possible-short? phone-obj nil region-from)
+           :cost           (cost-short      phone-obj nil region-from)
+           :emergency?     (emergency?      phone-number region-code)
+           :to-emergency?  (to-emergency?   phone-number region-code)}
+          info-remove-nils))))
+
 (defn info
   "Takes a phone number (expressed as a string, a number or a PhoneNumber object) and
   returns a map containing all possible information about the number with keywords as
@@ -498,7 +642,7 @@
   * validity (:phone-number/valid?)
   * possibility of being a phone number (:phone-number/possible?),
   * numerical country code (:phone-number/country-code),
-  * short region code (:phone-number/region-code),
+  * region code (:phone-number/region-code),
   * type of the number (:phone-number/type),
   * approximate geographic location of  a phone line (:phone-number/location),
   * carrier information (:phone-number/carrier),
@@ -512,40 +656,49 @@
 
   If the second argument is present then it should be a valid region code (a keyword)
   to be used when the given phone number does not contain region information. It is
-  acceptable to pass nil as a value to tell the function that there is no region
-  information.
+  acceptable to pass nil as a value to tell the function that there is no explicit
+  region information and it should extract it from a number.
 
   If the third argument is present then it should be a string specifying locale
   information or a Locale object. It will be used during rendering strings describing
   geographic location, carrier data and full time zone information. When nil is
-  passed then default locale settings will be used."
-  {:added "8.12.4-0" :tag clojure.lang.PersistentArrayMap}
+  passed then default locale settings will be used.
+
+  If there are four arguments then the last one should be a calling region code
+  intended to be used with short numbers (like 112 etc.). It describes originating
+  region to help validate the possibility of reaching the destination number."
+  {:added "8.12.4-0" :tag clojure.lang.PersistentHashMap}
   ([^phone_number.core.Phoneable phone-number]
-   (info phone-number nil nil))
+   (info phone-number nil nil nil))
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code]
-   (info phone-number region-code nil))
+   (info phone-number region-code nil nil))
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
     ^String                      locale-specification]
-   (let [number-util (util/instance)
-         locale      (l/locale locale-specification)
-         phone-obj   (number phone-number region-code)
-         region-code phone-number.core/region-code]
+   (info phone-number region-code locale-specification nil))
+  ([^phone_number.core.Phoneable phone-number
+    ^clojure.lang.Keyword        region-code
+    ^String                      locale-specification
+    ^clojure.lang.Keyword        region-from]
+   (let [locale       (l/locale locale-specification)
+         phone-obj    (number phone-number region-code)
+         region-code  (phone-number.core/region-code phone-obj nil)
+         phone-number (if (native? phone-number) (not-empty (.getRawInput phone-number)) phone-number)
+         phone-number (if (nil? phone-number) phone-obj phone-number)]
      (->> #:phone-number
-          {:valid?                      (valid?          phone-obj nil)
-           :valid-short?                (valid?          phone-obj nil)
-           :possible?                   (possible?       phone-obj nil)
-           :possible-short?             (possible-short? phone-obj nil)
-           :type                        (type            phone-obj nil)
-           :country-code                (country-code    phone-obj nil)
-           :region-code                 (region-code     phone-obj nil)
-           :location                    (location        phone-obj nil locale)
-           :carrier                     (carrier         phone-obj nil locale)
-           ::tz-format/id               (time-zones      phone-obj nil locale ::tz-format/id)
-           ::tz-format/full-standalone  (time-zones      phone-obj nil locale ::tz-format/full-standalone)
-           ::tz-format/short-standalone (time-zones      phone-obj nil locale ::tz-format/short-standalone)}
+          {:region-code                 region-code
+           :valid?                      (valid?        phone-obj nil)
+           :possible?                   (possible?     phone-obj nil)
+           :type                        (type          phone-obj nil)
+           :country-code                (country-code  phone-obj nil)
+           :location                    (location      phone-obj nil locale)
+           :carrier                     (carrier       phone-obj nil locale)
+           ::tz-format/id               (time-zones    phone-obj nil locale ::tz-format/id)
+           ::tz-format/full-standalone  (time-zones    phone-obj nil locale ::tz-format/full-standalone)
+           ::tz-format/short-standalone (time-zones    phone-obj nil locale ::tz-format/short-standalone)}
           (merge (all-formats phone-obj nil))
+          (merge (short-number-info phone-number region-code region-from))
           info-remove-nils))))
 
 ;;
@@ -564,8 +717,8 @@
    (match/by-val
     (.isNumberMatch
      (util/instance)
-     (number phone-number-a region-code-a)
-     (number phone-number-b region-code-b))
+     (number-noraw phone-number-a region-code-a)
+     (number-noraw phone-number-b region-code-b))
     ::match/none))
   ([^phone_number.core.Phoneable phone-number-a
     ^clojure.lang.Keyword        region-code-a
@@ -622,6 +775,9 @@
  (remove #{::type/fixed-line-or-mobile} (keys type/all))
  type)
 
+(def is-short? valid-short?)
+(def is-maybe-short? possible-short?)
+
 (defn is-fixed-line-or-mobile?
   "Returns true if the given number is a kind of fixed-line number or a mobile number,
   false otherwise. Returns true also when there is a chance that a number is either
@@ -638,36 +794,36 @@
      (type phone-number region-code)))))
 
 (defn is-uncertain-fixed-line-or-mobile?
-  "Returns true if the given number belongs to a class of numbers that cannot be
+"Returns true if the given number belongs to a class of numbers that cannot be
   certainly decided as being mobile or fixed-line, false otherwise. Please note that
   it will return false for mobile or fixed-line numbers that are certainly classified
   as such."
-  {:added "8.12.4-0" :tag Boolean}
-  ([^phone_number.core.Phoneable phone-number]
-   (is-uncertain-fixed-line-or-mobile? phone-number nil))
-  ([^phone_number.core.Phoneable phone-number
-    ^clojure.lang.Keyword        region-code]
-   (util/try-parse-or-false
-    (= ::type/fixed-line-or-mobile
-       (type phone-number region-code)))))
-
-(defn is-maybe-mobile?
-  "Returns true if the given number is a kind of a mobile number or a number that
-  belongs to a class where it cannot be fully decided whether it is mobile or
-  fixed-line. Returns false otherwise."
-  {:added "8.12.4-0" :tag Boolean}
-  ([^phone_number.core.Phoneable phone-number]
-   (is-maybe-mobile? phone-number nil))
-  ([^phone_number.core.Phoneable phone-number
-    ^clojure.lang.Keyword        region-code]
-   (util/try-parse-or-false
-    (contains?
-     #{::type/fixed-line-or-mobile
-       ::type/mobile}
+{:added "8.12.4-0" :tag Boolean}
+([^phone_number.core.Phoneable phone-number]
+ (is-uncertain-fixed-line-or-mobile? phone-number nil))
+([^phone_number.core.Phoneable phone-number
+  ^clojure.lang.Keyword        region-code]
+ (util/try-parse-or-false
+  (= ::type/fixed-line-or-mobile
      (type phone-number region-code)))))
 
+(defn is-maybe-mobile?
+"Returns true if the given number is a kind of a mobile number or a number that
+  belongs to a class where it cannot be fully decided whether it is mobile or
+  fixed-line. Returns false otherwise."
+{:added "8.12.4-0" :tag Boolean}
+([^phone_number.core.Phoneable phone-number]
+ (is-maybe-mobile? phone-number nil))
+([^phone_number.core.Phoneable phone-number
+  ^clojure.lang.Keyword        region-code]
+ (util/try-parse-or-false
+  (contains?
+   #{::type/fixed-line-or-mobile
+     ::type/mobile}
+   (type phone-number region-code)))))
+
 (defn is-maybe-fixed-line?
-  "Returns true if the given number is a kind of a fixed-line number or a number that
+"Returns true if the given number is a kind of a fixed-line number or a number that
   belongs to a class where it cannot be fully decided whether it is mobile or
   fixed-line. Returns false otherwise."
   {:added "8.12.4-0" :tag Boolean}
@@ -752,9 +908,10 @@
   under the hood."
   {:added "8.12.4-0" :tag lazy_map.core.LazyMap}
   [^java.util.Locale      locale-specification
+   ^clojure.lang.Keyword  region-from
    ^lazy_map.core.LazyMap m]
   (if-some [n (::match/number m)]
-    (assoc m ::match/info (delay (info (::match/number m) nil locale-specification)))
+    (assoc m ::match/info (delay (info (::match/number m) nil locale-specification region-from)))
     m))
 
 (defn find-numbers
@@ -788,12 +945,19 @@
   ([^String               text
     ^clojure.lang.Keyword region-code
     ^java.util.Locale     locale-specification]
+   (find-numbers text region-code locale-specification nil))
+  ([^String               text
+    ^clojure.lang.Keyword region-code
+    ^java.util.Locale     locale-specification
+    ^clojure.lang.Keyword region-from]
    (->> *inferred-namespaces*
         (region/get region-code)
         (.findNumbers (util/instance) text)
         util/lazy-iterator-seq
         (map (comp
-              (partial enrich-match locale-specification)
+              (partial enrich-match
+                       (l/locale locale-specification)
+                       (region/get region-from *inferred-namespaces*))
               match/mapper)))))
 
 ;;

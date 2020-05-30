@@ -6,6 +6,8 @@
 
     phone-number.util
 
+  (:refer-clojure :exclude [short])
+
   (:import [com.google.i18n.phonenumbers
             PhoneNumberUtil
             ShortNumberInfo

@@ -19,6 +19,7 @@
   #::{:exact      PhoneNumberUtil$MatchType/EXACT_MATCH
       :not-number PhoneNumberUtil$MatchType/NOT_A_NUMBER
       :short-nsn  PhoneNumberUtil$MatchType/SHORT_NSN_MATCH
+      :nsn        PhoneNumberUtil$MatchType/NSN_MATCH
       :none       PhoneNumberUtil$MatchType/NO_MATCH})
 
 (def ^{:added "8.12.4-0"

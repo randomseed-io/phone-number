@@ -4,9 +4,9 @@
       :author "Paweł Wilk"
       :added  "8.12.4-0"}
 
-    phone-number.short.cost
+    phone-number.cost
 
-  (:require  [phone-number.util            :as      util])
+  (:require  [phone-number.util :as util])
 
   (:import [com.google.i18n.phonenumbers
             ShortNumberInfo
