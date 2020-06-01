@@ -6,7 +6,6 @@
 
     phone-number.type
 
-  (:refer-clojure :exclude [get])
   (:require [phone-number.util :as util])
   (:import  [com.google.i18n.phonenumbers
              PhoneNumberUtil
@@ -44,12 +43,12 @@
        :tag PhoneNumberUtil$PhoneNumberType}
   default-val (all default))
 
-(defn get
+(defn parse
   "Parses a type and returns a value that can be supplied to Libphonenumber methods. If
   nil is given it returns the default value."
   {:added "8.12.4-0" :tag PhoneNumberUtil$PhoneNumberType}
   ([^clojure.lang.Keyword k]
-   (get k true))
+   (parse k true))
   ([^clojure.lang.Keyword k
     ^Boolean use-infer]
    (if (nil? k)

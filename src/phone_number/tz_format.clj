@@ -48,12 +48,12 @@
     zone-id
     (.getDisplayName (java.time.ZoneId/of zone-id) style l)))
 
-(defn get
+(defn parse
   "Parses a time zone format specification and returns a value that can be supplied to
   phone-number functions.  If nil is given it returns the default value."
   {:added "8.12.4-0" :tag TextStyle}
   ([^clojure.lang.Keyword k]
-   (get k true))
+   (parse k true))
   ([^clojure.lang.Keyword k
     ^Boolean use-infer]
    (if (nil? k)

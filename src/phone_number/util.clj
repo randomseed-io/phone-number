@@ -40,9 +40,16 @@
   caught it returns false."
   {:added "8.12.4-0"}
   [& body]
-  `(try ~@body
+  `(try (or (do ~@body) false)
         (catch NumberParseException  e# false)
         (catch NumberFormatException e# false)))
+
+(defmacro try-null
+  "Evaluates body and if NullPointerException exception is caught it returns nil."
+  {:added "8.12.4-0"}
+  [& body]
+  `(try ~@body
+        (catch NullPointerException  e# nil)))
 
 (defn ns-infer
   {:added "8.12.4-0" :tag clojure.lang.Keyword}

@@ -6,7 +6,6 @@
 
     phone-number.region
 
-  (:refer-clojure :exclude [get])
   (:require [phone-number.util :as util])
   (:import  [com.google.i18n.phonenumbers
              PhoneNumberUtil
@@ -53,12 +52,12 @@
        :tag String}
   default-val (all default))
 
-(defn get
+(defn parse
   "Parses a region code and returns a value that can be supplied to Libphonenumber
   methods."
   {:added "8.12.4-0" :tag String}
   ([^clojure.lang.Keyword k]
-   (get k true))
+   (parse k true))
   ([^clojure.lang.Keyword k
     ^Boolean use-infer]
    (if (keyword? k)
