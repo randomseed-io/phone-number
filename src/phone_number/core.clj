@@ -15,6 +15,8 @@
             [phone-number.tz-format       :as tz-format]
             [phone-number.region          :as    region]
             [phone-number.cost            :as      cost]
+            [phone-number.calling-code    :as    c-code]
+            [clojure.string               :as    string]
             [trptr.java-wrapper.locale    :as         l]
             [lazy-map.core                :refer   :all])
 
@@ -63,9 +65,14 @@
     "Etc/Unknown" "unknown" "none" "nil" "0"})
 
 (def ^{:added "8.12.4-0" :tag clojure.lang.PersistentHashSet}
-  region-codes
+  regions
   "A set of all possible phone number region codes."
-  (set (keys region/all)))
+  (set region/all-vec))
+
+(def ^{:added "8.12.4-0" :tag clojure.lang.PersistentHashSet}
+  calling-codes
+  "A set of all possible phone number region codes."
+  c-code/all)
 
 (def ^{:added "8.12.4-0" :tag clojure.lang.PersistentHashSet}
   formats
@@ -75,7 +82,7 @@
 (def ^{:added "8.12.4-0" :tag clojure.lang.PersistentHashSet}
   types
   "A set of all possible phone number types as a sequence of keywords."
-  (set (keys type/all)))
+  (set type/all-vec))
 
 (def ^{:added "8.12.4-0" :tag clojure.lang.PersistentHashSet}
   match-types
@@ -383,10 +390,10 @@
   ([^phone_number.core.Phoneable    phone-number
     ^clojure.lang.Keyword           region-code]
    (when-valid-input phone-number
-    (.getCountryCode
-     (number-noraw phone-number region-code)))))
+     (.getCountryCode
+      (number-noraw phone-number region-code)))))
 
-(defn region-code
+(defn region
   "Takes a phone number (expressed as a string, a number or a PhoneNumber object) and
   returns its region code as a string or nil if the region happens to be empty.
 
@@ -394,15 +401,15 @@
   to be used when the given phone number does not contain region information."
   {:added "8.12.4-0" :tag String}
   ([^phone_number.core.Phoneable  phone-number]
-   (region-code phone-number nil))
+   (region phone-number nil))
   ([^phone_number.core.Phoneable  phone-number
     ^clojure.lang.Keyword         region-code]
    (region/by-val
     (not-empty
      (when-valid-input phone-number
-      (.getRegionCodeForNumber
-       (util/instance)
-       (number-noraw phone-number region-code)))))))
+       (.getRegionCodeForNumber
+        (util/instance)
+        (number-noraw phone-number region-code)))))))
 
 ;;
 ;; Location
@@ -775,29 +782,30 @@
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
     ^clojure.lang.Keyword        region-from]
-   (let [region-from  (region/parse region-from *inferred-namespaces*)
-         phone-obj    (number-noraw phone-number region-code)
-         region-code  (phone-number.core/region-code phone-obj nil)
-         phone-number (raw-input phone-number)
-         phone-number (if (nil? phone-number)
-                        (format phone-obj nil ::format/national) ;; fallback
-                        phone-number)
-         sh-possible   (short-possible? phone-obj nil region-from)
-         sh-valid      (short-valid?    phone-obj nil region-from)]
-     (if (or sh-valid sh-possible)
-       (->> #:phone-number.short
-            {:valid?            sh-valid
-             :possible?         sh-possible
-             :calling-region    (region/by-val           region-from)
-             :carrier-specific? (short-carrier-specific? phone-obj nil region-from)
-             :cost              (short-cost              phone-obj nil region-from)
-             :sms-service?      (short-sms-service?      phone-obj nil region-from)
-             :emergency?        (short-emergency?        phone-number region-code)
-             :to-emergency?     (short-to-emergency?     phone-number region-code)}
-            info-remove-nils)
-       #:phone.number.short
-       {:possible? false
-        :valid?    false}))))
+   (when-valid-input phone-number
+     (let [region-from  (region/parse region-from *inferred-namespaces*)
+           phone-obj    (number-noraw phone-number region-code)
+           region-code  (region phone-obj nil)
+           phone-number (raw-input phone-number)
+           phone-number (if (nil? phone-number)
+                          (format phone-obj nil ::format/national) ;; fallback
+                          phone-number)
+           sh-possible   (short-possible? phone-obj nil region-from)
+           sh-valid      (short-valid?    phone-obj nil region-from)]
+       (if (or sh-valid sh-possible)
+         (->> #:phone-number.short
+              {:valid?            sh-valid
+               :possible?         sh-possible
+               :calling-region    (region/by-val           region-from)
+               :carrier-specific? (short-carrier-specific? phone-obj nil region-from)
+               :cost              (short-cost              phone-obj nil region-from)
+               :sms-service?      (short-sms-service?      phone-obj nil region-from)
+               :emergency?        (short-emergency?        phone-number region-code)
+               :to-emergency?     (short-to-emergency?     phone-number region-code)}
+              info-remove-nils)
+         #:phone.number.short
+         {:possible? false
+          :valid?    false})))))
 
 (defn info
   "Takes a phone number (expressed as a string, a number or a PhoneNumber object) and
@@ -805,8 +813,8 @@
   keys. These include:
   * validity (:phone-number/valid?)
   * possibility of being a phone number (:phone-number/possible?),
-  * numerical country code (:phone-number/country-code),
-  * region code (:phone-number/region-code),
+  * numerical country code (:phone-number/country),
+  * region code (:phone-number/region),
   * type of the number (:phone-number/type),
   * approximate geographic location of  a phone line (:phone-number/location),
   * carrier information (:phone-number/carrier),
@@ -845,26 +853,27 @@
     ^clojure.lang.Keyword        region-code
     ^String                      locale-specification
     ^clojure.lang.Keyword        region-from]
-   (let [locale       (l/locale locale-specification)
-         phone-obj    (number phone-number region-code)
-         region-code  (phone-number.core/region-code phone-obj nil)
-         phone-number (raw-input phone-number)
-         phone-number (if (nil? phone-number) phone-obj phone-number)]
-     (->> #:phone-number
-          {:region-code                 region-code
-           :valid?                      (valid?        phone-obj nil)
-           :possible?                   (possible?     phone-obj nil)
-           :geographical?               (geographical? phone-obj nil)
-           :type                        (type          phone-obj nil)
-           :country-code                (country-code  phone-obj nil)
-           :location                    (location      phone-obj nil locale)
-           :carrier                     (carrier       phone-obj nil locale)
-           ::tz-format/id               (time-zones    phone-obj nil locale ::tz-format/id)
-           ::tz-format/full-standalone  (time-zones    phone-obj nil locale ::tz-format/full-standalone)
-           ::tz-format/short-standalone (time-zones    phone-obj nil locale ::tz-format/short-standalone)}
-          (merge (all-formats phone-obj nil))
-          (merge (short-info phone-number region-code region-from))
-          info-remove-nils))))
+   (when-valid-input phone-number
+     (let [locale       (l/locale locale-specification)
+           phone-obj    (number phone-number region-code)
+           region-code  (region phone-obj nil)
+           phone-number (raw-input phone-number)
+           phone-number (if (nil? phone-number) phone-obj phone-number)]
+       (->> #:phone-number
+            {:region                      region-code
+             :valid?                      (valid?        phone-obj nil)
+             :possible?                   (possible?     phone-obj nil)
+             :geographical?               (geographical? phone-obj nil)
+             :type                        (type          phone-obj nil)
+             :country-code                (country-code  phone-obj nil)
+             :location                    (location      phone-obj nil locale)
+             :carrier                     (carrier       phone-obj nil locale)
+             ::tz-format/id               (time-zones    phone-obj nil locale ::tz-format/id)
+             ::tz-format/full-standalone  (time-zones    phone-obj nil locale ::tz-format/full-standalone)
+             ::tz-format/short-standalone (time-zones    phone-obj nil locale ::tz-format/short-standalone)}
+            (merge (all-formats phone-obj nil))
+            (merge (short-info phone-number region-code region-from))
+            info-remove-nils)))))
 
 ;;
 ;; Matching
@@ -1018,17 +1027,17 @@
 ;; Region and country checking
 ;;
 
-(defn has-region-code?
+(defn has-region?
   "For the given phone number returns true if the region code is present in it, false
   otherwise. The region code can be explicit part of a number (as its prefix) or can
   be inferred by making use of the region-code argument."
   {:added "8.12.4-0" :tag Boolean}
   ([^phone_number.core.Phoneable phone-number]
-   (has-region-code? phone-number nil))
+   (has-region? phone-number nil))
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code]
    (util/try-parse-or-false
-    (not (contains? none (region-code phone-number region-code))))))
+    (not (contains? none (region phone-number region-code))))))
 
 (defn has-country-code?
   "For the given phone number returns true if the country code is present in it, false
@@ -1132,7 +1141,7 @@
 ;;
 
 (defn invalid-example
-  {:added "8.12.4-0" :tag clojure.lang.LazySeq}
+  {:added "8.12.4-0" :tag Phonenumber$PhoneNumber}
   [^clojure.lang.Keyword region-code]
   (when-some [rcode (region/parse region-code *inferred-namespaces*)]
     (util/try-null
@@ -1141,7 +1150,7 @@
       rcode))))
 
 (defn example-non-geo
-  {:added "8.12.4-0" :tag clojure.lang.LazySeq}
+  {:added "8.12.4-0" :tag Phonenumber$PhoneNumber}
   ([^Integer calling-code]
    (when (some? calling-code)
      (util/try-null
@@ -1150,7 +1159,7 @@
        calling-code)))))
 
 (defn example
-  {:added "8.12.4-0" :tag clojure.lang.LazySeq}
+  {:added "8.12.4-0" :tag Phonenumber$PhoneNumber}
   ([^clojure.lang.Keyword region-code]
    (example region-code nil))
   ([^clojure.lang.Keyword region-code
@@ -1162,3 +1171,50 @@
          (util/instance)
          rcode
          ptype))))))
+
+(defn- gen-sample
+  {:added "8.12.4-0" :tag Phonenumber$PhoneNumber}
+  ([^phone_number.core.Phoneable phone-number
+    ^clojure.lang.Keyword        region-code
+    ^Number                      keep-static
+    ^Number                      retries
+    ^clojure.lang.IFn            validator]
+   (when-some [p (number-noraw phone-number region-code)]
+     (let [num           (format p nil ::format/e164)
+           number-type   (type p nil)
+           cnt-all       (count num)
+           ccode         (str (country-code p nil))
+           cnt-country   (inc (count ccode))
+           num-national  (not-empty (subs num cnt-country))
+           cnt-national  (count num-national)
+           keep-static   (if (nil? keep-static) 0 keep-static)
+           keep-static   (if (> keep-static cnt-national) cnt-national keep-static)
+           prefix        (str "+" ccode (if (zero? keep-static) nil (subs num-national 0 keep-static)))
+           cnt-national  (- cnt-national keep-static)
+           num-national  (if (zero? keep-static) num-national (subs num-national keep-static))
+           retry-fn      (if (nil? retries) repeatedly (partial repeatedly (if (< retries 1) 1 retries)))]
+       (->> #(when-some [ph (number-noraw (str prefix (util/gen-digits cnt-national)) nil)]
+               (when (validator ph) ph))
+            retry-fn
+            (some identity))))))
+
+(defn generate
+  ([]
+   (generate nil nil))
+  ([^clojure.lang.Keyword region-code]
+   (generate region-code nil))
+  ([^clojure.lang.Keyword region-code
+    ^clojure.lang.Keyword number-type]
+   (loop [region-code region-code
+          number-type number-type
+          retries (unchecked-int (* (if (nil? region-code) (count region/all) 1)
+                                    (if (nil? number-type) (count type/all) 1)))]
+     (let [number-type'  (if (some? number-type) number-type (type/generate-sample))
+           region-code'  (if (some? region-code) region-code (region/generate-sample))
+           valid-type?   (if (some? number-type) #(= number-type' (type   %)) any?)
+           valid-region? (if (some? region-code) #(= region-code' (region %)) any?)]
+       (if-some [template (example region-code' number-type')]
+         (gen-sample template nil nil nil (every-pred valid? valid-type? valid-region?))
+         (when-not (zero? retries)                          ; some combinations of type and region
+           (when (or (nil? region-code) (nil? number-type)) ; cannot create a valid template - so we need to retry
+             (recur region-code number-type (unchecked-dec-int retries)))))))))

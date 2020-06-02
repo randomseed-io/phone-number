@@ -52,6 +52,18 @@
        :tag String}
   default-val (all default))
 
+(def ^{:added "8.12.4-0"
+       :tag clojure.lang.PersistentVector}
+  all-vec
+  "Vector of regions (keywords)."
+  (vec (keys all)))
+
+(def ^{:added "8.12.4-0"
+       :tag clojure.lang.PersistentVector}
+  by-val-vec
+  "Vector of regions (string values)."
+  (vec (keys by-val)))
+
 (defn parse
   "Parses a region code and returns a value that can be supplied to Libphonenumber
   methods."
@@ -72,3 +84,15 @@
   {:added "8.12.4-0" :tag Boolean}
   [^clojure.lang.Keyword region-specification]
   (contains? all region-specification))
+
+(defn generate-sample
+  "Generates random region code."
+  {:added "8.12.4-0" :tag clojure.lang.Keyword}
+  []
+  (rand-nth all-vec))
+
+(defn generate-sample-val
+  "Generates random region code (string value)."
+  {:added "8.12.4-0" :tag String}
+  []
+  (rand-nth by-val-vec))

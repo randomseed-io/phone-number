@@ -43,6 +43,18 @@
        :tag PhoneNumberUtil$PhoneNumberType}
   default-val (all default))
 
+(def ^{:added "8.12.4-0"
+       :tag clojure.lang.PersistentVector}
+  all-vec
+  "Vector of types (keywords)."
+  (vec (keys all)))
+
+(def ^{:added "8.12.4-0"
+       :tag clojure.lang.PersistentVector}
+  by-val-vec
+  "Vector of types (PhoneNumberType values)."
+  (vec (keys by-val)))
+
 (defn parse
   "Parses a type and returns a value that can be supplied to Libphonenumber methods. If
   nil is given it returns the default value."
@@ -60,3 +72,15 @@
   {:added "8.12.4-0" :tag Boolean}
   [^clojure.lang.Keyword number-type]
   (contains? all number-type))
+
+(defn generate-sample
+  "Generates random number type."
+  {:added "8.12.4-0" :tag clojure.lang.Keyword}
+  []
+  (rand-nth all-vec))
+
+(defn generate-sample-val
+  "Generates random number type (PhoneNumberType value)."
+  {:added "8.12.4-0" :tag PhoneNumberUtil$PhoneNumberType}
+  []
+  (rand-nth by-val-vec))

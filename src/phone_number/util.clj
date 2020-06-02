@@ -115,8 +115,15 @@
 (defmacro gen-ises
   "Takes a collection of keywords (evaluated) and a function expressed as a symbol (not
   evaluated) and generates bunch of function definitions using gen-is-sexp."
+  {:added "8.12.4-0"}
   [coll f]
   (cons 'do (map #(gen-is-sexp % f) (eval coll))))
+
+(defn gen-digits
+  "Generates the given number of random digits and converts all into a single string."
+  {:added "8.12.4-0" :tag String}
+  [^long num]
+  (reduce str (repeatedly num #(unchecked-int (rand 10)))))
 
 (defn lazy-iterator-seq
   {:added "8.12.4-0"
