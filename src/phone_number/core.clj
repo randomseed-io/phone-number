@@ -540,7 +540,7 @@
           (.getTimeZonesForNumber (util/time-zones-mapper))
           util/lazy-iterator-seq
           (remove none)
-          dedupe
+          distinct
           not-empty)))
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
@@ -554,7 +554,7 @@
          f (tz-format/parse format-specification *inferred-namespaces*)]
      (->> (time-zones phone-number region-code)
           (map #(tz-format/transform % l f))
-          dedupe
+          distinct
           not-empty))))
 
 (defn time-zones-all-formats
