@@ -319,10 +319,10 @@
     ^clojure.lang.Keyword        tested-region]
    (util/try-parse-or-false
     (when-valid-input phone-number
-     (.isValidNumberForRegion
-      (util/instance)
-      (number-noraw phone-number region-code)
-      (region/parse tested-region *inferred-namespaces*))))))
+      (.isValidNumberForRegion
+       (util/instance)
+       (number-noraw phone-number region-code)
+       (region/parse tested-region *inferred-namespaces*))))))
 
 ;;
 ;; Formatting
@@ -348,14 +348,14 @@
     ^clojure.lang.Keyword        format-specification]
    (let [f (format/parse format-specification *inferred-namespaces*)]
      (when-valid-input phone-number
-      (not-empty
-       (if (= :raw f)
-         (if (native? phone-number)
-           (raw-input phone-number)
-           (str phone-number))
-         (.format (util/instance)
-                  (number-noraw phone-number region-code)
-                  f)))))))
+       (not-empty
+        (if (= :raw f)
+          (if (native? phone-number)
+            (raw-input phone-number)
+            (str phone-number))
+          (.format (util/instance)
+                   (number-noraw phone-number region-code)
+                   f)))))))
 
 (defn all-formats
   "Takes a phone number (expressed as a string, a number or a PhoneNumber object) and
@@ -388,11 +388,11 @@
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code]
    (when-valid-input phone-number
-    (type/by-val
-     (.getNumberType
-      (util/instance)
-      (number-noraw phone-number region-code))
-     ::type/unknown))))
+     (type/by-val
+      (.getNumberType
+       (util/instance)
+       (number-noraw phone-number region-code))
+      ::type/unknown))))
 
 ;;
 ;; Country and region
@@ -459,11 +459,11 @@
     ^clojure.lang.Keyword           region-code
     ^java.util.Locale               locale-specification]
    (when-valid-input phone-number
-    (not-empty
-     (.getDescriptionForNumber
-      (util/geo-coder)
-      (number-noraw phone-number region-code)
-      (l/locale locale-specification))))))
+     (not-empty
+      (.getDescriptionForNumber
+       (util/geo-coder)
+       (number-noraw phone-number region-code)
+       (l/locale locale-specification))))))
 
 (defn geographical?
   "Takes a phone number (expressed as a string, a number or a PhoneNumber object) and
@@ -478,9 +478,9 @@
     ^clojure.lang.Keyword          region-code]
    (util/try-parse-or-false
     (when-valid-input phone-number
-     (.isNumberGeographical
-      (util/instance)
-      (number-noraw phone-number region-code))))))
+      (.isNumberGeographical
+       (util/instance)
+       (number-noraw phone-number region-code))))))
 
 ;;
 ;; Carrier
@@ -509,11 +509,11 @@
     ^clojure.lang.Keyword          region-code
     ^java.util.Locale              locale-specification]
    (when-valid-input phone-number
-    (not-empty
-     (.getNameForNumber
-      (util/carrier-mapper)
-      (number-noraw phone-number region-code)
-      (l/locale locale-specification))))))
+     (not-empty
+      (.getNameForNumber
+       (util/carrier-mapper)
+       (number-noraw phone-number region-code)
+       (l/locale locale-specification))))))
 
 ;;
 ;; Time zones
@@ -535,13 +535,13 @@
   ([^phone_number.core.Phoneable  phone-number
     ^clojure.lang.Keyword         region-code]
    (when-valid-input phone-number
-    (->> region-code
-         (number-noraw phone-number)
-         (.getTimeZonesForNumber (util/time-zones-mapper))
-         util/lazy-iterator-seq
-         (remove none)
-         dedupe
-         not-empty)))
+     (->> region-code
+          (number-noraw phone-number)
+          (.getTimeZonesForNumber (util/time-zones-mapper))
+          util/lazy-iterator-seq
+          (remove none)
+          dedupe
+          not-empty)))
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
     ^clojure.lang.Keyword        format-specification]
@@ -606,9 +606,9 @@
     ^clojure.lang.Keyword        region-code]
    (util/try-parse-or-false
     (when-valid-input phone-number
-     (.isPossibleShortNumber
-      (util/short)
-      (number-noraw phone-number region-code)))))
+      (.isPossibleShortNumber
+       (util/short)
+       (number-noraw phone-number region-code)))))
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
     ^clojure.lang.Keyword        region-from]
@@ -616,10 +616,10 @@
      (short-possible? phone-number region-code)
      (util/try-parse-or-false
       (when-valid-input phone-number
-       (.isPossibleShortNumberForRegion
-        (util/short)
-        (number-noraw phone-number region-code)
-        (region/parse region-from *inferred-namespaces*)))))))
+        (.isPossibleShortNumberForRegion
+         (util/short)
+         (number-noraw phone-number region-code)
+         (region/parse region-from *inferred-namespaces*)))))))
 
 (defn short-valid?
   "Takes a phone number (expressed as a string, a number or a PhoneNumber object) and
@@ -640,9 +640,9 @@
     ^clojure.lang.Keyword        region-code]
    (util/try-parse-or-false
     (when-valid-input phone-number
-     (.isValidShortNumber
-      (util/short)
-      (number-noraw phone-number region-code)))))
+      (.isValidShortNumber
+       (util/short)
+       (number-noraw phone-number region-code)))))
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
     ^clojure.lang.Keyword        region-from]
@@ -650,10 +650,10 @@
      (short-valid? phone-number region-code)
      (util/try-parse-or-false
       (when-valid-input phone-number
-       (.isValidShortNumberForRegion
-        (util/short)
-        (number-noraw phone-number region-code)
-        (region/parse region-from *inferred-namespaces*)))))))
+        (.isValidShortNumberForRegion
+         (util/short)
+         (number-noraw phone-number region-code)
+         (region/parse region-from *inferred-namespaces*)))))))
 
 (defn short-cost
   "Takes a short (like an emergency) phone number (expressed as a string, a number or a
