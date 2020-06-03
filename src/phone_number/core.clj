@@ -272,6 +272,16 @@
   [phone-number]
   (instance? Phonenumber$PhoneNumber phone-number))
 
+(def
+  ^{:added "8.12.4-0" :tag Boolean
+    :arglists '([^phone_number.core.Phoneable phone-number]
+                [^phone_number.core.Phoneable phone-number
+                 ^clojure.lang.Keyword        region-code])}
+  invalid?
+  "Returns true if the given phone number (expressed as a string, a number or a
+  PhoneNumber object) is not valid."
+  (complement valid?))
+
 (defn possible?
   "Takes a phone number (expressed as a string, a number or a PhoneNumber object) and
   returns true if it is a possible number as defined by Libphonenumber. Otherwise it
@@ -288,6 +298,16 @@
       (.isPossibleNumber
        (util/instance)
        (number-noraw phone-number region-code))))))
+
+(def
+  ^{:added "8.12.4-0" :tag Boolean
+    :arglists '([^phone_number.core.Phoneable phone-number]
+                [^phone_number.core.Phoneable phone-number
+                 ^clojure.lang.Keyword        region-code])}
+  impossible?
+  "Returns true if the given phone number (expressed as a string, a number or a
+  PhoneNumber object) is not possible."
+  (complement possible?))
 
 (defn valid-for-region?
   "Like valid? but checks whether the given number is valid for a certain region. It
