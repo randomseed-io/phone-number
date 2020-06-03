@@ -1099,15 +1099,15 @@
 
 (defn- enrich-match
   "Used to enrich the results of find-numbers with phone number information map.
-  The whole map is put under the :phone-number.match/info key and it is a delay
+  The whole map is put under the :phone-number/info key and it is a delay
   object, automatically dereferenced when accessed due to lazy map structure used
   under the hood."
   {:added "8.12.4-0" :tag lazy_map.core.LazyMap}
   [^java.util.Locale      locale-specification
    ^clojure.lang.Keyword  region-from
    ^lazy_map.core.LazyMap m]
-  (if-some [n (::match/number m)]
-    (assoc m ::match/info (delay (info (::match/number m) nil locale-specification region-from)))
+  (if-some [n (:phone-number/number m)]
+    (assoc m :phone-number/info (delay (info (:phone-number/number m) nil locale-specification region-from)))
     m))
 
 (defn find-numbers
@@ -1117,8 +1117,8 @@
   * :phone-number.match/start       - start index of a phone number substring
   * :phone-number.match/end         - end index of a phone number substring
   * :phone-number.match/raw-string  - phone number substring
-  * :phone-number.match/number      - phone number object
-  * :phone-number.match/info        - phone number properties map
+  * :phone-number/number            - phone number object
+  * :phone-number/info              - phone number properties map
 
   Phone number object is suitable to be used with majority of functions from
   core. The info key is associated with a map holding all information rendered by
@@ -1131,7 +1131,7 @@
   The third optional argument should be a locale specification (Locale object or any
   other object that can initialize one, like a string with language and/or
   dialect). It will be used to render a value associated with
-  the :phone-number.match/info key."
+  the :phone-number/info key."
   {:added "8.12.4-0" :tag clojure.lang.LazySeq}
   ([^String               text]
    (find-numbers text nil nil))
