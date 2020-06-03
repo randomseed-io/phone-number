@@ -1247,12 +1247,17 @@
 
   When the fourth argument is present it should be a number of retries that the
   internal sampler will use. By default it will try to get the sample that meets the
-  criteria (country code, type and a custom predicate) indefinitely but when the
+  criteria (country code, type and a custom predicate) in 1000 attempts but when the
   supplied predicate makes it too improbable to get the desired result the operation
-  may take too long. Then it's recommended to set some retries count. It is possible
-  to pass nil as a value. In such case the default will be used (no restriction).
+  may fail and this number should be increased. It is possible to pass nil as a
+  value. In such case the default will be used. It is also possible to pass false as
+  a value. In such case the sampler will continue indefinitely (risk of freezing the
+  program for complicated or impossible conditions).
 
-  When the fifth argument is present it should be a valid locale specification or a
+  When the fifth argument is present it should be a number of digits that will remain
+  constant when sampling is done.
+
+  When the sixth argument is present it should be a valid locale specification or a
   java.util.Locale object that will be passed to the info function in order to render
   localized versions of time zone information and geographical locations."
   {:added "8.12.4-0" :tag lazy_map.core.LazyMap}
@@ -1285,7 +1290,8 @@
     ^Number               keep-digits
     ^java.util.Locale     locale-specification]
    (let [predicate (if (nil? predicate) any? predicate)
-         locale-specification (l/locale locale-specification)]
+         locale-specification (l/locale locale-specification)
+         retries (if (nil? retries) 1000 (if (false? retries) nil retries))]
      (loop [region-code region-code
             number-type number-type
             template-tries (unchecked-dec-int
@@ -1298,7 +1304,8 @@
                  region-code'  (if (some? region-code) (region template) region-code')
                  valid-type?   (if (some? number-type) #(= number-type' (type   %)) any?)
                  valid-region? (if (some? region-code) #(= region-code' (region %)) any?)]
-             (when-some [phone-number (gen-sample template nil
+             (when-some [phone-number (gen-sample template
+                                                  nil
                                                   keep-digits
                                                   retries
                                                   (every-pred predicate valid-type? valid-region?))]
