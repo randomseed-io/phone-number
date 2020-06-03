@@ -1176,7 +1176,7 @@
   {:added "8.12.4-0" :tag Phonenumber$PhoneNumber}
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
-    ^Number                      keep-static
+    ^Number                      keep-digits
     ^Number                      retries
     ^clojure.lang.IFn            validator]
    (when-some [p (number-noraw phone-number region-code)]
@@ -1187,11 +1187,11 @@
            cnt-country   (inc (count ccode))
            num-national  (not-empty (subs num cnt-country))
            cnt-national  (count num-national)
-           keep-static   (if (nil? keep-static) 0 keep-static)
-           keep-static   (if (> keep-static cnt-national) cnt-national keep-static)
-           prefix        (str "+" ccode (if (zero? keep-static) nil (subs num-national 0 keep-static)))
-           cnt-national  (- cnt-national keep-static)
-           num-national  (if (zero? keep-static) num-national (subs num-national keep-static))
+           keep-digits   (if (nil? keep-digits) 0 keep-digits)
+           keep-digits   (if (> keep-digits cnt-national) cnt-national keep-digits)
+           prefix        (str "+" ccode (if (zero? keep-digits) nil (subs num-national 0 keep-digits)))
+           cnt-national  (- cnt-national keep-digits)
+           num-national  (if (zero? keep-digits) num-national (subs num-national keep-digits))
            retry-fn      (if (nil? retries) repeatedly (partial repeatedly (if (< retries 1) 1 retries)))]
        (->> #(when-some [ph (number-noraw (str prefix (util/gen-digits cnt-national)) nil)]
                (when (validator ph) ph))
@@ -1200,21 +1200,47 @@
 
 (defn generate
   ([]
-   (generate nil nil))
+   (generate nil nil nil nil nil))
   ([^clojure.lang.Keyword region-code]
-   (generate region-code nil))
+   (generate region-code nil nil nil nil))
   ([^clojure.lang.Keyword region-code
     ^clojure.lang.Keyword number-type]
-   (loop [region-code region-code
-          number-type number-type
-          retries (unchecked-int (* (if (nil? region-code) (count region/all) 1)
-                                    (if (nil? number-type) (count type/all) 1)))]
-     (let [number-type'  (if (some? number-type) number-type (type/generate-sample))
-           region-code'  (if (some? region-code) region-code (region/generate-sample))
-           valid-type?   (if (some? number-type) #(= number-type' (type   %)) any?)
-           valid-region? (if (some? region-code) #(= region-code' (region %)) any?)]
-       (if-some [template (example region-code' number-type')]
-         (gen-sample template nil nil nil (every-pred valid? valid-type? valid-region?))
-         (when-not (zero? retries)                          ; some combinations of type and region
-           (when (or (nil? region-code) (nil? number-type)) ; cannot create a valid template - so we need to retry
-             (recur region-code number-type (unchecked-dec-int retries)))))))))
+   (generate region-code number-type nil nil nil))
+  ([^clojure.lang.Keyword region-code
+    ^clojure.lang.Keyword number-type
+    ^clojure.lang.IFn     predicate]
+   (generate region-code number-type predicate nil nil))
+  ([^clojure.lang.Keyword region-code
+    ^clojure.lang.Keyword number-type
+    ^clojure.lang.IFn     predicate
+    ^Number               retries]
+   (generate region-code number-type predicate retries nil))
+  ([^clojure.lang.Keyword region-code
+    ^clojure.lang.Keyword number-type
+    ^clojure.lang.IFn     predicate
+    ^Number               retries
+    ^Number               keep-digits]
+   (let [predicate (if (nil? predicate) any? predicate)]
+     (loop [region-code region-code
+            number-type number-type
+            template-tries (unchecked-dec-int
+                            (* (if (nil? region-code) (count regions) 1)
+                               (if (nil? number-type) (count types)   1)))]
+       (let [number-type' (if (some? number-type) number-type (type/generate-sample))
+             region-code' (if (some? region-code) region-code (region/generate-sample))]
+         (if-some [template (example region-code' number-type')]
+           (let [number-type'  (if (some? number-type) (type   template) number-type')
+                 region-code'  (if (some? region-code) (region template) region-code')
+                 valid-type?   (if (some? number-type) #(= number-type' (type   %)) any?)
+                 valid-region? (if (some? region-code) #(= region-code' (region %)) any?)]
+             (gen-sample template
+                         nil
+                         keep-digits
+                         retries
+                         (every-pred predicate valid-type? valid-region?)))
+           (when-not (zero? template-tries)
+             ;; some combinations of type and region are not suited to produce a valid template
+             ;; in such cases we have to retry if there is a chance to do that
+             ;; (at least region or number type are random)
+             (when (or (nil? region-code) (nil? number-type))
+               (recur region-code number-type (unchecked-dec-int template-tries))))))))))
