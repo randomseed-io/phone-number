@@ -1219,28 +1219,73 @@
             (some identity))))))
 
 (defn generate
+  "Generates sample phone number in a form of a map with two keys:
+  - :phone-number/number  - PhoneNumber object
+  - :phone-number/info    - a map with phone number information (evaluated when accessed)
+
+  It is important to note that the result may be valid or invalid phone number. To
+  get only valid number pass the valid? predicate function as the third
+  argument (described later).
+
+  Without any arguments it generates any geographical number of any possible region
+  and type.
+
+  When the first argument is present it should be a valid region code and the result
+  will be a number that belongs to that region. It is possible to pass nil as a value
+  (in order to make use of other positional arguments). In such case the region will
+  be picked up randomly.
+
+  When the second argument is present it should be a valid number type and the result
+  will be a number that is of that type. It is possible to pass nil as a value
+  (in order to make use of other positional arguments). In such case the type will be
+  picked up randomly.
+
+  When the third argument is present it should be a predicate function used by
+  samples generator to look for a number for which the function returns truthy
+  value (not false and not nil). It is possible to pass nil as a value to disable
+  this check.
+
+  When the fourth argument is present it should be a number of retries that the
+  internal sampler will use. By default it will try to get the sample that meets the
+  criteria (country code, type and a custom predicate) indefinitely but when the
+  supplied predicate makes it too improbable to get the desired result the operation
+  may take too long. Then it's recommended to set some retries count. It is possible
+  to pass nil as a value. In such case the default will be used (no restriction).
+
+  When the fifth argument is present it should be a valid locale specification or a
+  java.util.Locale object that will be passed to the info function in order to render
+  localized versions of time zone information and geographical locations."
+  {:added "8.12.4-0" :tag lazy_map.core.LazyMap}
   ([]
-   (generate nil nil nil nil nil))
+   (generate nil nil nil nil nil nil))
   ([^clojure.lang.Keyword region-code]
-   (generate region-code nil nil nil nil))
+   (generate region-code nil nil nil nil nil))
   ([^clojure.lang.Keyword region-code
     ^clojure.lang.Keyword number-type]
-   (generate region-code number-type nil nil nil))
+   (generate region-code number-type nil nil nil nil))
   ([^clojure.lang.Keyword region-code
     ^clojure.lang.Keyword number-type
     ^clojure.lang.IFn     predicate]
-   (generate region-code number-type predicate nil nil))
+   (generate region-code number-type predicate nil nil nil))
   ([^clojure.lang.Keyword region-code
     ^clojure.lang.Keyword number-type
     ^clojure.lang.IFn     predicate
     ^Number               retries]
-   (generate region-code number-type predicate retries nil))
+   (generate region-code number-type predicate retries nil nil))
   ([^clojure.lang.Keyword region-code
     ^clojure.lang.Keyword number-type
     ^clojure.lang.IFn     predicate
     ^Number               retries
     ^Number               keep-digits]
-   (let [predicate (if (nil? predicate) any? predicate)]
+   (generate region-code number-type predicate retries keep-digits nil))
+  ([^clojure.lang.Keyword region-code
+    ^clojure.lang.Keyword number-type
+    ^clojure.lang.IFn     predicate
+    ^Number               retries
+    ^Number               keep-digits
+    ^java.util.Locale     locale-specification]
+   (let [predicate (if (nil? predicate) any? predicate)
+         locale-specification (l/locale locale-specification)]
      (loop [region-code region-code
             number-type number-type
             template-tries (unchecked-dec-int
@@ -1253,14 +1298,98 @@
                  region-code'  (if (some? region-code) (region template) region-code')
                  valid-type?   (if (some? number-type) #(= number-type' (type   %)) any?)
                  valid-region? (if (some? region-code) #(= region-code' (region %)) any?)]
-             (gen-sample template
-                         nil
-                         keep-digits
-                         retries
-                         (every-pred predicate valid-type? valid-region?)))
+             (when-some [phone-number (gen-sample template nil
+                                                  keep-digits
+                                                  retries
+                                                  (every-pred predicate valid-type? valid-region?))]
+               (assoc
+                (lazy-map {:phone-number/info (info phone-number nil locale-specification)})
+                :phone-number/number phone-number)))
            (when-not (zero? template-tries)
              ;; some combinations of type and region are not suited to produce a valid template
              ;; in such cases we have to retry if there is a chance to do that
              ;; (at least region or number type are random)
              (when (or (nil? region-code) (nil? number-type))
                (recur region-code number-type (unchecked-dec-int template-tries))))))))))
+
+(defn generate-valid
+  "Works the same as generate but returns only valid numbers."
+  {:added "8.12.4-0" :tag lazy_map.core.LazyMap}
+  ([]
+   (generate nil nil valid? nil nil nil))
+  ([^clojure.lang.Keyword region-code]
+   (generate region-code nil valid? nil nil nil))
+  ([^clojure.lang.Keyword region-code
+    ^clojure.lang.Keyword number-type]
+   (generate region-code number-type valid? nil nil nil))
+  ([^clojure.lang.Keyword region-code
+    ^clojure.lang.Keyword number-type
+    ^clojure.lang.IFn     predicate]
+   (generate region-code number-type
+             (if (nil? predicate) valid? (every-pred valid? predicate))
+             nil nil nil))
+  ([^clojure.lang.Keyword region-code
+    ^clojure.lang.Keyword number-type
+    ^clojure.lang.IFn     predicate
+    ^Number               retries]
+   (generate region-code number-type
+             (if (nil? predicate) valid? (every-pred valid? predicate))
+             retries nil nil))
+  ([^clojure.lang.Keyword region-code
+    ^clojure.lang.Keyword number-type
+    ^clojure.lang.IFn     predicate
+    ^Number               retries
+    ^Number               keep-digits]
+   (generate region-code number-type
+             (if (nil? predicate) valid? (every-pred valid? predicate))
+             retries keep-digits nil))
+  ([^clojure.lang.Keyword region-code
+    ^clojure.lang.Keyword number-type
+    ^clojure.lang.IFn     predicate
+    ^Number               retries
+    ^Number               keep-digits
+    ^java.util.Locale     locale-specification]
+   (generate region-code number-type
+             (if (nil? predicate) valid? (every-pred valid? predicate))
+             retries keep-digits locale-specification)))
+
+(defn generate-invalid
+  "Works the same as generate but returns only invalid numbers."
+  {:added "8.12.4-0" :tag lazy_map.core.LazyMap}
+  ([]
+   (generate nil nil invalid? nil nil nil))
+  ([^clojure.lang.Keyword region-code]
+   (generate region-code nil invalid? nil nil nil))
+  ([^clojure.lang.Keyword region-code
+    ^clojure.lang.Keyword number-type]
+   (generate region-code number-type invalid? nil nil nil))
+  ([^clojure.lang.Keyword region-code
+    ^clojure.lang.Keyword number-type
+    ^clojure.lang.IFn     predicate]
+   (generate region-code number-type
+             (if (nil? predicate) invalid? (every-pred invalid? predicate))
+             nil nil nil))
+  ([^clojure.lang.Keyword region-code
+    ^clojure.lang.Keyword number-type
+    ^clojure.lang.IFn     predicate
+    ^Number               retries]
+   (generate region-code number-type
+             (if (nil? predicate) invalid? (every-pred invalid? predicate))
+             retries nil nil))
+  ([^clojure.lang.Keyword region-code
+    ^clojure.lang.Keyword number-type
+    ^clojure.lang.IFn     predicate
+    ^Number               retries
+    ^Number               keep-digits]
+   (generate region-code number-type
+             (if (nil? predicate) invalid? (every-pred invalid? predicate))
+             retries keep-digits nil))
+  ([^clojure.lang.Keyword region-code
+    ^clojure.lang.Keyword number-type
+    ^clojure.lang.IFn     predicate
+    ^Number               retries
+    ^Number               keep-digits
+    ^java.util.Locale     locale-specification]
+   (generate region-code number-type
+             (if (nil? predicate) invalid? (every-pred invalid? predicate))
+             retries keep-digits locale-specification)))
