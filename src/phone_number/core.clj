@@ -1192,7 +1192,7 @@
          rcode
          ptype))))))
 
-(defn gen-sample
+(defn- gen-sample
   "Internal phone number samples generator."
   {:added "8.12.4-0" :tag Phonenumber$PhoneNumber}
   ([^phone_number.core.Phoneable phone-number
@@ -1216,9 +1216,10 @@
          (loop [last-valid template
                 iteration  (unchecked-long retries)
                 gen-length (unchecked-int 0)
-                cur-prefix template-num]
+                cur-prefix template-num
+                valid-hits (unchecked-long 0)]
            (if (or (zero? iteration) (and (> gen-length max-len-gen) (some? last-valid)))
-             last-valid
+             [(unchecked-subtract retries iteration) gen-length valid-hits last-valid]
              (let [test-number (number-noraw (str cur-prefix (util/gen-digits gen-length)) nil)
                    have-valid  (validator test-number)
                    shorten     (or have-valid (and (nil? last-valid) (not= gen-length max-len-gen)))
@@ -1227,12 +1228,15 @@
                (recur  (if have-valid test-number last-valid)
                        (unchecked-dec iteration)
                        new-length
-                       new-prefix))))
+                       new-prefix
+                       (if have-valid (unchecked-inc valid-hits) valid-hits)))))
          (loop [last-valid template
                 gen-length (unchecked-int 0)
-                cur-prefix template-num]
+                cur-prefix template-num
+                retries    1
+                valid-hits 0]
            (if (and (> gen-length max-len-gen) (some? last-valid))
-             last-valid
+             [retries gen-length valid-hits last-valid]
              (let [test-number (number-noraw (str cur-prefix (util/gen-digits gen-length)) nil)
                    have-valid  (validator test-number)
                    shorten     (or have-valid (and (nil? last-valid) (not= gen-length max-len-gen)))
@@ -1240,12 +1244,17 @@
                    new-prefix  (if shorten (subs cur-prefix 0 (unchecked-subtract-int template-len new-length)) cur-prefix)]
                (recur  (if have-valid test-number last-valid)
                        new-length
-                       new-prefix)))))))))
+                       new-prefix
+                       (inc retries)
+                       (if have-valid (inc valid-hits) valid-hits))))))))))
 
 (defn generate
   "Generates sample phone number in a form of a map with two keys:
-  - :phone-number/number  - PhoneNumber object
-  - :phone-number/info    - a map with phone number information (evaluated when accessed)
+  - :phone-number/number      - PhoneNumber object
+  - :phone-number/info        - a map with phone number information (evaluated on access)
+  - :phone-number.sample/hits - a number of valid hits encountered during sampling
+  - :phone-number.sample/random-digits - a number of digits that are randomly generated
+  - :phone-number.sample/samples - a number of samples processed before the result was formed
 
   It is important to note that the result may be valid or invalid phone number. To
   get only valid number pass the valid? predicate function as the third
@@ -1269,14 +1278,15 @@
   value (not false and not nil). It is possible to pass nil as a value to disable
   this check.
 
-  When the fourth argument is present it should be a number of tries the internal
-  sampler will perform to get the desired sample. By default it will try to get the
-  sample that meets the criteria (country code, type and a custom predicate) in 1000
-  attempts but when the supplied predicate makes it too improbable to get the desired
-  result the operation may fail and this number should be increased. It is possible
-  to pass nil as a value. In such case the default will be used. It is also possible
-  to pass false as a value. In such case the sampler will continue indefinitely which
-  poses the risk of freezing the program for complicated or impossible conditions.
+  When the fourth argument is present it should be a maximal number of attempts the
+  internal sampler will perform to get the desired sample. By default it will try to
+  get the sample that meets the criteria (country code, type and a custom predicate)
+  in 1000 attempts but when the supplied predicate makes it too improbable to get the
+  desired result the operation may fail and this number should be increased. It is
+  possible to pass nil as a value. In such case the default will be used. It is also
+  possible to pass false as a value. In such case the sampler will continue
+  indefinitely which poses the risk of freezing the program for complicated or
+  impossible conditions.
 
   It is important to know that even relatively low retry counts will produce valid
   results in most cases. This is due to shrinking strategy the internal sampler
@@ -1287,7 +1297,7 @@
   memorized and the shrinking continues until all digits (except the country code
   plus the static part described later) are randomized. When that happens the result
   is returned if it fulfills all of the validation criteria or the number of retries
-  reaches the given maximal value. If the final result (after all the tries) is not
+  reaches the given maximal value. If the final result (after all the trials) is not
   valid then the memorized number is returned.
 
   When the fifth argument is present it should be a number of digits that will remain
@@ -1333,8 +1343,9 @@
      (loop [region-code region-code
             number-type number-type
             template-tries (unchecked-dec-int
-                            (* (if (nil? region-code) (count regions) 1)
-                               (if (nil? number-type) (count types)   1)))]
+                            (unchecked-multiply-int
+                             (if (nil? region-code) (count regions) 1)
+                             (if (nil? number-type) (count types)   1)))]
        (let [number-type' (if (some? number-type) number-type (type/generate-sample))
              region-code' (if (some? region-code) region-code (region/generate-sample))]
          (if-some [template (example region-code' number-type')]
@@ -1342,14 +1353,19 @@
                  region-code'  (if (some? region-code) (region template) region-code')
                  valid-type?   (if (some? number-type) #(= number-type' (type   %)) any?)
                  valid-region? (if (some? region-code) #(= region-code' (region %)) any?)]
-             (when-some [phone-number (gen-sample template
-                                                  nil
-                                                  keep-digits
-                                                  retries
-                                                  (every-pred predicate valid-type? valid-region?))]
-               (assoc
-                (lazy-map {:phone-number/info (info phone-number nil locale-specification)})
-                :phone-number/number phone-number)))
+             (let [[samples random-digits valid-hits phone-number]
+                   (gen-sample template
+                               nil
+                               keep-digits
+                               retries
+                               (every-pred predicate valid-type? valid-region?))]
+               (when (some? phone-number)
+                 (assoc
+                  (lazy-map {:phone-number/info (info phone-number nil locale-specification)})
+                  :phone-number/number               phone-number
+                  :phone-number.sample/samples       samples
+                  :phone-number.sample/random-digits random-digits
+                  :phone-number.sample/hits          valid-hits))))
            (when-not (zero? template-tries)
              ;; some combinations of type and region are not suited to produce a valid template
              ;; in such cases we have to retry if there is a chance to do that
