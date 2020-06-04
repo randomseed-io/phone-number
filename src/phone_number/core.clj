@@ -1192,31 +1192,55 @@
          rcode
          ptype))))))
 
-(defn- gen-sample
+(defn gen-sample
+  "Internal phone number samples generator."
   {:added "8.12.4-0" :tag Phonenumber$PhoneNumber}
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
     ^Number                      keep-digits
     ^Number                      retries
     ^clojure.lang.IFn            validator]
-   (when-some [p (number-noraw phone-number region-code)]
-     (let [num           (format p nil ::format/e164)
-           number-type   (type p nil)
-           cnt-all       (count num)
-           ccode         (str (country-code p nil))
-           cnt-country   (inc (count ccode))
-           num-national  (not-empty (subs num cnt-country))
-           cnt-national  (count num-national)
-           keep-digits   (if (nil? keep-digits) 0 keep-digits)
-           keep-digits   (if (> keep-digits cnt-national) cnt-national keep-digits)
-           prefix        (str "+" ccode (if (zero? keep-digits) nil (subs num-national 0 keep-digits)))
-           cnt-national  (- cnt-national keep-digits)
-           num-national  (if (zero? keep-digits) num-national (subs num-national keep-digits))
-           retry-fn      (if (nil? retries) repeatedly (partial repeatedly (if (< retries 1) 1 retries)))]
-       (->> #(when-some [ph (number-noraw (str prefix (util/gen-digits cnt-national)) nil)]
-               (when (validator ph) ph))
-            retry-fn
-            (some identity))))))
+   (when-some [template (number-noraw phone-number region-code)]
+     (let [template-num (format template nil ::format/e164)
+           template-len (unchecked-int (count template-num))
+           ccode        (str (country-code template nil))
+           cnt-country  (unchecked-inc-int (count ccode))
+           num-national (not-empty (subs template-num cnt-country))
+           cnt-national (unchecked-int (count num-national))
+           keep-digits  (unchecked-int (if (nil? keep-digits) 0 keep-digits))
+           keep-digits  (if (> keep-digits cnt-national) cnt-national keep-digits)
+           prefix       (str "+" ccode (if (zero? keep-digits) nil (subs num-national 0 keep-digits)))
+           max-len-gen  (unchecked-subtract-int cnt-national keep-digits)
+           template     (if (validator template) template nil)]
+       (if (some? retries)
+         (loop [last-valid template
+                iteration  (unchecked-long retries)
+                gen-length (unchecked-int 0)
+                cur-prefix template-num]
+           (if (or (zero? iteration) (and (> gen-length max-len-gen) (some? last-valid)))
+             last-valid
+             (let [test-number (number-noraw (str cur-prefix (util/gen-digits gen-length)) nil)
+                   have-valid  (validator test-number)
+                   shorten     (or have-valid (and (nil? last-valid) (not= gen-length max-len-gen)))
+                   new-length  (if shorten (unchecked-inc-int gen-length) gen-length)
+                   new-prefix  (if shorten (subs cur-prefix 0 (unchecked-subtract-int template-len new-length)) cur-prefix)]
+               (recur  (if have-valid test-number last-valid)
+                       (unchecked-dec iteration)
+                       new-length
+                       new-prefix))))
+         (loop [last-valid template
+                gen-length (unchecked-int 0)
+                cur-prefix template-num]
+           (if (and (> gen-length max-len-gen) (some? last-valid))
+             last-valid
+             (let [test-number (number-noraw (str cur-prefix (util/gen-digits gen-length)) nil)
+                   have-valid  (validator test-number)
+                   shorten     (or have-valid (and (nil? last-valid) (not= gen-length max-len-gen)))
+                   new-length  (if shorten (unchecked-inc-int gen-length) gen-length)
+                   new-prefix  (if shorten (subs cur-prefix 0 (unchecked-subtract-int template-len new-length)) cur-prefix)]
+               (recur  (if have-valid test-number last-valid)
+                       new-length
+                       new-prefix)))))))))
 
 (defn generate
   "Generates sample phone number in a form of a map with two keys:
@@ -1245,17 +1269,31 @@
   value (not false and not nil). It is possible to pass nil as a value to disable
   this check.
 
-  When the fourth argument is present it should be a number of retries that the
-  internal sampler will use. By default it will try to get the sample that meets the
-  criteria (country code, type and a custom predicate) in 1000 attempts but when the
-  supplied predicate makes it too improbable to get the desired result the operation
-  may fail and this number should be increased. It is possible to pass nil as a
-  value. In such case the default will be used. It is also possible to pass false as
-  a value. In such case the sampler will continue indefinitely (risk of freezing the
-  program for complicated or impossible conditions).
+  When the fourth argument is present it should be a number of tries the internal
+  sampler will perform to get the desired sample. By default it will try to get the
+  sample that meets the criteria (country code, type and a custom predicate) in 1000
+  attempts but when the supplied predicate makes it too improbable to get the desired
+  result the operation may fail and this number should be increased. It is possible
+  to pass nil as a value. In such case the default will be used. It is also possible
+  to pass false as a value. In such case the sampler will continue indefinitely which
+  poses the risk of freezing the program for complicated or impossible conditions.
+
+  It is important to know that even relatively low retry counts will produce valid
+  results in most cases. This is due to shrinking strategy the internal sampler
+  uses. It starts by taking an initial, template number returned by the example
+  function. This number is valid but may not fulfill additional criteria. If it
+  fulfills them it is memorized and the next, more fuzzed variant is tried with last
+  digit replaced by a randomly generated one. If such number is also valid it is
+  memorized and the shrinking continues until all digits (except the country code
+  plus the static part described later) are randomized. When that happens the result
+  is returned if it fulfills all of the validation criteria or the number of retries
+  reaches the given maximal value. If the final result (after all the tries) is not
+  valid then the memorized number is returned.
 
   When the fifth argument is present it should be a number of digits that will remain
-  constant when sampling is done.
+  constant when sampling is performed. If nil is given or the argument is not passed
+  then this parameter will be dynamically incremented to increase the chance of
+  meeting validation criteria.
 
   When the sixth argument is present it should be a valid locale specification or a
   java.util.Locale object that will be passed to the info function in order to render
@@ -1289,9 +1327,9 @@
     ^Number               retries
     ^Number               keep-digits
     ^java.util.Locale     locale-specification]
-   (let [predicate (if (nil? predicate) any? predicate)
-         locale-specification (l/locale locale-specification)
-         retries (if (nil? retries) 1000 (if (false? retries) nil retries))]
+   (let [predicate            (if (nil? predicate) any? predicate)
+         retries              (if (nil? retries) 1000 (if (false? retries) nil retries))
+         locale-specification (l/locale locale-specification)]
      (loop [region-code region-code
             number-type number-type
             template-tries (unchecked-dec-int
@@ -1315,7 +1353,7 @@
            (when-not (zero? template-tries)
              ;; some combinations of type and region are not suited to produce a valid template
              ;; in such cases we have to retry if there is a chance to do that
-             ;; (at least region or number type are random)
+             ;; (at least a region or a number type are random)
              (when (or (nil? region-code) (nil? number-type))
                (recur region-code number-type (unchecked-dec-int template-tries))))))))))
 
