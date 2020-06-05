@@ -45,17 +45,49 @@
         (catch NumberFormatException e# false)))
 
 (defmacro try-null
-  "Evaluates body and if NullPointerException exception is caught it returns nil."
+  "Evaluates body and if NullPointerException exception is caught it returns
+  nil. Otherwise it returns the value of last expression in the body."
   {:added "8.12.4-0"}
   [& body]
   `(try ~@body
         (catch NullPointerException  e# nil)))
 
 (defn ns-infer
+  "Takes a string of namespace name and a keyword. If the given keyword is not
+  namespace-qualified it returns a new keyword with the given namespace added. If the
+  given keyword is already equipped with a namespace it returns it."
   {:added "8.12.4-0" :tag clojure.lang.Keyword}
   [^String ns-name
    ^clojure.lang.Keyword k]
-  (if (simple-keyword? k) (keyword ns-name (name k)) k))
+  (if (simple-keyword? k)
+    (keyword ns-name (name k))
+    k))
+
+(defn inferred-contains?
+  "Just like the contains? but if the keyword is namespace-qualified it also checks if
+  the collection contains the same keyword as its key but without a namespace."
+  {:added "8.12.4-0" :tag Boolean}
+  [^clojure.lang.IPersistentMap coll
+   ^clojure.lang.Keyword k]
+  (or (contains? coll k)
+      (if (simple-keyword? k)
+        false
+        (contains? coll (keyword (name k))))))
+
+(defn inferred-get
+  "Just like the get function but if the keyword is namespace-qualified it first
+  attempts to look for the value associated with it. If that fails it uses the
+  variant of the keyword without any namespace."
+  {:added "8.12.4-0"}
+  ([^clojure.lang.IPersistentMap coll
+    ^clojure.lang.Keyword k]
+   (inferred-get coll k nil))
+  ([^clojure.lang.IPersistentMap coll
+    ^clojure.lang.Keyword k
+    default]
+   (if (simple-keyword? k)
+     (k coll default)
+     ((if (contains? coll k) k (keyword (name k))) coll default))))
 
 (defn fmap-k
   "For each key and value of the given map m calls a function passed as the second
@@ -126,8 +158,8 @@
   (reduce str (repeatedly num #(unchecked-int (rand 10)))))
 
 (defn lazy-iterator-seq
-  {:added "8.12.4-0"
-   :tag clojure.lang.LazySeq}
+  "Returns a lazy sequence as an interface to the given iterable Java object."
+  {:added "8.12.4-0" :tag clojure.lang.LazySeq}
   ([^Iterable coll]
    (lazy-iterator-seq coll (.iterator coll)))
   ([^Iterable coll ^java.util.Iterator iter]

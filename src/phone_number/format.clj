@@ -22,6 +22,18 @@
       :raw-input     :raw})
 
 (def ^{:added "8.12.4-0"
+       :tag clojure.lang.PersistentHashSet}
+  country-coded
+  "Set of formats (keywords) that should identify values containing country code information."
+  #{::e164 ::international ::rfc3966})
+
+(def ^{:added "8.12.4-0"
+       :tag clojure.lang.PersistentHashSet}
+  not-country-coded
+  "Set of formats (keywords) that should identify values containing country code information."
+  (clojure.set/difference (set (keys all)) country-coded #{:raw-input}))
+
+(def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentArrayMap}
   by-val
   "Map of PhoneNumberFormat values to possible format identifiers (keywords)."
@@ -53,3 +65,16 @@
   {:added "8.12.4-0" :tag Boolean}
   [^clojure.lang.Keyword format]
   (contains? all format))
+
+(defn country-coded?
+  "Returns true if the given format contains country code information, false otherwise."
+  {:added "8.12.4-0" :tag Boolean}
+  [^clojure.lang.Keyword format]
+  (contains? country-coded format))
+
+(defn not-country-coded?
+  "Returns true if the given format does not contain country code information, false
+  otherwise."
+  {:added "8.12.4-0" :tag Boolean}
+  [^clojure.lang.Keyword format]
+  (contains? not-country-coded format))

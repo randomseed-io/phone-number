@@ -95,6 +95,73 @@
   (set (keys tz-format/all)))
 
 ;;
+;; Protocol helper
+;;
+
+(defn- inf-get
+  {:added "8.12.4-0"}
+  ([^clojure.lang.IPersistentMap coll
+    ^clojure.lang.Keyword k]
+   (inf-get coll k nil))
+  ([^clojure.lang.IPersistentMap coll
+    ^clojure.lang.Keyword k
+    default]
+   (if *inferred-namespaces*
+     (util/inferred-get coll k)
+     (k coll default))))
+
+(defn- inf-contains?
+  {:added "8.12.4-0"}
+  [^clojure.lang.IPersistentMap coll
+   ^clojure.lang.Keyword k]
+  (if *inferred-namespaces*
+    (util/inferred-contains? coll k)
+    (and (contains? coll k))))
+
+(def ^{:added "8.12.4-0" :tag clojure.lang.LazySeq :private true}
+  country-coded-formats-simple
+  (map (comp keyword name) format/country-coded))
+
+(def ^{:added "8.12.4-0" :tag clojure.lang.LazySeq :private true}
+  not-country-coded-formats-simple
+  (map (comp keyword name) format/not-country-coded))
+
+(defn from-map
+  "Tries to apply a function to a phone number obtained from a map using known keys."
+  {:added "8.12.4-0" :tag Phonenumber$PhoneNumber}
+  ([^clojure.lang.IFn            f
+    ^clojure.lang.IPersistentMap m]
+   (from-map f m nil))
+  ([^clojure.lang.IFn            f
+    ^clojure.lang.IPersistentMap m
+    ^clojure.lang.Keyword        region-code]
+   ;; try phone number object
+   (if (inf-contains? m :phone-number/number)
+     (f (inf-get m :phone-number/number) nil)
+     ;; try phone number info map
+     (if (inf-contains? m :phone-number/info)
+       (from-map (inf-get m :phone-number/info))
+       ;; try phone number formats containing region code information
+       (if-some [t (some m format/country-coded)]
+         (f t nil)
+         (if-some [t (when *inferred-namespaces* (some m country-coded-formats-simple))]
+           (f t nil)
+           ;; try phone number formats without any region code information
+           ;; obtain region from:
+           ;; - country code number (:phone-number/country-code)
+           ;; - different key (:phone-number/region or :region)
+           ;; - or passed as an argument (region-code)
+           (let [c (inf-get m :phone-number/country-code)
+                 r (if (some? c) nil (inf-get m :phone-number/region region-code))]
+             (if (or (some? c) (some? r))
+               (if-some [t (some m format/not-country-coded)]
+                 (if (some? c) (f (str "+" c t) nil) (f t r))
+                 (if-some [t (when *inferred-namespaces* (some m not-country-coded-formats-simple))]
+                   (if (some? c) (f (str "+" c t) nil) (f t r))
+                   (if (some? c) (f nil nil) (f nil r))))
+               (f nil nil)))))))))
+
+;;
 ;; Protocol
 ;;
 
@@ -212,27 +279,37 @@
       ^clojure.lang.Keyword region-code]
      (valid? (str phone-number) region-code)))
 
+  clojure.lang.IPersistentMap
+  (valid-input?
+    [phone-number] (from-map valid-input? phone-number nil))
+  (number-noraw
+    ([phone-number] (from-map number-noraw phone-number nil))
+    ([phone-number ^clojure.lang.Keyword region-code] (from-map number-noraw phone-number region-code)))
+  (number
+    ([phone-number] (from-map number phone-number nil))
+    ([phone-number ^clojure.lang.Keyword region-code] (from-map number phone-number region-code)))
+  (raw-input
+    ([phone-number] (from-map raw-input phone-number nil))
+    ([phone-number ^clojure.lang.Keyword region-code] (from-map raw-input phone-number)))
+  (valid?
+    ([phone-number]  (from-map valid? phone-number nil))
+    ([phone-number ^clojure.lang.Keyword region-code] (from-map valid? phone-number region-code)))
+
   nil
   (valid-input?
     [phone-number] false)
   (number-noraw
     ([phone-number] phone-number)
-    ([phone-number
-      ^clojure.lang.Keyword region-code]
-     phone-number))
+    ([phone-number ^clojure.lang.Keyword region-code] phone-number))
   (number
     ([phone-number] phone-number)
-    ([phone-number
-      ^clojure.lang.Keyword region-code]
-     phone-number))
+    ([phone-number ^clojure.lang.Keyword region-code] phone-number))
   (raw-input
     ([phone-number] phone-number)
     ([phone-number ^clojure.lang.Keyword region-code] phone-number))
   (valid?
     ([phone-number] false)
-    ([phone-number
-      ^clojure.lang.Keyword region-code]
-     false))
+    ([phone-number ^clojure.lang.Keyword region-code] false))
 
   Object
   (valid-input?
@@ -1219,7 +1296,7 @@
                 cur-prefix template-num
                 valid-hits (unchecked-long 0)]
            (if (or (zero? iteration) (and (> gen-length max-len-gen) (some? last-valid)))
-             [(unchecked-subtract retries iteration) gen-length valid-hits last-valid]
+             [(unchecked-subtract retries iteration) (unchecked-dec-int gen-length) valid-hits last-valid]
              (let [test-number (number-noraw (str cur-prefix (util/gen-digits gen-length)) nil)
                    have-valid  (validator test-number)
                    shorten     (or have-valid (and (nil? last-valid) (not= gen-length max-len-gen)))
@@ -1236,7 +1313,7 @@
                 retries    1
                 valid-hits 0]
            (if (and (> gen-length max-len-gen) (some? last-valid))
-             [retries gen-length valid-hits last-valid]
+             [retries (unchecked-dec-int gen-length) valid-hits last-valid]
              (let [test-number (number-noraw (str cur-prefix (util/gen-digits gen-length)) nil)
                    have-valid  (validator test-number)
                    shorten     (or have-valid (and (nil? last-valid) (not= gen-length max-len-gen)))
