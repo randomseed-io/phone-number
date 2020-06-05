@@ -31,7 +31,7 @@
        :tag clojure.lang.PersistentHashSet}
   not-country-coded
   "Set of formats (keywords) that should identify values containing country code information."
-  (clojure.set/difference (set (keys all)) country-coded #{:raw-input}))
+  (clojure.set/difference (set (keys all)) country-coded #{::raw-input}))
 
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentArrayMap}
