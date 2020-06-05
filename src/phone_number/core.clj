@@ -281,7 +281,7 @@
 
   clojure.lang.IPersistentMap
   (valid-input?
-    [phone-number] (from-map valid-input? phone-number nil))
+    [phone-number] (from-map (fn [p _] (valid-input? p)) phone-number nil))
   (number-noraw
     ([phone-number] (from-map number-noraw phone-number nil))
     ([phone-number ^clojure.lang.Keyword region-code] (from-map number-noraw phone-number region-code)))
