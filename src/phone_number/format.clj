@@ -22,6 +22,12 @@
       :raw-input     :raw})
 
 (def ^{:added "8.12.4-0"
+       :tag clojure.lang.PersistentVector}
+  all-vec
+  "Vector of formats (keywords)."
+  (vec (keys all)))
+
+(def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentHashSet}
   country-coded
   "Set of formats (keywords) that should identify values containing country code information."

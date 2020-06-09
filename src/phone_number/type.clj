@@ -76,8 +76,8 @@
 (defn generate-sample
   "Generates random number type."
   {:added "8.12.4-0" :tag clojure.lang.Keyword}
-  []
-  (rand-nth all-vec))
+  ([] (rand-nth all-vec))
+  ([^java.util.Random rng] (util/get-rand-nth all-vec rng)))
 
 (defn generate-sample-val
   "Generates random number type (PhoneNumberType value)."
