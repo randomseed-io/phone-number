@@ -1059,8 +1059,20 @@
  (remove #{::type/fixed-line-or-mobile} (keys type/all))
  type)
 
-(def is-short? short-valid?)
-(def is-maybe-short? short-possible?)
+(def ^{:added "8.12.4-0" :tag Boolean}
+  is-short?
+  "Same as short-valid?"
+  short-valid?)
+
+(def ^{:added "8.12.4-0" :tag Boolean}
+  is-maybe-short?
+  "Same as short-possible?"
+  short-possible?)
+
+(def ^{:added "8.12.4-0" :tag Boolean}
+  short-invalid?
+  "Logical negation of short-valid?"
+  (complement short-valid?))
 
 (defn is-fixed-line-or-mobile?
   "Returns true if the given number is a kind of fixed-line number or a mobile number,
@@ -1285,63 +1297,58 @@
   {:added "8.12.4-0" :tag Phonenumber$PhoneNumber}
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
-    ^Number                      keep-digits
-    ^Number                      retries
-    ^clojure.lang.IFn            validator]
+    ^Long                        retries
+    ^clojure.lang.IFn            validator
+    ^java.util.Random            rng
+    ^Boolean                     early-shrinking]
    (when-some [template (number-noraw phone-number region-code)]
-     (let [template-num (format template nil ::format/e164)
-           template-len (unchecked-int (count template-num))
-           ccode        (str (country-code template nil))
-           cnt-country  (unchecked-inc-int (count ccode))
-           num-national (not-empty (subs template-num cnt-country))
-           cnt-national (unchecked-int (count num-national))
-           keep-digits  (unchecked-int (if (nil? keep-digits) 0 keep-digits))
-           keep-digits  (if (> keep-digits cnt-national) cnt-national keep-digits)
-           prefix       (str "+" ccode (if (zero? keep-digits) nil (subs num-national 0 keep-digits)))
-           max-len-gen  (unchecked-subtract-int cnt-national keep-digits)
-           template     (if (validator template) template nil)]
-       (if (some? retries)
-         (loop [last-valid template
-                iteration  (unchecked-long retries)
-                gen-length (unchecked-int 0)
-                cur-prefix template-num
-                valid-hits (unchecked-long 0)]
-           (if (or (zero? iteration) (and (> gen-length max-len-gen) (some? last-valid)))
-             [(unchecked-subtract retries iteration) (unchecked-dec-int gen-length) valid-hits last-valid]
-             (let [test-number (number-noraw (str cur-prefix (util/gen-digits gen-length)) nil)
-                   have-valid  (validator test-number)
-                   shorten     (or have-valid (and (nil? last-valid) (not= gen-length max-len-gen)))
-                   new-length  (if shorten (unchecked-inc-int gen-length) gen-length)
-                   new-prefix  (if shorten (subs cur-prefix 0 (unchecked-subtract-int template-len new-length)) cur-prefix)]
-               (recur  (if have-valid test-number last-valid)
-                       (unchecked-dec iteration)
-                       new-length
-                       new-prefix
-                       (if have-valid (unchecked-inc valid-hits) valid-hits)))))
-         (loop [last-valid template
-                gen-length (unchecked-int 0)
-                cur-prefix template-num
-                retries    1
-                valid-hits 0]
-           (if (and (> gen-length max-len-gen) (some? last-valid))
-             [retries (unchecked-dec-int gen-length) valid-hits last-valid]
-             (let [test-number (number-noraw (str cur-prefix (util/gen-digits gen-length)) nil)
-                   have-valid  (validator test-number)
-                   shorten     (or have-valid (and (nil? last-valid) (not= gen-length max-len-gen)))
-                   new-length  (if shorten (unchecked-inc-int gen-length) gen-length)
-                   new-prefix  (if shorten (subs cur-prefix 0 (unchecked-subtract-int template-len new-length)) cur-prefix)]
-               (recur  (if have-valid test-number last-valid)
-                       new-length
-                       new-prefix
-                       (inc retries)
-                       (if have-valid (inc valid-hits) valid-hits))))))))))
+     (let [country-code   (str "+" (country-code template nil))
+           prefix         (subs (format template nil ::format/e164) (count country-code))
+           total-len      (unchecked-long (count prefix))
+           retries        (unchecked-long retries)
+           auto-shrink    (unchecked-long (if early-shrinking 0 (* retries 0.75)))
+           despair-shrink (unchecked-long (* retries 0.25))
+           template       (if (validator template) template nil)]
+       (loop [last-valid  template
+              last-static prefix
+              last-random (unchecked-long 0)
+              prefix      prefix
+              iteration   (unchecked-long 1)
+              valid-hits  (unchecked-long 0)]
+         (if (or (and (some? retries) (= iteration retries))
+                 (and (nil? prefix) (some? last-valid)))
+           {:phone-number/number         last-valid
+            :phone-number.sample/hits    valid-hits
+            :phone-number.sample/samples iteration
+            :phone-number.sample/digits  [(not-empty country-code)
+                                          (not-empty last-static)
+                                          (not-empty last-random)]}
+           (let [prefix-len    (unchecked-long (count prefix))
+                 fuzzed-len    (unchecked-subtract total-len prefix-len)
+                 shrink-now    (or  (> iteration auto-shrink) (and (nil? last-valid) (> iteration despair-shrink)))
+                 random-len    (util/random-digits-len fuzzed-len iteration shrink-now rng)
+                 random-digits (util/gen-digits random-len rng)
+                 test-number   (util/try-parse (number-noraw (str country-code prefix random-digits) nil))
+                 have-valid    (and (some? test-number) (validator test-number))
+                 shorten       (or have-valid (nil? last-valid))
+                 new-prefix    (if (empty? prefix) nil (if shorten (subs prefix 0 (dec prefix-len)) prefix))]
+             (recur (if have-valid test-number   last-valid)
+                    (if have-valid prefix        last-static)
+                    (if have-valid random-digits last-random)
+                    new-prefix
+                    (unchecked-inc iteration)
+                    (if have-valid (unchecked-inc valid-hits) valid-hits)))))))))
 
 (defn generate
   "Generates sample phone number in a form of a map with two keys:
   - :phone-number/number      - PhoneNumber object
   - :phone-number/info        - a map with phone number information (evaluated on access)
   - :phone-number.sample/hits - a number of valid hits encountered during sampling
-  - :phone-number.sample/random-digits - a number of digits that are randomly generated
+  - :phone-number.sample/random-digits - a number of ending digits which were randomly generated
+  - :phone-number.sample/shrank-digits - a number of ending digits which were removed due to shrinking
+  - :phone-number.sample/nat-digits - a number of digits of the used template without country code
+  - :phone-number.sample/kept-digits - a number of digits prevented from any mutations (static prefix)
+  - :phone-number.sample/max-samples - a maximum number of samples declared
   - :phone-number.sample/samples - a number of samples processed before the result was formed
 
   It is important to note that the result may be valid or invalid phone number. To
@@ -1377,12 +1384,12 @@
   impossible conditions.
 
   It is important to know that even relatively low retry counts will produce valid
-  results in most cases. This is due to shrinking strategy the internal sampler
+  results in most cases. This is due to randomization strategy the internal sampler
   uses. It starts by taking an initial, template number returned by the example
   function. This number is valid but may not fulfill additional criteria. If it
   fulfills them it is memorized and the next, more fuzzed variant is tried with last
   digit replaced by a randomly generated one. If such number is also valid it is
-  memorized and the shrinking continues until all digits (except the country code
+  memorized and the randomization continues until all digits (except the country code
   plus the static part described later) are randomized. When that happens the result
   is returned if it fulfills all of the validation criteria or the number of retries
   reaches the given maximal value. If the final result (after all the trials) is not
@@ -1395,150 +1402,90 @@
 
   When the sixth argument is present it should be a valid locale specification or a
   java.util.Locale object that will be passed to the info function in order to render
-  localized versions of time zone information and geographical locations."
+  localized versions of time zone information and geographical locations.
+
+  The sixth argument should be a long value that will seed the pseudo-random number
+  generator used to produce digits and to choose region and/or phone number type when
+  not given. It can be used to create a deterministic sequence of samples.
+
+  The last, optional argument enables shrinking of randomly generated part. If it is
+  set to a truthy value (not nil and not false) then each sampling step that involves
+  generation of random digits will have 50% chances of producing less digits than
+  required (at least 1 digit remaining). The number of digits is chosen randomly. It
+  is advised to enable shrinking when expecting highly improbable phone numbers, for
+  instance with the impossible? predicate."
   {:added "8.12.4-0" :tag lazy_map.core.LazyMap}
   ([]
-   (generate nil nil nil nil nil nil))
+   (generate nil nil nil nil nil nil nil))
   ([^clojure.lang.Keyword region-code]
-   (generate region-code nil nil nil nil nil))
+   (generate region-code nil nil nil nil nil nil))
   ([^clojure.lang.Keyword region-code
     ^clojure.lang.Keyword number-type]
-   (generate region-code number-type nil nil nil nil))
+   (generate region-code number-type nil nil nil nil nil))
   ([^clojure.lang.Keyword region-code
     ^clojure.lang.Keyword number-type
     ^clojure.lang.IFn     predicate]
-   (generate region-code number-type predicate nil nil nil))
+   (generate region-code number-type predicate nil nil nil nil))
   ([^clojure.lang.Keyword region-code
     ^clojure.lang.Keyword number-type
     ^clojure.lang.IFn     predicate
-    ^Number               retries]
-   (generate region-code number-type predicate retries nil nil))
+    ^Long                 retries]
+   (generate region-code number-type predicate retries nil nil nil))
   ([^clojure.lang.Keyword region-code
     ^clojure.lang.Keyword number-type
     ^clojure.lang.IFn     predicate
-    ^Number               retries
-    ^Number               keep-digits]
-   (generate region-code number-type predicate retries keep-digits nil))
-  ([^clojure.lang.Keyword region-code
-    ^clojure.lang.Keyword number-type
-    ^clojure.lang.IFn     predicate
-    ^Number               retries
-    ^Number               keep-digits
+    ^Long                 retries
     ^java.util.Locale     locale-specification]
-   (let [predicate            (if (nil? predicate) any? predicate)
-         retries              (if (nil? retries) 1000 (if (false? retries) nil retries))
-         locale-specification (l/locale locale-specification)]
+   (generate region-code number-type predicate retries locale-specification nil nil))
+  ([^clojure.lang.Keyword region-code
+    ^clojure.lang.Keyword number-type
+    ^clojure.lang.IFn     predicate
+    ^Long                 retries
+    ^java.util.Locale     locale-specification
+    ^Long                 random-seed]
+   (generate region-code number-type predicate retries locale-specification random-seed nil))
+  ([^clojure.lang.Keyword region-code
+    ^clojure.lang.Keyword number-type
+    ^clojure.lang.IFn     predicate
+    ^Long                 retries
+    ^java.util.Locale     locale-specification
+    ^Long                 random-seed
+    ^Boolean              early-shrinking]
+   (let [early-shrinking  (if (nil? early-shrinking) false (or (and early-shrinking true) false))
+         random-seed (long (if (nil? random-seed) (rand Long/MAX_VALUE) random-seed))
+         rng         (java.util.Random. random-seed)
+         predicate   (if (nil? predicate) any? predicate)
+         retries     (if (nil? retries) 1000 (if (false? retries) nil retries))
+         lspec       (l/locale locale-specification)]
      (loop [region-code region-code
             number-type number-type
             template-tries (unchecked-dec-int
                             (unchecked-multiply-int
                              (if (nil? region-code) (count regions) 1)
                              (if (nil? number-type) (count types)   1)))]
-       (let [number-type' (if (some? number-type) number-type (type/generate-sample))
-             region-code' (if (some? region-code) region-code (region/generate-sample))]
+       (let [number-type' (if (some? number-type) number-type (type/generate-sample rng))
+             region-code' (if (some? region-code) region-code (region/generate-sample rng))]
          (if-some [template (example region-code' number-type')]
            (let [number-type'  (if (some? number-type) (type   template) number-type')
                  region-code'  (if (some? region-code) (region template) region-code')
                  valid-type?   (if (some? number-type) #(= number-type' (type   %)) any?)
-                 valid-region? (if (some? region-code) #(= region-code' (region %)) any?)]
-             (let [[samples random-digits valid-hits phone-number]
-                   (gen-sample template
-                               nil
-                               keep-digits
-                               retries
-                               (every-pred predicate valid-type? valid-region?))]
-               (when (some? phone-number)
-                 (assoc
-                  (lazy-map {:phone-number/info (info phone-number nil locale-specification)})
-                  :phone-number/number               phone-number
-                  :phone-number.sample/samples       samples
-                  :phone-number.sample/random-digits random-digits
-                  :phone-number.sample/hits          valid-hits))))
+                 valid-region? (if (some? region-code) #(= region-code' (region %)) any?)
+                 result        (gen-sample template
+                                           nil
+                                           retries
+                                           (every-pred predicate valid-type? valid-region?)
+                                           rng
+                                           early-shrinking)
+                 phone-number   (:phone-number/number result)]
+             (when (some? phone-number)
+               (merge
+                (lazy-map {:phone-number/info (info phone-number nil lspec)})
+                (assoc result
+                       :phone-number.sample/max-samples retries
+                       :phone-number.sample/random-seed random-seed))))
            (when-not (zero? template-tries)
              ;; some combinations of type and region are not suited to produce a valid template
              ;; in such cases we have to retry if there is a chance to do that
              ;; (at least a region or a number type are random)
              (when (or (nil? region-code) (nil? number-type))
                (recur region-code number-type (unchecked-dec-int template-tries))))))))))
-
-(defn generate-valid
-  "Works the same as generate but returns only valid numbers."
-  {:added "8.12.4-0" :tag lazy_map.core.LazyMap}
-  ([]
-   (generate nil nil valid? nil nil nil))
-  ([^clojure.lang.Keyword region-code]
-   (generate region-code nil valid? nil nil nil))
-  ([^clojure.lang.Keyword region-code
-    ^clojure.lang.Keyword number-type]
-   (generate region-code number-type valid? nil nil nil))
-  ([^clojure.lang.Keyword region-code
-    ^clojure.lang.Keyword number-type
-    ^clojure.lang.IFn     predicate]
-   (generate region-code number-type
-             (if (nil? predicate) valid? (every-pred valid? predicate))
-             nil nil nil))
-  ([^clojure.lang.Keyword region-code
-    ^clojure.lang.Keyword number-type
-    ^clojure.lang.IFn     predicate
-    ^Number               retries]
-   (generate region-code number-type
-             (if (nil? predicate) valid? (every-pred valid? predicate))
-             retries nil nil))
-  ([^clojure.lang.Keyword region-code
-    ^clojure.lang.Keyword number-type
-    ^clojure.lang.IFn     predicate
-    ^Number               retries
-    ^Number               keep-digits]
-   (generate region-code number-type
-             (if (nil? predicate) valid? (every-pred valid? predicate))
-             retries keep-digits nil))
-  ([^clojure.lang.Keyword region-code
-    ^clojure.lang.Keyword number-type
-    ^clojure.lang.IFn     predicate
-    ^Number               retries
-    ^Number               keep-digits
-    ^java.util.Locale     locale-specification]
-   (generate region-code number-type
-             (if (nil? predicate) valid? (every-pred valid? predicate))
-             retries keep-digits locale-specification)))
-
-(defn generate-invalid
-  "Works the same as generate but returns only invalid numbers."
-  {:added "8.12.4-0" :tag lazy_map.core.LazyMap}
-  ([]
-   (generate nil nil invalid? nil nil nil))
-  ([^clojure.lang.Keyword region-code]
-   (generate region-code nil invalid? nil nil nil))
-  ([^clojure.lang.Keyword region-code
-    ^clojure.lang.Keyword number-type]
-   (generate region-code number-type invalid? nil nil nil))
-  ([^clojure.lang.Keyword region-code
-    ^clojure.lang.Keyword number-type
-    ^clojure.lang.IFn     predicate]
-   (generate region-code number-type
-             (if (nil? predicate) invalid? (every-pred invalid? predicate))
-             nil nil nil))
-  ([^clojure.lang.Keyword region-code
-    ^clojure.lang.Keyword number-type
-    ^clojure.lang.IFn     predicate
-    ^Number               retries]
-   (generate region-code number-type
-             (if (nil? predicate) invalid? (every-pred invalid? predicate))
-             retries nil nil))
-  ([^clojure.lang.Keyword region-code
-    ^clojure.lang.Keyword number-type
-    ^clojure.lang.IFn     predicate
-    ^Number               retries
-    ^Number               keep-digits]
-   (generate region-code number-type
-             (if (nil? predicate) invalid? (every-pred invalid? predicate))
-             retries keep-digits nil))
-  ([^clojure.lang.Keyword region-code
-    ^clojure.lang.Keyword number-type
-    ^clojure.lang.IFn     predicate
-    ^Number               retries
-    ^Number               keep-digits
-    ^java.util.Locale     locale-specification]
-   (generate region-code number-type
-             (if (nil? predicate) invalid? (every-pred invalid? predicate))
-             retries keep-digits locale-specification)))

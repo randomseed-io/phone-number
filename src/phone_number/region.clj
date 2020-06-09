@@ -88,11 +88,11 @@
 (defn generate-sample
   "Generates random region code."
   {:added "8.12.4-0" :tag clojure.lang.Keyword}
-  []
-  (rand-nth all-vec))
+  ([] (rand-nth all-vec))
+  ([^java.util.Random rng] (util/get-rand-nth all-vec rng)))
 
 (defn generate-sample-val
   "Generates random region code (string value)."
   {:added "8.12.4-0" :tag String}
-  []
-  (rand-nth by-val-vec))
+  ([] (rand-nth by-val-vec))
+  ([^java.util.Random rng] (util/get-rand-nth by-val-vec rng)))

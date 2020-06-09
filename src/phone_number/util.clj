@@ -151,11 +151,66 @@
   [coll f]
   (cons 'do (map #(gen-is-sexp % f) (eval coll))))
 
+(defn get-rand-int
+  "Like rand-int but optionally uses random number generator."
+  {:added "8.12.4-0" :tag 'int}
+  ([^long n]
+   (rand-int n))
+  ([^long n
+    ^java.util.Random rng]
+   (if (nil? rng)
+     (get-rand-int n)
+     (if (zero? n) (int n) (.nextInt rng n)))))
+
+(defn random-digits-len
+  "For 0 or 1 it returns its argument. For other positive numbers it returns a random
+  natural number from 1 to this number (inclusive) in 50% cases. In other 50% cases
+  it returns its argument."
+  {:added "8.12.4-0" :tag 'long}
+  ([^long x
+    ^long iteration
+    ^Boolean shrink-now]
+   (if (zero? x) x
+       (if-not shrink-now x
+               (if (zero? iteration) 1
+                   (if (or (< iteration 6) (zero? (rand-int 2)))
+                     (unchecked-inc (rand-int x)) x)))))
+  ([^long x
+    ^long iteration
+    ^Boolean shrink-now
+    ^java.util.Random rng]
+   (if (nil? rng)
+     (random-digits-len x iteration)
+     (if (zero? x) x
+         (if-not shrink-now x
+                 (if (zero? iteration) 1
+                     (if (or (< iteration 6) (zero? (get-rand-int 2 rng)))
+                       (unchecked-inc (get-rand-int x rng)) x)))))))
+
 (defn gen-digits
-  "Generates the given number of random digits and converts all into a single string."
+  "Generates the given number of random digits and converts all into a single string.
+  When the second argument is present it should be an instance of random number
+  generator used to get the digits."
   {:added "8.12.4-0" :tag String}
-  [^long num]
-  (reduce str (repeatedly num #(unchecked-int (rand 10)))))
+  ([^long num]
+   (apply str (repeatedly num #(rand-int 10))))
+  ([^long num
+    ^java.util.Random rng]
+   (if (nil? rng)
+     (gen-digits num)
+     (apply str (repeatedly num #(.nextInt rng 10))))))
+
+(defn get-rand-nth
+  "Returns a random element of the given vector. When the second argument is present it
+  should be an instance of random number generator used to get the random position."
+  {:added "8.12.4-0" :tag clojure.lang.Keyword}
+  ([^clojure.lang.IPersistentVector v]
+   (rand-nth v))
+  ([^clojure.lang.IPersistentVector v
+    ^java.util.Random rng]
+   (if (nil? rng)
+     (get-rand-nth v)
+     (nth v (.nextInt rng (count v))))))
 
 (defn lazy-iterator-seq
   "Returns a lazy sequence as an interface to the given iterable Java object."
