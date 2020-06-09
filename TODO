@@ -1,4 +1,2 @@
-- wrap sample generator
-- add generators to specs
-- maybe add geo-time-zone to utc-offset calculation for the given moment (or instant)
-- tests!
+- add generators to short and country-less numbers
+- write some docs!

@@ -30,6 +30,13 @@
 
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentHashMap}
+  all-arg
+  "Map of PhoneNumberType values to phone number types (keywords) suitable to be
+  passed as arguments."
+  (dissoc all :unknown))
+
+(def ^{:added "8.12.4-0"
+       :tag clojure.lang.PersistentHashMap}
   by-val
   "Map of PhoneNumberType values to phone number types (keywords)."
   (clojure.set/map-invert all))
@@ -51,9 +58,35 @@
 
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentVector}
+  all-arg-vec
+  "Vector of types (keywords)."
+  (vec (keys all-arg)))
+
+(def ^{:added "8.12.4-0"
+       :tag clojure.lang.PersistentVector}
   by-val-vec
   "Vector of types (PhoneNumberType values)."
   (vec (keys by-val)))
+
+(defn valid?
+  "Returns true if the given number-type is valid, false otherwise.
+  Use valid-arg? for argument testing when building phone numbers."
+  {:added "8.12.4-0" :tag Boolean}
+  ([^clojure.lang.Keyword number-type]
+   (contains? all number-type))
+  ([^clojure.lang.Keyword number-type
+    ^Boolean use-infer]
+   (contains? all (util/ns-infer "phone-number.type" number-type use-infer))))
+
+(defn valid-arg?
+  "Returns true if the given number-type is valid, false otherwise.
+  Excludes unknown type from the valid list."
+  {:added "8.12.4-0" :tag Boolean}
+  ([^clojure.lang.Keyword number-type]
+   (contains? all-arg number-type))
+  ([^clojure.lang.Keyword number-type
+    ^Boolean use-infer]
+   (contains? all-arg (util/ns-infer "phone-number.type" number-type use-infer))))
 
 (defn parse
   "Parses a type and returns a value that can be supplied to Libphonenumber methods. If
@@ -65,13 +98,9 @@
     ^Boolean use-infer]
    (if (nil? k)
      default-val
-     (all (if use-infer (util/ns-infer "phone-number.type" k) k)))))
-
-(defn valid?
-  "Returns true if the given number-type is valid, false otherwise."
-  {:added "8.12.4-0" :tag Boolean}
-  [^clojure.lang.Keyword number-type]
-  (contains? all number-type))
+     (let [k (util/ns-infer "phone-number.type" k use-infer)]
+       (assert (valid-arg? k) (str "Type " k " is not valid"))
+       (all k)))))
 
 (defn generate-sample
   "Generates random number type."

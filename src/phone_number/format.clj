@@ -54,6 +54,15 @@
        :tag PhoneNumberUtil$PhoneNumberFormat}
   default-val (all default))
 
+(defn valid?
+  "Returns true if the given format is valid, false otherwise."
+  {:added "8.12.4-0" :tag Boolean}
+  ([^clojure.lang.Keyword format]
+   (contains? all format))
+  ([^clojure.lang.Keyword format
+    ^Boolean use-infer]
+   (contains? all (util/ns-infer "phone-number.format" format use-infer))))
+
 (defn parse
   "Parses a format specification and returns a value that can be supplied to
   Libphonenumber methods."
@@ -64,13 +73,9 @@
     ^Boolean use-infer]
    (if (nil? k)
      default-val
-     (all (if use-infer (util/ns-infer "phone-number.format" k) k)))))
-
-(defn valid?
-  "Returns true if the given format is valid, false otherwise."
-  {:added "8.12.4-0" :tag Boolean}
-  [^clojure.lang.Keyword format]
-  (contains? all format))
+     (let [k (util/ns-infer "phone-number.format" k use-infer)]
+       (assert (valid? k) (str "Format specification " k " is not valid"))
+       (all k)))))
 
 (defn country-coded?
   "Returns true if the given format contains country code information, false otherwise."

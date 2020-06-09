@@ -15,7 +15,6 @@
 ;; Supported Regions
 ;;
 
-
 (def ^{:added "8.12.4-0"
        :const true
        :tag clojure.lang.Keyword}
@@ -64,6 +63,16 @@
   "Vector of regions (string values)."
   (vec (keys by-val)))
 
+(defn valid?
+  "Returns true if the given region-specification is a valid region code, false
+  otherwise. In its binary form it uses namespace inference."
+  {:added "8.12.4-0" :tag Boolean}
+  ([^clojure.lang.Keyword region-specification]
+   (contains? all region-specification))
+  ([^clojure.lang.Keyword region-specification
+    ^Boolean use-infer]
+   (contains? all (util/ns-infer "phone-number.region" region-specification use-infer))))
+
 (defn parse
   "Parses a region code and returns a value that can be supplied to Libphonenumber
   methods."
@@ -72,18 +81,12 @@
    (parse k true))
   ([^clojure.lang.Keyword k
     ^Boolean use-infer]
-   (if (keyword? k)
-     (all (if use-infer (util/ns-infer "phone-number.region" k) k))
-     (if (contains? by-val k) ;; internal performance boost (passing the actual value)
-       k
-       nil))))
-
-(defn valid?
-  "Returns true if the given region-specification is a valid region code, false
-  otherwise."
-  {:added "8.12.4-0" :tag Boolean}
-  [^clojure.lang.Keyword region-specification]
-  (contains? all region-specification))
+   (when (some? k)
+     (if (keyword? k)
+       (let [k (util/ns-infer "phone-number.region" k use-infer)]
+         (assert (valid? k) (str "Region code " k " is not valid"))
+         (all k))
+       (do (assert (contains? by-val k) (str "Region " k " is not valid")) k)))))
 
 (defn generate-sample
   "Generates random region code."

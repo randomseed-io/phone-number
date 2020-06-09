@@ -42,6 +42,15 @@
 
 ;; Time Zone IDs
 
+(defn valid?
+  "Returns true if the given tz-format is valid, false otherwise."
+  {:added "8.12.4-0" :tag Boolean}
+  ([^clojure.lang.Keyword tz-format]
+   (contains? all tz-format))
+  ([^clojure.lang.Keyword tz-format
+    ^Boolean use-infer]
+   (contains? all (util/ns-infer "phone-number.tz-format" tz-format use-infer))))
+
 (defn transform
   "For the given Locale object and TextStyle object renders a string describing a time
   zone identifier (given as a string) passed as the first argument. If the style is nil
@@ -65,10 +74,6 @@
     ^Boolean use-infer]
    (if (nil? k)
      default-val
-     (all (if use-infer (util/ns-infer "phone-number.tz-format" k) k)))))
-
-(defn valid?
-  "Returns true if the given tz-format is valid, false otherwise."
-  {:added "8.12.4-0" :tag Boolean}
-  [^clojure.lang.Keyword tz-format]
-  (contains? all tz-format))
+     (let [k (util/ns-infer "phone-number.tz-format" k use-infer)]
+       (assert (valid? k) (str "Time zone format " k " is not valid"))
+       (all k)))))

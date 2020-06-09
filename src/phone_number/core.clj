@@ -95,7 +95,43 @@
   (set (keys tz-format/all)))
 
 ;;
-;; Protocol helper
+;; Protocol
+;;
+
+(defprotocol ^{:added "8.12.4-0"} Phoneable
+  "This protocol is used to utilize class-based single dispatch on a phone number
+  abstract passed as a first argument of its functions."
+
+  (^{:added "8.12.4-0" :tag Boolean} valid-input?
+   [phone-number]
+   "Takes a phone number represented as a string, a number, a map or a PhoneNumber object
+    and returns true if it is not empty or nil. Otherwise it returns nil.")
+
+  (^{:added "8.12.4-0" :tag Phonenumber$PhoneNumber} number
+   [phone-number] [phone-number region-code]
+   "Takes a phone number represented as a string, a number, a map or a PhoneNumber object
+    and returns parsed PhoneNumber object. Second, optional argument should be a
+    keyword with region code which is helpful if a local number (without region code)
+    was given. If the region code argument is passed and the first argument is
+    already a kind of PhoneNumber then it will be ignored.")
+
+  (^{:added "8.12.4-0" :tag Phonenumber$PhoneNumber} number-noraw
+   [phone-number] [phone-number region-code]
+   "Like number but does not preserve raw input.")
+
+  (^{:added "8.12.4-0" :tag String} raw-input
+   [phone-number] [phone-number region-code]
+   "Returns a string used to initialize phone number object with the number
+   function. For strings and numbers it returns a string representation. For nil
+   values it returns nil.")
+
+  (^{:added "8.12.4-0" :tag Boolean} valid?
+   [phone-number] [phone-number region-code]
+   "Takes a phone number represented as a string, a number, a map or a PhoneNumber object
+    and validates it. Returns true or false."))
+
+;;
+;; Protocol helpers
 ;;
 
 (defn- inf-get
@@ -163,40 +199,8 @@
                (f nil nil)))))))))
 
 ;;
-;; Protocol
+;; Protocol implementation
 ;;
-
-(defprotocol ^{:added "8.12.4-0"} Phoneable
-  "This protocol is used to utilize class-based single dispatch on a phone number
-  abstract passed as a first argument of its functions."
-
-  (^{:added "8.12.4-0" :tag Boolean} valid-input?
-   [phone-number]
-   "Takes a phone number represented as a string, a number, a map or a PhoneNumber object
-    and returns true if it is not empty or nil. Otherwise it returns nil.")
-
-  (^{:added "8.12.4-0" :tag Phonenumber$PhoneNumber} number
-   [phone-number] [phone-number region-code]
-   "Takes a phone number represented as a string, a number, a map or a PhoneNumber object
-    and returns parsed PhoneNumber object. Second, optional argument should be a
-    keyword with region code which is helpful if a local number (without region code)
-    was given. If the region code argument is passed and the first argument is
-    already a kind of PhoneNumber then it will be ignored.")
-
-  (^{:added "8.12.4-0" :tag Phonenumber$PhoneNumber} number-noraw
-   [phone-number] [phone-number region-code]
-   "Like number but does not preserve raw input.")
-
-  (^{:added "8.12.4-0" :tag String} raw-input
-   [phone-number] [phone-number region-code]
-   "Returns a string used to initialize phone number object with the number
-   function. For strings and numbers it returns a string representation. For nil
-   values it returns nil.")
-
-  (^{:added "8.12.4-0" :tag Boolean} valid?
-   [phone-number] [phone-number region-code]
-   "Takes a phone number represented as a string, a number, a map or a PhoneNumber object
-    and validates it. Returns true or false."))
 
 (extend-protocol Phoneable
 
@@ -210,24 +214,24 @@
     ([phone-number] phone-number)
     ([phone-number ^clojure.lang.Keyword region-code] phone-number))
   (raw-input
-    ([phone-number]
-     (when (some? phone-number)
-       (not-empty (.getRawInput phone-number))))
+    ([phone-number] (not-empty (.getRawInput phone-number)))
     ([phone-number ^clojure.lang.Keyword region-code]
      (raw-input phone-number)))
   (valid?
-    ([obj] (valid? obj nil))
-    ([obj ^clojure.lang.Keyword region-code]
+    ([obj]
      (util/try-parse-or-false
       (when (some? obj)
-        (.isValidNumber (util/instance) obj)))))
+        (.isValidNumber (util/instance) obj))))
+    ([obj ^clojure.lang.Keyword region-code]
+     (valid? obj)))
 
   String
   (valid-input?
     [phone-number]
-    (some? (not-empty phone-number)))
+    (> (count phone-number) 1))
   (number-noraw
-    ([phone-number] (number-noraw phone-number nil))
+    ([phone-number]
+     (number-noraw phone-number nil))
     ([phone-number
       ^clojure.lang.Keyword region-code]
      (when (valid-input? phone-number)
@@ -236,7 +240,8 @@
         phone-number
         (region/parse region-code *inferred-namespaces*)))))
   (number
-    ([phone-number] (number phone-number nil))
+    ([phone-number]
+     (number phone-number nil))
     ([phone-number
       ^clojure.lang.Keyword region-code]
      (when (valid-input? phone-number)
@@ -245,8 +250,10 @@
         phone-number
         (region/parse region-code *inferred-namespaces*)))))
   (raw-input
-    ([phone-number] (not-empty phone-number))
-    ([phone-number ^clojure.lang.Keyword region-code] (raw-input phone-number)))
+    ([phone-number]
+     (not-empty phone-number))
+    ([phone-number ^clojure.lang.Keyword region-code]
+     (raw-input phone-number)))
   (valid?
     ([obj](valid? obj nil))
     ([obj
@@ -259,30 +266,46 @@
 
   Number
   (valid-input?
-    [phone-number] true)
+    [phone-number]
+    (and (nat-int? phone-number) (> 9 phone-number)))
   (number-noraw
-    ([phone-number] (number-noraw (str phone-number)))
+    ([phone-number]
+     (assert false "Numeric phone number must have region code argument supplied"))
     ([phone-number
       ^clojure.lang.Keyword region-code]
+     (assert (valid-input? phone-number)
+             "Numeric phone number should be positive natural number having at least 2 digits")
+     (assert (region/valid? region-code *inferred-namespaces*) "Region code must be valid")
      (number-noraw (str phone-number) region-code)))
   (number
-    ([phone-number] (number (str phone-number)))
+    ([phone-number]
+     (assert false "Numeric phone number must have region code argument supplied"))
     ([phone-number
       ^clojure.lang.Keyword region-code]
+     (assert (valid-input? phone-number)
+             "Numeric phone number should be positive natural number having at least 2 digits")
+     (assert (region/valid? region-code *inferred-namespaces*) "Region code must be valid")
      (number (str phone-number) region-code)))
   (raw-input
-    ([phone-number] (raw-input (str phone-number)))
-    ([phone-number ^clojure.lang.Keyword region-code] (raw-input phone-number)))
+    ([phone-number]
+     (assert false "Numeric phone number must have region code argument supplied"))
+    ([phone-number ^clojure.lang.Keyword region-code]
+     (assert (valid-input? phone-number)
+             "Numeric phone number should be positive natural number having at least 2 digits")
+     (assert (region/valid? region-code *inferred-namespaces*) "Region code must be valid")
+     (raw-input (str phone-number) region-code)))
   (valid?
-    ([phone-number] (valid? (str phone-number)))
+    ([phone-number] false)
     ([phone-number
       ^clojure.lang.Keyword region-code]
-     (valid? (str phone-number) region-code)))
+     (and (valid-input? phone-number)
+          (valid? (str phone-number) region-code))))
 
   clojure.lang.IPersistentMap
   (valid-input?
     [phone-number]
-    (phoneable-map-apply (fn [p _] (valid-input? p)) phone-number nil))
+    (if (phoneable-map-apply (fn [p _] (valid-input? p))
+                             phone-number nil) true false))
   (number-noraw
     ([phone-number]
      (phoneable-map-apply number-noraw phone-number nil))
@@ -299,7 +322,8 @@
     ([phone-number ^clojure.lang.Keyword region-code]
      (phoneable-map-apply raw-input phone-number)))
   (valid?
-    ([phone-number] (phoneable-map-apply valid? phone-number nil))
+    ([phone-number]
+     (phoneable-map-apply valid? phone-number nil))
     ([phone-number ^clojure.lang.Keyword region-code]
      (phoneable-map-apply valid? phone-number region-code)))
 
@@ -326,16 +350,22 @@
     ([phone-number] phone-number)
     ([phone-number
       ^clojure.lang.Keyword region-code]
-     (number-noraw (str phone-number))))
+     (assert false ("Unable to create phone number from "
+                    (clojure.core/type phone-number)
+                    " type object"))))
   (number
     ([phone-number] phone-number)
     ([phone-number
       ^clojure.lang.Keyword region-code]
-     (number (str phone-number))))
+     (assert false ("Unable to create phone number from "
+                    (clojure.core/type phone-number)
+                    " type object"))))
   (raw-input
     ([phone-number] phone-number)
     ([phone-number ^clojure.lang.Keyword region-code]
-     (raw-input (str phone-number))))
+     (assert false ("Unable to create phone number from "
+                    (clojure.core/type phone-number)
+                    " type object"))))
   (valid?
     ([phone-number] false)
     ([phone-number
@@ -403,6 +433,8 @@
   ([^phone_number.core.Phoneable  phone-number
     ^clojure.lang.Keyword          region-code
     ^clojure.lang.Keyword        tested-region]
+   (assert (region/valid? tested-region *inferred-namespaces*)
+           "Tested region code must be valid and not nil")
    (util/try-parse-or-false
     (when-valid-input phone-number
       (.isValidNumberForRegion
@@ -1207,7 +1239,14 @@
    ^clojure.lang.Keyword  region-from
    ^lazy_map.core.LazyMap m]
   (if-some [n (:phone-number/number m)]
-    (assoc m :phone-number/info (delay (info (:phone-number/number m) nil locale-specification region-from)))
+    (assoc m
+           :phone-number/info
+           (delay
+             (info
+              (:phone-number/number m)
+              nil
+              locale-specification
+              region-from)))
     m))
 
 (defn find-numbers

@@ -39,5 +39,8 @@
 (defn valid?
   "Returns true if the given cost is valid, false otherwise."
   {:added "8.12.4-0" :tag Boolean}
-  [^clojure.lang.Keyword cost]
-  (contains? all cost))
+  ([^clojure.lang.Keyword cost]
+   (contains? all cost))
+  ([^clojure.lang.Keyword cost
+    ^Boolean use-infer]
+   (contains? all (util/ns-infer "phone-number.cost" cost use-infer))))

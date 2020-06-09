@@ -32,6 +32,7 @@
   {:added "8.12.4-0"}
   [& body]
   `(try ~@body
+        (catch AssertionError        e# nil)
         (catch NumberParseException  e# nil)
         (catch NumberFormatException e# nil)))
 
@@ -41,6 +42,7 @@
   {:added "8.12.4-0"}
   [& body]
   `(try (or (do ~@body) false)
+        (catch AssertionError        e# false)
         (catch NumberParseException  e# false)
         (catch NumberFormatException e# false)))
 
@@ -57,11 +59,15 @@
   namespace-qualified it returns a new keyword with the given namespace added. If the
   given keyword is already equipped with a namespace it returns it."
   {:added "8.12.4-0" :tag clojure.lang.Keyword}
-  [^String ns-name
-   ^clojure.lang.Keyword k]
-  (if (simple-keyword? k)
-    (keyword ns-name (name k))
-    k))
+  ([^String ns-name
+    ^clojure.lang.Keyword k]
+   (if (simple-keyword? k)
+     (keyword ns-name (name k))
+     k))
+  ([^String ns-name
+    ^clojure.lang.Keyword k
+    ^Boolean use-infer]
+   (if use-infer (ns-infer ns-name k) k)))
 
 (defn inferred-contains?
   "Just like the contains? but if the keyword is namespace-qualified it also checks if
