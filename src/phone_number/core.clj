@@ -376,10 +376,9 @@
       ^clojure.lang.Keyword region-code]
      false)))
 
-(defmacro when-valid-input
+(defmacro when-some-input
   [phone-num & body]
   `(when (some? ~phone-num)
-     ;;(assert (valid-input? p#) "Invalid input data describing phone number")
      ~@body))
 
 ;;
@@ -415,7 +414,7 @@
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword         region-code]
    (util/try-parse-or-false
-    (when-valid-input phone-number
+    (when-some-input phone-number
       (.isPossibleNumber
        (util/instance)
        (number-noraw phone-number region-code))))))
@@ -441,7 +440,7 @@
    (assert (region/valid? tested-region *inferred-namespaces*)
            "Tested region code must be valid and not nil")
    (util/try-parse-or-false
-    (when-valid-input phone-number
+    (when-some-input phone-number
       (.isValidNumberForRegion
        (util/instance)
        (number-noraw phone-number region-code)
@@ -470,7 +469,7 @@
     ^clojure.lang.Keyword        region-code
     ^clojure.lang.Keyword        format-specification]
    (let [f (format/parse format-specification *inferred-namespaces*)]
-     (when-valid-input phone-number
+     (when-some-input phone-number
        (not-empty
         (if (= :raw f)
           (if (native? phone-number)
@@ -510,7 +509,7 @@
    (type phone-number nil))
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code]
-   (when-valid-input phone-number
+   (when-some-input phone-number
      (type/by-val
       (.getNumberType
        (util/instance)
@@ -532,7 +531,7 @@
    (country-code phone-number nil))
   ([^phone_number.core.Phoneable    phone-number
     ^clojure.lang.Keyword           region-code]
-   (when-valid-input phone-number
+   (when-some-input phone-number
      (.getCountryCode
       (number-noraw phone-number region-code)))))
 
@@ -550,7 +549,7 @@
     ^clojure.lang.Keyword         region-code]
    (region/by-val
     (not-empty
-     (when-valid-input phone-number
+     (when-some-input phone-number
        (.getRegionCodeForNumber
         (util/instance)
         (number-noraw phone-number region-code)))))))
@@ -582,7 +581,7 @@
   ([^phone_number.core.Phoneable    phone-number
     ^clojure.lang.Keyword           region-code
     ^java.util.Locale               locale-specification]
-   (when-valid-input phone-number
+   (when-some-input phone-number
      (not-empty
       (.getDescriptionForNumber
        (util/geo-coder)
@@ -601,7 +600,7 @@
   ([^phone_number.core.Phoneable   phone-number
     ^clojure.lang.Keyword          region-code]
    (util/try-parse-or-false
-    (when-valid-input phone-number
+    (when-some-input phone-number
       (.isNumberGeographical
        (util/instance)
        (number-noraw phone-number region-code))))))
@@ -632,7 +631,7 @@
   ([^phone_number.core.Phoneable   phone-number
     ^clojure.lang.Keyword          region-code
     ^java.util.Locale              locale-specification]
-   (when-valid-input phone-number
+   (when-some-input phone-number
      (not-empty
       (.getNameForNumber
        (util/carrier-mapper)
@@ -658,7 +657,7 @@
    (time-zones phone-number nil))
   ([^phone_number.core.Phoneable  phone-number
     ^clojure.lang.Keyword         region-code]
-   (when-valid-input phone-number
+   (when-some-input phone-number
      (->> region-code
           (number-noraw phone-number)
           (.getTimeZonesForNumber (util/time-zones-mapper))
@@ -730,7 +729,7 @@
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code]
    (util/try-parse-or-false
-    (when-valid-input phone-number
+    (when-some-input phone-number
       (.isPossibleShortNumber
        (util/short)
        (number-noraw phone-number region-code)))))
@@ -740,7 +739,7 @@
    (if (nil? region-from)
      (short-possible? phone-number region-code)
      (util/try-parse-or-false
-      (when-valid-input phone-number
+      (when-some-input phone-number
         (.isPossibleShortNumberForRegion
          (util/short)
          (number-noraw phone-number region-code)
@@ -764,7 +763,7 @@
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code]
    (util/try-parse-or-false
-    (when-valid-input phone-number
+    (when-some-input phone-number
       (.isValidShortNumber
        (util/short)
        (number-noraw phone-number region-code)))))
@@ -774,7 +773,7 @@
    (if (nil? region-from)
      (short-valid? phone-number region-code)
      (util/try-parse-or-false
-      (when-valid-input phone-number
+      (when-some-input phone-number
         (.isValidShortNumberForRegion
          (util/short)
          (number-noraw phone-number region-code)
@@ -799,7 +798,7 @@
    (short-cost phone-number nil))
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code]
-   (when-valid-input phone-number
+   (when-some-input phone-number
      (cost/by-val
       (.getExpectedCost
        (util/short)
@@ -809,7 +808,7 @@
     ^clojure.lang.Keyword        region-from]
    (if (nil? region-from)
      (short-cost phone-number region-code)
-     (when-valid-input phone-number
+     (when-some-input phone-number
        (cost/by-val
         (.getExpectedCostForRegion
          (util/short)
@@ -827,7 +826,7 @@
     ^clojure.lang.Keyword  region-code]
    (when (some? region-code)
      (util/try-parse-or-false
-      (when-valid-input phone-number
+      (when-some-input phone-number
         (.isEmergencyNumber
          (util/short)
          (str phone-number)
@@ -844,7 +843,7 @@
     ^clojure.lang.Keyword  region-code]
    (when (some? region-code)
      (util/try-parse-or-false
-      (when-valid-input phone-number
+      (when-some-input phone-number
         (.connectsToEmergencyNumber
          (util/short)
          (str phone-number)
@@ -860,7 +859,7 @@
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code]
    (util/try-parse-or-false
-    (when-valid-input phone-number
+    (when-some-input phone-number
       (.isCarrierSpecific
        (util/short)
        (number-noraw phone-number region-code)))))
@@ -870,7 +869,7 @@
    (if (nil? region-from)
      (short-carrier-specific? phone-number region-code)
      (util/try-parse-or-false
-      (when-valid-input phone-number
+      (when-some-input phone-number
         (.isCarrierSpecificForRegion
          (util/short)
          (number-noraw phone-number region-code)
@@ -885,7 +884,7 @@
     ^clojure.lang.Keyword        region-code
     ^clojure.lang.Keyword        region-from]
    (util/try-parse-or-false
-    (when-valid-input phone-number
+    (when-some-input phone-number
       (.isSmsServiceForRegion
        (util/short)
        (number-noraw phone-number region-code)
@@ -927,7 +926,7 @@
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
     ^clojure.lang.Keyword        region-from]
-   (when-valid-input phone-number
+   (when-some-input phone-number
      (let [region-from  (region/parse region-from *inferred-namespaces*)
            phone-obj    (number-noraw phone-number region-code)
            region-code  (region phone-obj nil)
@@ -998,7 +997,7 @@
     ^clojure.lang.Keyword        region-code
     ^String                      locale-specification
     ^clojure.lang.Keyword        region-from]
-   (when-valid-input phone-number
+   (when-some-input phone-number
      (let [locale       (l/locale locale-specification)
            phone-obj    (number phone-number region-code)
            region-code  (region phone-obj nil)
@@ -1033,8 +1032,8 @@
     ^clojure.lang.Keyword        region-code-a
     ^phone_number.core.Phoneable phone-number-b
     ^clojure.lang.Keyword        region-code-b]
-   (when-valid-input phone-number-a
-     (when-valid-input phone-number-b
+   (when-some-input phone-number-a
+     (when-some-input phone-number-b
        (match/by-val
         (.isNumberMatch
          (util/instance)
@@ -1496,11 +1495,11 @@
     ^Long                 random-seed
     ^Boolean              early-shrinking]
    (let [early-shrinking  (if (nil? early-shrinking) false (or (and early-shrinking true) false))
-         random-seed (long (if (nil? random-seed) (rand Long/MAX_VALUE) random-seed))
-         rng         (java.util.Random. random-seed)
-         predicate   (if (nil? predicate) any? predicate)
-         retries     (if (nil? retries) 1000 (if (false? retries) nil retries))
-         lspec       (l/locale locale-specification)]
+         random-seed      (long (if (nil? random-seed) (rand Long/MAX_VALUE) random-seed))
+         rng              (java.util.Random. random-seed)
+         predicate        (if (nil? predicate) any? predicate)
+         retries          (if (nil? retries) 1000 (if (false? retries) nil retries))
+         lspec            (l/locale locale-specification)]
      (loop [region-code region-code
             number-type number-type
             template-tries (unchecked-dec-int

@@ -147,3 +147,11 @@
 (s/def :phone-number.short/invalid          phone/short-invalid?)
 (s/def :phone-number.short/possible         phone/short-possible?)
 (s/def :phone-number.short/carrier-specific phone/short-carrier-specific?)
+
+;;
+;; Function specs (TODO)
+;;
+
+(s/fdef phone/native?
+  :args (s/cat :object any?)
+  :ret  boolean?)

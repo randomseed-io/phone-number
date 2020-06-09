@@ -100,7 +100,7 @@
      default-val
      (let [k (util/ns-infer "phone-number.type" k use-infer)]
        (assert (valid-arg? k) (str "Type " k " is not valid"))
-       (all k)))))
+       (all-arg k)))))
 
 (defn generate-sample
   "Generates random number type."
