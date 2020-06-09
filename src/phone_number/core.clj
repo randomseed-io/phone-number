@@ -234,7 +234,9 @@
      (number-noraw phone-number nil))
     ([phone-number
       ^clojure.lang.Keyword region-code]
-     (when (valid-input? phone-number)
+     (assert (valid-input? phone-number)
+             "Phone number string should have at least 2 digits")
+     (when (some? phone-number)
        (.parse
         (util/instance)
         phone-number
@@ -244,7 +246,9 @@
      (number phone-number nil))
     ([phone-number
       ^clojure.lang.Keyword region-code]
-     (when (valid-input? phone-number)
+     (assert (valid-input? phone-number)
+             "Phone number string should have at least 2 digits")
+     (when (some? phone-number)
        (.parseAndKeepRawInput
         (util/instance)
         phone-number
@@ -267,23 +271,23 @@
   Number
   (valid-input?
     [phone-number]
-    (and (nat-int? phone-number) (> 9 phone-number)))
+    (and (nat-int? phone-number) (> phone-number 9)))
   (number-noraw
     ([phone-number]
      (assert false "Numeric phone number must have region code argument supplied"))
     ([phone-number
       ^clojure.lang.Keyword region-code]
      (assert (valid-input? phone-number)
-             "Numeric phone number should be positive natural number having at least 2 digits")
+             "Numeric phone number should be a positive natural number having at least 2 digits")
      (assert (region/valid? region-code *inferred-namespaces*) "Region code must be valid")
      (number-noraw (str phone-number) region-code)))
   (number
     ([phone-number]
-     (assert false "Numeric phone number must have region code argument supplied"))
+     (assert false "Numeric phone number must have some region code argument supplied"))
     ([phone-number
       ^clojure.lang.Keyword region-code]
      (assert (valid-input? phone-number)
-             "Numeric phone number should be positive natural number having at least 2 digits")
+             "Numeric phone number should be a positive natural number having at least 2 digits")
      (assert (region/valid? region-code *inferred-namespaces*) "Region code must be valid")
      (number (str phone-number) region-code)))
   (raw-input
@@ -291,7 +295,7 @@
      (assert false "Numeric phone number must have region code argument supplied"))
     ([phone-number ^clojure.lang.Keyword region-code]
      (assert (valid-input? phone-number)
-             "Numeric phone number should be positive natural number having at least 2 digits")
+             "Numeric phone number should be a positive natural number having at least 2 digits")
      (assert (region/valid? region-code *inferred-namespaces*) "Region code must be valid")
      (raw-input (str phone-number) region-code)))
   (valid?
@@ -374,7 +378,8 @@
 
 (defmacro when-valid-input
   [phone-num & body]
-  `(when (valid-input? ~phone-num)
+  `(when (some? ~phone-num)
+     ;;(assert (valid-input? p#) "Invalid input data describing phone number")
      ~@body))
 
 ;;
