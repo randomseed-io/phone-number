@@ -1,6 +1,7 @@
 (ns user
   (:require
    [clojure.spec.alpha           :as                s]
+   [clojure.spec.gen.alpha       :as              gen]
    [clojure.repl                 :refer          :all]
    [clojure.tools.namespace.repl :refer [refresh
                                          refresh-all]]
