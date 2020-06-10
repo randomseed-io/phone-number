@@ -1,6 +1,6 @@
 (ns
 
-    ^{:doc    "Wrappers for Google's Libphonenumber."
+    ^{:doc    "Clojure interface of Libphonenumber."
       :author "Paweł Wilk"
       :added  "8.12.4-0"}
 
@@ -33,15 +33,15 @@
        :dynamic true
        :tag Boolean}
   *info-removed-nils*
-  "Decides whether results of info function should contain properties having nil
-  values. They are removed by default."
+  "Decides whether results of the info function should contain properties having nil
+  values. They are removed by default due to true value of this switch."
   true)
 
 (def ^{:added "8.12.4-0"
        :dynamic true
        :tag Boolean}
   *inferred-namespaces*
-  "Decides whether keywords that are not fully-qualified should be automatically
+  "Decides whether keywords which are not fully-qualified should be automatically
   qualified (by attaching default namespaces) when passed as arguments to functions
   that operate on phone number types, phone number formats, region codes and time
   zone formats. Defaults to true."
@@ -96,23 +96,28 @@
   "A set of all possible time zone formats as a sequence of keywords."
   (set (keys tz-format/all)))
 
+(def ^{:added "8.12.4-0" :tag clojure.lang.PersistentHashSet}
+  costs
+  "A set of all possible phone number cost classes as a sequence of keywords."
+  (set cost/all-vec))
+
 ;;
 ;; Protocol
 ;;
 
 (defprotocol ^{:added "8.12.4-0"} Phoneable
   "This protocol is used to utilize class-based single dispatch on a phone number
-  abstract passed as a first argument of its functions."
+  abstract."
 
   (^{:added "8.12.4-0" :tag Boolean} valid-input?
    [phone-number]
-   "Takes a phone number represented as a string, a number, a map or a PhoneNumber object
-    and returns true if it is not empty or nil. Otherwise it returns nil.")
+   "Takes a phone number represented as a string, a number, a map or a `PhoneNumber`
+    object and returns true if it is not empty or nil. Otherwise it returns nil.")
 
   (^{:added "8.12.4-0" :tag Phonenumber$PhoneNumber} number
    [phone-number] [phone-number region-code]
-   "Takes a phone number represented as a string, a number, a map or a PhoneNumber object
-    and returns parsed PhoneNumber object. Second, optional argument should be a
+   "Takes a phone number represented as a string, a number, a map or a `PhoneNumber` object
+    and returns parsed `PhoneNumber` object. Second, optional argument should be a
     keyword with region code which is helpful if a local number (without region code)
     was given. If the region code argument is passed and the first argument is
     already a kind of PhoneNumber then it will be ignored.")
@@ -129,7 +134,7 @@
 
   (^{:added "8.12.4-0" :tag Boolean} valid?
    [phone-number] [phone-number region-code]
-   "Takes a phone number represented as a string, a number, a map or a PhoneNumber object
+   "Takes a phone number represented as a string, a number, a map or a `PhoneNumber` object
     and validates it. Returns true or false."))
 
 ;;
@@ -400,11 +405,11 @@
                  ^clojure.lang.Keyword        region-code])}
   invalid?
   "Returns true if the given phone number (expressed as a string, a number,
-  a map or a PhoneNumber object) is not valid."
+  a map or a `PhoneNumber` object) is not valid."
   (complement valid?))
 
 (defn possible?
-  "Takes a phone number (expressed as a string, a number, a map or a PhoneNumber
+  "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
   object) and returns true if it is a possible number as defined by Libphonenumber.
   Otherwise it returns false.
 
@@ -453,7 +458,7 @@
 ;;
 
 (defn format
-  "Takes a phone number (expressed as a string, a number, a map or a PhoneNumber
+  "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
   object) and returns it as a formatted string. The last argument should be a format
   expressed as a keyword (use the all-formats function to list them) or a
   PhoneNumberType.
@@ -482,7 +487,7 @@
                    f)))))))
 
 (defn all-formats
-  "Takes a phone number (expressed as a string, a number, a map or a PhoneNumber
+  "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
   object) and returns a map which keys are all possible formats expressed as keywords
   and values are string representations of the number formatted accordingly.
 
@@ -501,7 +506,7 @@
 ;;
 
 (defn type
-  "Takes a phone number (expressed as a string, a number, a map or a PhoneNumber
+  "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
   object) and returns its type as a keyword.
 
   If the second argument is present then it should be a valid region code (a keyword)
@@ -538,7 +543,7 @@
       (number-noraw phone-number region-code)))))
 
 (defn region
-  "Takes a phone number (expressed as a string, a number, a map or a PhoneNumber
+  "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
   object) and returns its region code as a string or nil if the region happens to be
   empty.
 
@@ -561,7 +566,7 @@
 ;;
 
 (defn location
-  "Takes a phone number (expressed as a string, a number, a map or a PhoneNumber
+  "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
   object) and returns its possible geographic location as a string or nil if the
   location happens to be empty.
 
@@ -571,7 +576,7 @@
   region information and it should extract it from a number.
 
   If the third argument is present then it should be a string specifying locale
-  information or a java.util.Locale object. It will be used during rendering strings
+  information or a `java.util.Locale` object. It will be used during rendering strings
   describing geographic location and carrier data. When nil is passed then the
   default locale settings will be used."
   {:added "8.12.4-0" :tag String}
@@ -591,7 +596,7 @@
        (l/locale locale-specification))))))
 
 (defn geographical?
-  "Takes a phone number (expressed as a string, a number, a map or a PhoneNumber
+  "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
   object) and returns true if it is a geographical number as defined by
   Libphonenumber. Otherwise it returns false. If the second argument is present then
   it should be a valid region code (a keyword) to be used when the given phone number
@@ -612,7 +617,7 @@
 ;;
 
 (defn carrier
-  "Takes a phone number (expressed as a string, a number, a map or a PhoneNumber
+  "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
   object) and returns its possible carrier name as a string or nil if the carrier
   name happens to be empty.
 
@@ -622,7 +627,7 @@
   region information and it should extract it from a number.
 
   If the third argument is present then it should be a string specifying locale
-  information or a java.util.Locale object. It will be used during rendering carrier
+  information or a `java.util.Locale` object. It will be used during rendering carrier
   name. When nil is passed then the default locale settings will be used."
   {:added "8.12.4-0" :tag String}
   ([^phone_number.core.Phoneable   phone-number]
@@ -645,7 +650,7 @@
 ;;
 
 (defn time-zones
-  "Takes a phone number (expressed as a string, a number, a map or a PhoneNumber
+  "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
   object) and returns all possible time zones which relate to its geographical
   location as a lazy sequence of strings (representing zone identifiers in
   English). Returns nil if the list would be empty.
@@ -683,7 +688,7 @@
           not-empty))))
 
 (defn time-zones-all-formats
-  "Takes a phone number (expressed as a string, a number, a map or a PhoneNumber
+  "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
   object) and returns a map which keys are all possible time zone formats expressed
   as keywords and values are sequences of the number's time zones formatted
   accordingly.
@@ -714,7 +719,7 @@
 ;;
 
 (defn short-possible?
-  "Takes a phone number (expressed as a string, a number, a map or a PhoneNumber
+  "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
   object) and returns true if it is a possible short number (like emergency etc.) as
   defined by Libphonenumber. Otherwise it returns false. If the second argument is
   present then it should be a valid region code (a keyword) to be used when the given
@@ -748,7 +753,7 @@
          (region/parse region-from *inferred-namespaces*)))))))
 
 (defn short-valid?
-  "Takes a phone number (expressed as a string, a number, a map or a PhoneNumber
+  "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
   object) and returns true if it is a valid short number (like emergency etc.) as
   defined by Libphonenumber. Otherwise it returns false. If the second argument is
   present then it should be a valid region code (a keyword) to be used when the given
@@ -783,7 +788,7 @@
 
 (defn short-cost
   "Takes a short (like an emergency) phone number (expressed as a string, a number, a
-  map or a PhoneNumber object) and returns the expected cost class of that number as
+  map or a `PhoneNumber` object) and returns the expected cost class of that number as
   a keyword.
 
   The second, optional argument should be a valid region code (a keyword) to be used
@@ -852,7 +857,7 @@
          (region/parse region-code *inferred-namespaces*)))))))
 
 (defn short-carrier-specific?
-  "Takes a short phone number (expressed as a string, a number, a map or a PhoneNumber object),
+  "Takes a short phone number (expressed as a string, a number, a map or a `PhoneNumber` object),
   optional region code (or nil) and optional calling region code. Returns true if it
   is a carrier-specific number."
   {:added "8.12.4-0" :tag Boolean}
@@ -878,7 +883,7 @@
          (region/parse region-from *inferred-namespaces*)))))))
 
 (defn short-sms-service?
-  "Takes a short phone number (expressed as a string, a number, a map or a PhoneNumber
+  "Takes a short phone number (expressed as a string, a number, a map or a `PhoneNumber`
   object), optional region code (or nil) and a calling region code. Returns true if
   SMS is supported, false otherwise."
   {:added "8.12.4-0" :tag Boolean}
@@ -904,7 +909,7 @@
 
 (defn short-info
   "Takes a short (like an emergency) phone number (expressed as a string, a number, a
-  map or a PhoneNumber object) and returns a map containing all possible information
+  map or a `PhoneNumber` object) and returns a map containing all possible information
   about the number with keywords as keys.
 
   Keys with nil values assigned will be removed from the map unless the dynamic
@@ -954,23 +959,22 @@
           :valid?    false})))))
 
 (defn info
-  "Takes a phone number (expressed as a string, a number, a map or a PhoneNumber
+  "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
   object) and returns a map containing all possible information about the number with
   keywords as keys. These include:
-  * validity (:phone-number/valid?)
-  * possibility of being a phone number (:phone-number/possible?),
-  * numerical country code (:phone-number/country),
-  * region code (:phone-number/region),
-  * type of the number (:phone-number/type),
-  * approximate geographic location of a phone line (:phone-number/location),
-  * carrier information (:phone-number/carrier),
-  * time zones (:phone-number.tz-format/id,
-                :phone-number.tz-format/short-standalone,
-                :phone-number.tz-format/full-standalone) and
-  * all of the possible formats (keywords with the :phone-number.format/ namespace).
+
+  * validity (`:phone-number/valid?`)
+  * possibility of being a phone number (`:phone-number/possible?`),
+  * numerical calling code (`:phone-number/calling-code`),
+  * region code (`:phone-number/region`),
+  * type of the number (`:phone-number/type`),
+  * approximate geographic location of the line (`:phone-number/location`),
+  * carrier information (`:phone-number/carrier`),
+  * time zones (`:phone-number.tz-format/` keys),
+  * all of the possible formats (keywords with the `:phone-number.format/` namespace).
 
   Keys with nil values assigned will be removed from the map unless the dynamic
-  variable *info-removed-nils* is rebound to false.
+  variable `*info-removed-nils*` is bound to false.
 
   If the second argument is present then it should be a valid region code (a keyword)
   to be used when the given phone number does not contain region information. It is
@@ -1259,11 +1263,11 @@
   "Searches for phone numbers in the given text. Returns a lazy sequence of maps where
   each element is a map representing a match and having the following keys:
 
-  * :phone-number.match/start       - start index of a phone number substring
-  * :phone-number.match/end         - end index of a phone number substring
-  * :phone-number.match/raw-string  - phone number substring
-  * :phone-number/number            - phone number object
-  * :phone-number/info              - phone number properties map
+  * `:phone-number.match/start`       - start index of a phone number substring
+  * `:phone-number.match/end`         - end index of a phone number substring
+  * `:phone-number.match/raw-string`  - phone number substring
+  * `:phone-number/number`            - phone number object
+  * `:phone-number/info`              - phone number properties map
 
   Phone number object is suitable to be used with majority of functions from
   core. The info key is associated with a map holding all information rendered by
