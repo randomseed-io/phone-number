@@ -2,7 +2,8 @@
 
     ^{:doc    "Sample data generator interface for phone-number library."
       :author "Paweł Wilk"
-      :added  "8.12.4-0"}
+      :added  "8.12.4-0"
+      :no-doc true}
 
     phone-number.generator
 
@@ -17,4 +18,3 @@
       (rose/make-rose
        (phone/generate nil nil phone/valid? nil nil (.nextLong rng))
        [])))))
-
