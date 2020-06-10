@@ -6,18 +6,18 @@ Clojure library which uses Google's Libphonenumber to validate, inspect and gene
 
 ## Features
 
-* Polymorphic interface (phone number can be expressed as a number, a string,
-  a `PhoneNumber` object or a map).
+* Polymorphic interface (phone numbers can be expressed as numbers, strings,
+  `PhoneNumber` objects or maps).
 
-* Supported operations on phone numbers: creation, validation, generation, matching,
-  searching in a text, formatting, specification testing and properties reporting.
+* Supported operations: creation, validation, generation, matching, string-searching,
+  formatting, specification testing and properties reporting.
 
 * Promotes keyword-indexed maps with namespace inference
   (e.g. key can be `:phone-number/type` or just `:type`,
   type can be `:phone-number.type/mobile` or just `:mobile`).
 
-* Uses lazily evaluated map values to store phone number information data as maps
-  during text-searching and samples generation.
+* Uses lazily evaluated map values to store phone number information during
+  text-searching and samples generation.
 
 * Provides specs with generators.
 
