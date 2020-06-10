@@ -42,6 +42,12 @@
   (clojure.set/map-invert all))
 
 (def ^{:added "8.12.4-0"
+       :tag clojure.lang.PersistentHashMap}
+  by-val-arg
+  "Map of PhoneNumberType values to phone number types (keywords)."
+  (clojure.set/map-invert all-arg))
+
+(def ^{:added "8.12.4-0"
        :const true
        :tag clojure.lang.Keyword}
   default ::fixed-line)
@@ -67,6 +73,12 @@
   by-val-vec
   "Vector of types (PhoneNumberType values)."
   (vec (keys by-val)))
+
+(def ^{:added "8.12.4-0"
+       :tag clojure.lang.PersistentVector}
+  by-val-arg-vec
+  "Vector of types (PhoneNumberType values)."
+  (vec (keys by-val-arg)))
 
 (defn valid?
   "Returns true if the given number-type is valid, false otherwise.
@@ -111,5 +123,18 @@
 (defn generate-sample-val
   "Generates random number type (PhoneNumberType value)."
   {:added "8.12.4-0" :tag PhoneNumberUtil$PhoneNumberType}
-  []
-  (rand-nth by-val-vec))
+  ([] (rand-nth by-val-vec))
+  ([^java.util.Random rng] (util/get-rand-nth by-val-vec rng)))
+
+(defn generate-arg-sample
+  "Generates random number type suitable to be used as an argument."
+  {:added "8.12.4-0" :tag clojure.lang.Keyword}
+  ([] (rand-nth all-vec))
+  ([^java.util.Random rng] (util/get-rand-nth all-arg-vec rng)))
+
+(defn generate-sample-val
+  "Generates random number type (PhoneNumberType value) suitable to be used as an
+  argument."
+  {:added "8.12.4-0" :tag PhoneNumberUtil$PhoneNumberType}
+  ([] (rand-nth by-val-vec))
+  ([^java.util.Random rng] (util/get-rand-nth by-val-arg-vec rng)))
