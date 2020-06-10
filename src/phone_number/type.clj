@@ -33,7 +33,7 @@
   all-arg
   "Map of PhoneNumberType values to phone number types (keywords) suitable to be
   passed as arguments."
-  (dissoc all :unknown))
+  (dissoc all ::unknown))
 
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentHashMap}
