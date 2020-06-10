@@ -8,17 +8,19 @@
 
   (:refer-clojure :exclude [format type])
 
-  (:require [phone-number.util            :as      util]
-            [phone-number.type            :as      type]
-            [phone-number.match           :as     match]
-            [phone-number.format          :as    format]
-            [phone-number.tz-format       :as tz-format]
-            [phone-number.region          :as    region]
-            [phone-number.cost            :as      cost]
-            [phone-number.calling-code    :as    c-code]
-            [clojure.string               :as    string]
-            [trptr.java-wrapper.locale    :as         l]
-            [lazy-map.core                :refer   :all])
+  (:require [phone-number.util            :as         util]
+            [phone-number.type            :as         type]
+            [phone-number.match           :as        match]
+            [phone-number.format          :as       format]
+            [phone-number.tz-format       :as    tz-format]
+            [phone-number.region          :as       region]
+            [phone-number.cost            :as         cost]
+            [phone-number.net-code        :as     net-code]
+            [phone-number.country-code    :as country-code]
+            [phone-number.calling-code    :as calling-code]
+            [clojure.string               :as       string]
+            [trptr.java-wrapper.locale    :as            l]
+            [lazy-map.core                :refer      :all])
 
   (:import  [com.google.i18n.phonenumbers
              Phonenumber$PhoneNumber]))
@@ -70,9 +72,9 @@
   (set region/all-vec))
 
 (def ^{:added "8.12.4-0" :tag clojure.lang.PersistentHashSet}
-  calling-codes
-  "A set of all possible phone number region codes."
-  c-code/all)
+  net-codes
+  "A set of all possible network calling codes."
+  net-code/all)
 
 (def ^{:added "8.12.4-0" :tag clojure.lang.PersistentHashSet}
   formats
@@ -155,12 +157,12 @@
     (and (contains? coll k))))
 
 (def ^{:added "8.12.4-0" :tag clojure.lang.LazySeq :private true}
-  country-coded-formats-simple
-  (map (comp keyword name) format/country-coded))
+  calling-coded-formats-simple
+  (map (comp keyword name) format/calling-coded))
 
 (def ^{:added "8.12.4-0" :tag clojure.lang.LazySeq :private true}
-  not-country-coded-formats-simple
-  (map (comp keyword name) format/not-country-coded))
+  not-calling-coded-formats-simple
+  (map (comp keyword name) format/not-calling-coded))
 
 (defn- phoneable-map-apply
   "Tries to apply the given function to a phone number obtained from a map using known
@@ -179,21 +181,21 @@
      (if (inf-contains? m :phone-number/info)
        (phoneable-map-apply f (inf-get m :phone-number/info) region-code)
        ;; try phone number formats containing region code information
-       (if-some [t (some m format/country-coded)]
+       (if-some [t (some m format/calling-coded)]
          (f t nil)
-         (if-some [t (when *inferred-namespaces* (some m country-coded-formats-simple))]
+         (if-some [t (when *inferred-namespaces* (some m calling-coded-formats-simple))]
            (f t nil)
            ;; try phone number formats without any region code information
            ;; obtain region from:
-           ;; - country code number (:phone-number/country-code)
+           ;; - calling code number (:phone-number/calling-code)
            ;; - different key (:phone-number/region or :region)
            ;; - region code passed as an argument (region-code)
-           (let [c (inf-get m :phone-number/country-code)
+           (let [c (inf-get m :phone-number/calling-code)
                  r (if (some? c) nil (inf-get m :phone-number/region region-code))]
              (if (or (some? c) (some? r))
-               (if-some [t (some m format/not-country-coded)]
+               (if-some [t (some m format/not-calling-coded)]
                  (if (some? c) (f (str "+" c t) nil) (f t r))
-                 (if-some [t (when *inferred-namespaces* (some m not-country-coded-formats-simple))]
+                 (if-some [t (when *inferred-namespaces* (some m not-calling-coded-formats-simple))]
                    (if (some? c) (f (str "+" c t) nil) (f t r))
                    (if (some? c) (f nil nil) (f nil r))))
                (f nil nil)))))))))
@@ -426,13 +428,13 @@
                  ^clojure.lang.Keyword        region-code])}
   impossible?
   "Returns true if the given phone number (expressed as a string, a number, a map or a
-  PhoneNumber object) is not possible."
+  `PhoneNumber` object) is not possible."
   (complement possible?))
 
 (defn valid-for-region?
   "Like valid? but checks whether the given number is valid for a certain region. It
-  only makes sense to use it when the country calling code for a number is not the
-  same as the country calling code for the region."
+  only makes sense to use it when the calling code for a number is not the same as
+  the calling code for the region."
   {:added "8.12.4-0" :tag Boolean}
   ([^phone_number.core.Phoneable  phone-number
     ^clojure.lang.Keyword          region-code
@@ -520,15 +522,15 @@
 ;; Country and region
 ;;
 
-(defn country-code
-  "Takes a phone number (expressed as a string, a number, a map or a PhoneNumber
-  object) and returns its country code as an integer number.
+(defn calling-code
+  "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
+  object) and returns its calling code as an integer number.
 
   If the second argument is present then it should be a valid region code (a keyword)
   to be used when the given phone number does not contain region information."
   {:added "8.12.4-0" :tag Integer}
   ([^phone_number.core.Phoneable    phone-number]
-   (country-code phone-number nil))
+   (calling-code phone-number nil))
   ([^phone_number.core.Phoneable    phone-number
     ^clojure.lang.Keyword           region-code]
    (when-some-input phone-number
@@ -1009,7 +1011,7 @@
              :possible?                   (possible?     phone-obj nil)
              :geographical?               (geographical? phone-obj nil)
              :type                        (type          phone-obj nil)
-             :country-code                (country-code  phone-obj nil)
+             :calling-code                (calling-code  phone-obj nil)
              :location                    (location      phone-obj nil locale)
              :carrier                     (carrier       phone-obj nil locale)
              ::tz-format/id               (time-zones    phone-obj nil locale ::tz-format/id)
@@ -1026,7 +1028,7 @@
 (defn match
   "Returns matching level of two numbers or nil if there is no match. Optionally each
   second argument can be a region code (if the given phone number is not a kind of
-  PhoneNumber and is not prefixed by any country code )."
+  PhoneNumber and is not prefixed by any calling code )."
   {:added "8.12.4-0" :tag clojure.lang.Keyword}
   ([^phone_number.core.Phoneable phone-number-a
     ^clojure.lang.Keyword        region-code-a
@@ -1057,7 +1059,7 @@
 (defn match?
   "Returns true if two numbers match, false otherwise. Optionally each second argument
   can be a region code (if the given phone number is not a kind of PhoneNumber and is
-  not prefixed by any country code)."
+  not prefixed by any calling code)."
   {:added "8.12.4-0" :tag Boolean}
   ([^phone_number.core.Phoneable phone-number-a
     ^clojure.lang.Keyword        region-code-a
@@ -1195,17 +1197,17 @@
    (util/try-parse-or-false
     (not (contains? none (region phone-number region-code))))))
 
-(defn has-country-code?
-  "For the given phone number returns true if the country code is present in it, false
+(defn has-calling-code?
+  "For the given phone number returns true if the calling code is present in it, false
   otherwise. The region code can be explicit part of a number (as its prefix) or can
   be inferred by making use of the region-code argument."
   {:added "8.12.4-0" :tag Boolean}
   ([^phone_number.core.Phoneable phone-number]
-   (has-country-code? phone-number nil))
+   (has-calling-code? phone-number nil))
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code]
    (util/try-parse-or-false
-    (not (contains? none (country-code phone-number region-code))))))
+    (not (contains? none (calling-code phone-number region-code))))))
 
 (defn has-location?
   "For the given phone number returns true if the approximate geographic location is
@@ -1269,12 +1271,12 @@
   function will be called when the value is accessed.
 
   Optional, but highly recommended, second argument should be a region code to be
-  used as a hint when looking for numbers without any country code prefix.
+  used as a hint when looking for numbers without any calling code prefix.
 
-  The third optional argument should be a locale specification (Locale object or any
-  other object that can initialize one, like a string with language and/or
-  dialect). It will be used to render a value associated with
-  the :phone-number/info key."
+  The third optional argument should be a locale specification (`java.util.Locale`
+  object or any other object that can initialize one, like a string with language
+  and/or dialect). It will be used to render a value associated with
+  the `:phone-number/info` key."
   {:added "8.12.4-0" :tag clojure.lang.LazySeq}
   ([^String               text]
    (find-numbers text nil nil))
@@ -1304,6 +1306,9 @@
 ;;
 
 (defn invalid-example
+  "For the given region code returns the example phone number that is invalid (being a
+  `PhoneNumber` kind of object). This is not a random number generator; it will
+  always generate the same example number for the same arguments."
   {:added "8.12.4-0" :tag Phonenumber$PhoneNumber}
   [^clojure.lang.Keyword region-code]
   (when-some [rcode (region/parse region-code *inferred-namespaces*)]
@@ -1313,15 +1318,24 @@
       rcode))))
 
 (defn example-non-geo
+  "For the given calling code (given as a positive, natural number) returns the example
+  phone number that is valid (being a `PhoneNumber` kind of object). This is not a
+  random number generator; it will always generate the same example number for the
+  same arguments."
   {:added "8.12.4-0" :tag Phonenumber$PhoneNumber}
+  ([^Integer calling-code _]
+   (example-non-geo calling-code))
   ([^Integer calling-code]
    (when (some? calling-code)
      (util/try-null
       (.getExampleNumberForNonGeoEntity
        (util/instance)
-       calling-code)))))
+       (net-code/parse calling-code))))))
 
 (defn example
+  "For the given region code and optional number type returns the example phone number
+  that is valid (being a `PhoneNumber` kind of object). This is not a random number
+  generator; it will always generate the same example number for the same arguments."
   {:added "8.12.4-0" :tag Phonenumber$PhoneNumber}
   ([^clojure.lang.Keyword region-code]
    (example region-code nil))
@@ -1345,8 +1359,8 @@
     ^java.util.Random            rng
     ^Boolean                     early-shrinking]
    (when-some [template (number-noraw phone-number region-code)]
-     (let [country-code   (str "+" (country-code template nil))
-           prefix         (subs (format template nil ::format/e164) (count country-code))
+     (let [calling-code   (str "+" (calling-code template nil))
+           prefix         (subs (format template nil ::format/e164) (count calling-code))
            total-len      (unchecked-long (count prefix))
            retries        (unchecked-long retries)
            auto-shrink    (unchecked-long (if early-shrinking 0 (* retries 0.75)))
@@ -1354,7 +1368,7 @@
            template       (if (validator template) template nil)]
        (loop [last-valid  template
               last-static prefix
-              last-random (unchecked-long 0)
+              last-random nil
               prefix      prefix
               iteration   (unchecked-long 1)
               valid-hits  (unchecked-long 0)]
@@ -1363,7 +1377,7 @@
            {:phone-number/number         last-valid
             :phone-number.sample/hits    valid-hits
             :phone-number.sample/samples iteration
-            :phone-number.sample/digits  [(not-empty country-code)
+            :phone-number.sample/digits  [(not-empty calling-code)
                                           (not-empty last-static)
                                           (not-empty last-random)]}
            (let [prefix-len    (unchecked-long (count prefix))
@@ -1371,7 +1385,7 @@
                  shrink-now    (or  (> iteration auto-shrink) (and (nil? last-valid) (> iteration despair-shrink)))
                  random-len    (util/random-digits-len fuzzed-len iteration shrink-now rng)
                  random-digits (util/gen-digits random-len rng)
-                 test-number   (util/try-parse (number-noraw (str country-code prefix random-digits) nil))
+                 test-number   (util/try-parse (number-noraw (str calling-code prefix random-digits) nil))
                  have-valid    (and (some? test-number) (validator test-number))
                  shorten       (or have-valid (nil? last-valid))
                  new-prefix    (if (empty? prefix) nil (if shorten (subs prefix 0 (dec prefix-len)) prefix))]
@@ -1382,17 +1396,29 @@
                     (unchecked-inc iteration)
                     (if have-valid (unchecked-inc valid-hits) valid-hits)))))))))
 
+(def ^{:added "8.12.4-0" :tag clojure.lang.PersistentVector :private true}
+  region-net-code-mix
+  "Vector of supported global network codes mixed with region codes."
+  (into region/all-vec net-code/all-vec))
+
+(defn- region-or-code-sample
+  "Random sampler of region codes mixed with global network calling codes."
+  {:added "8.12.4-0"}
+  [^java.util.Random rng]
+  (util/get-rand-nth region-net-code-mix rng))
+
 (defn generate
-  "Generates sample phone number in a form of a map with two keys:
-  - :phone-number/number      - PhoneNumber object
-  - :phone-number/info        - a map with phone number information (evaluated on access)
-  - :phone-number.sample/hits - a number of valid hits encountered during sampling
-  - :phone-number.sample/random-digits - a number of ending digits which were randomly generated
-  - :phone-number.sample/shrank-digits - a number of ending digits which were removed due to shrinking
-  - :phone-number.sample/nat-digits - a number of digits of the used template without country code
-  - :phone-number.sample/kept-digits - a number of digits prevented from any mutations (static prefix)
-  - :phone-number.sample/max-samples - a maximum number of samples declared
-  - :phone-number.sample/samples - a number of samples processed before the result was formed
+  "Generates random phone number in a form of a map with the following keys:
+
+  * `:phone-number/number`      - a `PhoneNumber` object
+  * `:phone-number/info`        - a map with phone number information (evaluated on access)
+  * `:phone-number.sample/hits` - a number of valid hits encountered during sampling
+  * `:phone-number.sample/random-digits` - a number of ending digits which were randomly generated
+  * `:phone-number.sample/shrank-digits` - a number of ending digits which were removed due to shrinking
+  * `:phone-number.sample/nat-digits` - a number of digits of the used template without country code
+  * `:phone-number.sample/kept-digits` - a number of digits prevented from any mutations (static prefix)
+  * `:phone-number.sample/max-samples` - a maximum number of samples declared
+  * `:phone-number.sample/samples` - a number of samples processed before the result was formed
 
   It is important to note that the result may be valid or invalid phone number. To
   get only valid number pass the valid? predicate function as the third
@@ -1438,25 +1464,20 @@
   reaches the given maximal value. If the final result (after all the trials) is not
   valid then the memorized number is returned.
 
-  When the fifth argument is present it should be a number of digits that will remain
-  constant when sampling is performed. If nil is given or the argument is not passed
-  then this parameter will be dynamically incremented to increase the chance of
-  meeting validation criteria.
-
-  When the sixth argument is present it should be a valid locale specification or a
-  java.util.Locale object that will be passed to the info function in order to render
+  When the fifth argument is present it should be a valid locale specification or a
+  `java.util.Locale` object that will be passed to the info function in order to render
   localized versions of time zone information and geographical locations.
 
   The sixth argument should be a long value that will seed the pseudo-random number
   generator used to produce digits and to choose region and/or phone number type when
   not given. It can be used to create a deterministic sequence of samples.
 
-  The last, optional argument enables shrinking of randomly generated part. If it is
-  set to a truthy value (not nil and not false) then each sampling step that involves
-  generation of random digits will have 50% chances of producing less digits than
-  required (at least 1 digit remaining). The number of digits is chosen randomly. It
-  is advised to enable shrinking when expecting highly improbable phone numbers, for
-  instance with the impossible? predicate."
+  The last, optional argument enables more aggressive shrinking of randomly generated
+  part. If it is set to a truthy value (not nil and not false) then each sampling
+  step that involves generation of random digits will have 50% chances of producing
+  less digits than required (at least 1 digit remaining). The number of digits is
+  chosen randomly. It is advised to enable shrinking when expecting highly improbable
+  phone numbers, for instance with the impossible? predicate."
   {:added "8.12.4-0" :tag lazy_map.core.LazyMap}
   ([]
    (generate nil nil nil nil nil nil nil))
@@ -1494,32 +1515,41 @@
     ^java.util.Locale     locale-specification
     ^Long                 random-seed
     ^Boolean              early-shrinking]
+   (type/parse number-type *inferred-namespaces*) ;; assert check
    (let [early-shrinking  (if (nil? early-shrinking) false (or (and early-shrinking true) false))
          random-seed      (long (if (nil? random-seed) (rand Long/MAX_VALUE) random-seed))
          rng              (java.util.Random. random-seed)
          predicate        (if (nil? predicate) any? predicate)
          retries          (if (nil? retries) 1000 (if (false? retries) nil retries))
          lspec            (l/locale locale-specification)]
-     (loop [region-code region-code
-            number-type number-type
-            template-tries (unchecked-dec-int
+     (loop [tried-combos   #{}
+            region-code    (util/ns-infer "phone-number.region" region-code *inferred-namespaces*)
+            number-type    (util/ns-infer "phone-number.type"   number-type *inferred-namespaces*)
+            template-tries (unchecked-add-int
+                            8
                             (unchecked-multiply-int
-                             (if (nil? region-code) (count regions) 1)
-                             (if (nil? number-type) (count types)   1)))]
-       (let [number-type' (if (some? number-type) number-type (type/generate-sample rng))
-             region-code' (if (some? region-code) region-code (region/generate-sample rng))]
-         (if-some [template (example region-code' number-type')]
-           (let [number-type'  (if (some? number-type) (type   template) number-type')
-                 region-code'  (if (some? region-code) (region template) region-code')
-                 valid-type?   (if (some? number-type) #(= number-type' (type   %)) any?)
-                 valid-region? (if (some? region-code) #(= region-code' (region %)) any?)
-                 result        (gen-sample template
-                                           nil
-                                           retries
-                                           (every-pred predicate valid-type? valid-region?)
-                                           rng
-                                           early-shrinking)
-                 phone-number   (:phone-number/number result)]
+                             (if (nil? region-code) (count region-net-code-mix) 1)
+                             (if (nil? number-type) (count types) 1)))]
+       (let [number-type' (if (some? number-type) number-type (type/generate-arg-sample rng))
+             region-code' (if (some? region-code) region-code (region-or-code-sample rng))
+             non-geo-mode (number? region-code')
+             example-fn   (if non-geo-mode example-non-geo example)
+             combo        [number-type' region-code']
+             tried?       (contains? tried-combos combo)]
+         (if-some [template (when-not tried? (example-fn region-code' number-type'))]
+           (let [number-type'    (if (or (nil? number-type) non-geo-mode) number-type' (type template))
+                 region-code'    (if (or (nil? region-code) non-geo-mode) region-code' (region template))
+                 valid-type-fn   (if (some? number-type) #(= number-type' (type   %)) any?)
+                 valid-region-fn (if (nil? region-code) any?
+                                     (if non-geo-mode
+                                       #(= region-code' (calling-code %))
+                                       #(= region-code' (region %))))
+                 result (gen-sample template nil
+                                    retries
+                                    (every-pred predicate valid-type-fn valid-region-fn)
+                                    rng
+                                    early-shrinking)
+                 phone-number    (:phone-number/number result)]
              (when (some? phone-number)
                (merge
                 (lazy-map {:phone-number/info (info phone-number nil lspec)})
@@ -1531,4 +1561,6 @@
              ;; in such cases we have to retry if there is a chance to do that
              ;; (at least a region or a number type are random)
              (when (or (nil? region-code) (nil? number-type))
-               (recur region-code number-type (unchecked-dec-int template-tries))))))))))
+               (recur (conj tried-combos combo)
+                      region-code number-type
+                      (unchecked-dec-int template-tries))))))))))
