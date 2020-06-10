@@ -29,15 +29,15 @@
 
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentHashSet}
-  country-coded
+  calling-coded
   "Set of formats (keywords) that should identify values containing country code information."
   #{::e164 ::international ::rfc3966})
 
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentHashSet}
-  not-country-coded
+  not-calling-coded
   "Set of formats (keywords) that should identify values containing country code information."
-  (clojure.set/difference (set (keys all)) country-coded #{::raw-input}))
+  (clojure.set/difference (set (keys all)) calling-coded #{::raw-input}))
 
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentArrayMap}
@@ -77,15 +77,15 @@
        (assert (valid? k) (str "Format specification " k " is not valid"))
        (all k)))))
 
-(defn country-coded?
+(defn calling-coded?
   "Returns true if the given format contains country code information, false otherwise."
   {:added "8.12.4-0" :tag Boolean}
   [^clojure.lang.Keyword format]
-  (contains? country-coded format))
+  (contains? calling-coded format))
 
-(defn not-country-coded?
+(defn not-calling-coded?
   "Returns true if the given format does not contain country code information, false
   otherwise."
   {:added "8.12.4-0" :tag Boolean}
   [^clojure.lang.Keyword format]
-  (contains? not-country-coded format))
+  (contains? not-calling-coded format))
