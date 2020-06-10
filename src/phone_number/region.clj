@@ -37,9 +37,21 @@
 
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentHashMap}
+  all-arg
+  "Mapping of supported regions (keywords) to region values (strings)."
+  all)
+
+(def ^{:added "8.12.4-0"
+       :tag clojure.lang.PersistentHashMap}
   by-val
   "Mapping of supported region values (strings) to regions (keywords)."
   (clojure.set/map-invert all))
+
+(def ^{:added "8.12.4-0"
+       :tag clojure.lang.PersistentHashMap}
+  by-val-arg
+  "Mapping of supported region values (strings) to regions (keywords)."
+  by-val)
 
 (def ^{:added "8.12.4-0"
        :const true
@@ -59,9 +71,21 @@
 
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentVector}
+  all-arg-vec
+  "Vector of regions (keywords)."
+  all-vec)
+
+(def ^{:added "8.12.4-0"
+       :tag clojure.lang.PersistentVector}
   by-val-vec
   "Vector of regions (string values)."
   (vec (keys by-val)))
+
+(def ^{:added "8.12.4-0"
+       :tag clojure.lang.PersistentVector}
+  by-val-arg-vec
+  "Vector of regions (string values)."
+  by-val-vec)
 
 (defn valid?
   "Returns true if the given region-specification is a valid region code, false
@@ -72,6 +96,16 @@
   ([^clojure.lang.Keyword region-specification
     ^Boolean use-infer]
    (contains? all (util/ns-infer "phone-number.region" region-specification use-infer))))
+
+(defn valid-arg?
+  "Returns true if the given region-specification is a valid region code, false
+  otherwise. In its binary form it uses namespace inference."
+  {:added "8.12.4-0" :tag Boolean}
+  ([^clojure.lang.Keyword region-specification]
+   (contains? all-arg region-specification))
+  ([^clojure.lang.Keyword region-specification
+    ^Boolean use-infer]
+   (contains? all-arg (util/ns-infer "phone-number.region" region-specification use-infer))))
 
 (defn parse
   "Parses a region code and returns a value that can be supplied to Libphonenumber
@@ -84,9 +118,9 @@
    (when (some? k)
      (if (keyword? k)
        (let [k (util/ns-infer "phone-number.region" k use-infer)]
-         (assert (valid? k) (str "Region code " k " is not valid"))
+         (assert (valid-arg? k) (str "Region code " k " is not valid"))
          (all k))
-       (do (assert (contains? by-val k) (str "Region " k " is not valid")) k)))))
+       (do (assert (contains? by-val-arg k) (str "Region " k " is not valid")) k)))))
 
 (defn generate-sample
   "Generates random region code."
@@ -99,3 +133,15 @@
   {:added "8.12.4-0" :tag String}
   ([] (rand-nth by-val-vec))
   ([^java.util.Random rng] (util/get-rand-nth by-val-vec rng)))
+
+(defn generate-arg-sample
+  "Generates random region code."
+  {:added "8.12.4-0" :tag clojure.lang.Keyword}
+  ([] (rand-nth all-vec))
+  ([^java.util.Random rng] (util/get-rand-nth all-arg-vec rng)))
+
+(defn generate-arg-sample-val
+  "Generates random region code (string value)."
+  {:added "8.12.4-0" :tag String}
+  ([] (rand-nth by-val-vec))
+  ([^java.util.Random rng] (util/get-rand-nth by-val-arg-vec rng)))
