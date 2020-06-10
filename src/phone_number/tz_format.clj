@@ -24,7 +24,6 @@
       :narrow-standalone TextStyle/NARROW_STANDALONE
       :full-standalone   TextStyle/FULL_STANDALONE})
 
-
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentVector}
   all-vec
