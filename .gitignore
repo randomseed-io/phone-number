@@ -4,6 +4,7 @@
 *.jar
 *.class
 /.lein-*
+/.rebel_*
 /.nrepl-port
 .hgignore
 .hg/
