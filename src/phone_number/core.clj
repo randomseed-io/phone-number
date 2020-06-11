@@ -967,11 +967,11 @@
   * possibility of being a phone number (`:phone-number/possible?`),
   * numerical calling code (`:phone-number/calling-code`),
   * region code (`:phone-number/region`),
-  * type of the number (`:phone-number/type`),
+  * type (`:phone-number/type`),
   * approximate geographic location of the line (`:phone-number/location`),
   * carrier information (`:phone-number/carrier`),
-  * time zones (`:phone-number.tz-format/` keys),
-  * all of the possible formats (keywords with the `:phone-number.format/` namespace).
+  * time zones in most popular formats (`:phone-number.tz-format/` namespaced keys),
+  * all of the possible number formats (`:phone-number.format/` namespaced keys).
 
   Keys with nil values assigned will be removed from the map unless the dynamic
   variable `*info-removed-nils*` is bound to false.
