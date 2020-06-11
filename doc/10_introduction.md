@@ -365,8 +365,8 @@ To get the phone number representation in a specific format use the
 Some phone numbers can be indirectly associated with time zones (via geographical
 locations of the lines or carrier's local offices locations). To get all possible
 formats of time zones use the
-[`phone-number.core/tz-formats`](phone-number.core.html#var-tz-formats) global
-variable:
+[`phone-number.core/tz-formats`](phone-number.core.html#var-tz-formats)
+global variable:
 
 ```clojure
 (require '[phone-number.core :as phone])
@@ -428,9 +428,9 @@ Additionally there are variants for short numbers:
 
 To generate samples of phone numbers with optional predicates controlling the
 properties of data use the
-[`phone-number.core/generate`](phone-number.core.html#generate) function. It tries to
-get the most probable samples (having the most digits randomized yet meeting the
-given criteria) with optional deterministic factor (random seed).
+[`phone-number.core/generate`](phone-number.core.html#var-generate) function. It
+tries to get the most probable samples (having the most digits randomized yet meeting
+the given criteria) with optional deterministic factor (random seed).
 
 There are also phone number generators associated with many of the existing specs
 that make use of this function.
