@@ -244,7 +244,9 @@
   String
   (valid-input?
     [phone-number]
-    (> (count phone-number) 1))
+    (and
+     (> (count phone-number) 1)
+     (= (count (take 2 (filter #{\0 \1 \2 \3 \4 \5 \6 \7 \8 \9} phone-number))) 2)))
   (number-noraw
     ([phone-number]
      (number-noraw phone-number nil))
