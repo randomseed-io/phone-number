@@ -73,8 +73,18 @@
 
 (def ^{:added "8.12.4-0" :tag clojure.lang.PersistentHashSet}
   net-codes
-  "A set of all possible network calling codes."
+  "A set of all possible global network calling codes."
   net-code/all)
+
+(def ^{:added "8.12.4-0" :tag clojure.lang.PersistentHashSet}
+  country-codes
+  "A set of all possible country calling codes."
+  country-code/all)
+
+(def ^{:added "8.12.4-0" :tag clojure.lang.PersistentHashSet}
+  calling-codes
+  "A set of all possible country calling codes."
+  calling-code/all)
 
 (def ^{:added "8.12.4-0" :tag clojure.lang.PersistentHashSet}
   formats
