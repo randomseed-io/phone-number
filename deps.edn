@@ -68,7 +68,7 @@
                                                 :sha "2769a6224bfb938e777906ea311b3daf7d2220f5"}}}}
 
  :codox {:name        "phone-number"
-         :description "Validation and inspection of phone numbers"
+         :description "Generation, validation and inspection of phone numbers"
          :license     "GNU Lesser General Public License 3.0"
          :package     io.randomseed/phone-number
          :version     "8.12.4-0"
