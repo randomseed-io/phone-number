@@ -1529,21 +1529,21 @@
      (loop [tried-combos   #{}
             region-code    (util/ns-infer "phone-number.region" region-code *inferred-namespaces*)
             number-type    (util/ns-infer "phone-number.type"   number-type *inferred-namespaces*)
-            template-tries (unchecked-add-int
-                            8
-                            (unchecked-multiply-int
-                             (if (nil? region-code) (count region-net-code-mix) 1)
-                             (if (nil? number-type) (count types) 1)))]
+            template-tries (unchecked-add-int 8 (unchecked-multiply-int
+                                                 (if (nil? region-code) (count region-net-code-mix) 1)
+                                                 (if (nil? number-type) (count types) 1)))]
        (let [number-type' (if (some? number-type) number-type (type/generate-arg-sample rng))
              region-code' (if (some? region-code) region-code (region-or-code-sample rng))
              non-geo-mode (number? region-code')
              example-fn   (if non-geo-mode example-non-geo example)
              combo        [number-type' region-code']
-             tried?       (contains? tried-combos combo)]
-         (if-some [template (when-not tried? (example-fn region-code' number-type'))]
+             tried?       (contains? tried-combos combo)
+             template     (when-not tried? (example-fn region-code' number-type'))]
+         (if-some [template template]
+           ;; template is present for this combo
            (let [number-type'    (if (or (nil? number-type) non-geo-mode) number-type' (type template))
                  region-code'    (if (or (nil? region-code) non-geo-mode) region-code' (region template))
-                 valid-type-fn   (if (some? number-type) #(= number-type' (type   %)) any?)
+                 valid-type-fn   (if (some? number-type) #(= number-type' (type %)) any?)
                  valid-region-fn (if (nil? region-code) any?
                                      (if non-geo-mode
                                        #(= region-code' (calling-code %))
@@ -1552,19 +1552,37 @@
                                     retries
                                     (every-pred predicate valid-type-fn valid-region-fn)
                                     rng
-                                    early-shrinking)
+                                    (if  non-geo-mode true early-shrinking))
                  phone-number    (:phone-number/number result)]
-             (when (some? phone-number)
+             (if (some? phone-number)
+               ;; phone number sample is generated
                (merge
                 (lazy-map {:phone-number/info (info phone-number nil lspec)})
                 (assoc result
                        :phone-number.sample/max-samples retries
-                       :phone-number.sample/random-seed random-seed))))
+                       :phone-number.sample/random-seed random-seed))
+               ;; there is no phone number sample but the global network calling code was given
+               ;; and the template probably doesn't have the required number type
+               ;; we can try different combo if the required country code is not set
+               ;; other cases where template was ok but sampler returned nothing
+               ;; are also covered here
+               (when (and (not (zero? template-tries))
+                          (or (nil? number-type) (nil? region-code)))
+                 (recur (conj tried-combos combo)
+                        region-code number-type
+                        (unchecked-dec-int template-tries)))))
+           ;; template is not present for this combo
            (when-not (zero? template-tries)
              ;; some combinations of type and region are not suited to produce a valid template
              ;; in such cases we have to retry if there is a chance to do that
              ;; (at least a region or a number type are random)
              (when (or (nil? region-code) (nil? number-type))
-               (recur (conj tried-combos combo)
-                      region-code number-type
-                      (unchecked-dec-int template-tries))))))))))
+               (if tried?
+                 ;; this combo was already tried, do not increase the counter
+                 (recur tried-combos
+                        region-code number-type
+                        template-tries)
+                 ;; this was a fresh combo
+                 (recur (conj tried-combos combo)
+                        region-code number-type
+                        (unchecked-dec-int template-tries)))))))))))
