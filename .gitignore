@@ -6,6 +6,7 @@
 /.lein-*
 /.rebel_*
 /.nrepl-port
+.DS_Store
 .hgignore
 .hg/
 gh-pages
