@@ -18,7 +18,6 @@
             [phone-number.net-code        :as     net-code]
             [phone-number.country-code    :as country-code]
             [phone-number.calling-code    :as calling-code]
-            [clojure.string               :as       string]
             [trptr.java-wrapper.locale    :as            l]
             [lazy-map.core                :refer      :all])
 
