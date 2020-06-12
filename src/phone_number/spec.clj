@@ -17,13 +17,21 @@
             [phone-number.country-code  :as country-code]
             [phone-number.calling-code  :as calling-code]
             [clojure.spec.alpha         :as            s]
-            [clojure.spec.gen.alpha     :as          gen]))
+            [clojure.spec.gen.alpha     :as          gen])
+
+  (:import  [com.google.i18n.phonenumbers
+             Phonenumber$PhoneNumber]))
 
 ;;
 ;; Phone number region specs
 ;;
 
 (s/def :phone-number/region
+  (s/with-gen
+    #(region/valid? % phone/*inferred-namespaces*)
+    #(gen/elements region/all-vec)))
+
+(s/def :phone-number.arg/region
   (s/with-gen
     #(region/valid? % phone/*inferred-namespaces*)
     #(gen/elements region/all-vec)))
@@ -37,7 +45,7 @@
     #(type/valid? % phone/*inferred-namespaces*)
     #(gen/elements type/all-vec)))
 
-(s/def :phone-number/type-arg
+(s/def :phone-number.arg/type
   (s/with-gen
     #(type/valid-arg? % phone/*inferred-namespaces*)
     #(gen/elements type/all-arg-vec)))
@@ -51,7 +59,21 @@
     #(format/valid? % phone/*inferred-namespaces*)
     #(gen/elements format/all-vec)))
 
-(s/def :phone-number/format-arg :phone-number/format)
+(s/def :phone-number.arg/format :phone-number/format)
+
+(s/def :phone-number/format-standalone
+  (s/with-gen
+    #(format/valid? % phone/*inferred-namespaces*)
+    #(gen/elements format/all-calling-coded-vec)))
+
+(s/def :phone-number.arg/format-standalone :phone-number/format-standalone)
+
+(s/def :phone-number/format-incomplete
+  (s/with-gen
+    #(format/valid? % phone/*inferred-namespaces*)
+    #(gen/elements format/all-not-calling-coded-vec)))
+
+(s/def :phone-number.arg./format-incomplete :phone-number/format-incomplete)
 
 ;;
 ;; Phone number time zone format specs
@@ -62,7 +84,7 @@
     #(tz-format/valid? % phone/*inferred-namespaces*)
     #(gen/elements tz-format/all-vec)))
 
-(s/def :phone-number/tz-format-arg :phone-number/tz-format)
+(s/def :phone-number.arg/tz-format :phone-number/tz-format)
 
 ;;
 ;; Network calling code specs
@@ -73,7 +95,7 @@
     net-code/valid?
     #(gen/elements net-code/all-vec)))
 
-(s/def :phone-number/net-code-arg :phone-number/net-code)
+(s/def :phone-number.arg/net-code :phone-number/net-code)
 
 ;;
 ;; Country calling code specs
@@ -85,7 +107,7 @@
     country-code/valid?
     #(gen/elements country-code/all-vec)))
 
-(s/def :phone-number/country-code-arg :phone-number/country-code)
+(s/def :phone-number.arg/country-code :phone-number/country-code)
 
 ;;
 ;; Calling code specs
@@ -96,7 +118,7 @@
     calling-code/valid?
     #(gen/elements calling-code/all-vec)))
 
-(s/def :phone-number/calling-code-arg :phone-number/calling-code)
+(s/def :phone-number.arg/calling-code :phone-number/calling-code)
 
 ;;
 ;; Short phone number cost specs
@@ -107,7 +129,7 @@
     #(cost/valid? % phone/*inferred-namespaces*)
     #(gen/elements cost/all-vec)))
 
-(s/def :phone-number/cost-arg
+(s/def :phone-number.arg/cost
   (s/with-gen
     #(cost/valid-arg? % phone/*inferred-namespaces*)
     #(gen/elements cost/all-arg-vec)))
@@ -116,7 +138,21 @@
 ;; Phone number specs
 ;;
 
-(s/def :phone-number/valid
+(s/def :phone-number/native
+  (s/with-gen
+    phone/native?
+    #(gen/fmap (fn [random-seed]
+                 (:phone-number/number
+                  (phone/generate nil
+                                  nil
+                                  nil
+                                  150
+                                  nil
+                                  (.getMostSignificantBits random-seed)
+                                  true)))
+               (gen/uuid))))
+
+(s/def :phone-number/native-valid
   (s/with-gen
     phone/valid?
     #(gen/fmap (fn [random-seed]
@@ -130,7 +166,7 @@
                                   false)))
                (gen/uuid))))
 
-(s/def :phone-number/invalid
+(s/def :phone-number/native-invalid
   (s/with-gen
     phone/invalid?
     #(gen/fmap (fn [random-seed]
@@ -144,19 +180,41 @@
                                   true)))
                (gen/uuid))))
 
-(s/def :phone-number/any
+
+(s/def :phone-number/string
   (s/with-gen
-    (or phone/valid-input?)
-    #(gen/fmap (fn [random-seed]
-                 (:phone-number/number
-                  (phone/generate nil
-                                  nil
-                                  nil
-                                  100
-                                  nil
-                                  (.getMostSignificantBits random-seed)
-                                  true)))
-               (gen/uuid))))
+    (s/and string? phone/valid-input?)
+    #(gen/fmap
+      (fn [n] (phone/format n nil (gen/generate (s/gen :phone-number/format))))
+      (s/gen :phone-number/native))))
+
+(s/def :phone-number/string-standalone
+  (s/with-gen
+    (s/and string? phone/valid-input?)
+    #(gen/fmap
+      (fn [n] (phone/format n nil (gen/generate (s/gen :phone-number/format-standalone))))
+      (s/gen :phone-number/native))))
+
+(s/def :phone-number/string-incomplete
+  (s/with-gen
+    (s/and string? phone/valid-input?)
+    #(gen/fmap
+      (fn [n] (phone/format n nil (gen/generate (s/gen :phone-number/format-incomplete))))
+      (s/gen :phone-number/native))))
+
+(s/def :phone-number/string-valid
+  (s/with-gen
+    (s/and string? phone/valid?)
+    #(gen/fmap
+      (fn [n] (phone/format n nil (gen/generate (s/gen :phone-number/format))))
+      (s/gen :phone-number/native-valid))))
+
+(s/def :phone-number/string-invalid
+  (s/with-gen
+    (s/and string? phone/invalid?)
+    #(gen/fmap
+      (fn [n] (phone/format n nil (gen/generate (s/gen :phone-number/format))))
+      (s/gen :phone-number/native-invalid))))
 
 (defmacro phone-gen
   "Template macro for constructing specs with generators for the given predicate. It
@@ -248,34 +306,66 @@
 (s/def :phone-number.tz-format/narrow            :phone-number.tz-format/timezones)
 (s/def :phone-number.tz-format/id                :phone-number.tz-format/timezones)
 
+(def info-keys
+  (s/keys :opt [:phone-number/location
+                :phone-number/carrier
+                :phone-number.format/e164
+                :phone-number.format/international
+                :phone-number.format/national
+                :phone-number.format/rfc3966
+                :phone-number.format/raw-input
+                :phone-number.tz-format/narrow-standalone
+                :phone-number.tz-format/full
+                :phone-number.tz-format/short
+                :phone-number.tz-format/narrow
+                :phone-number.tz-format/full-standalone
+                :phone-number.tz-format/short-standalone
+                :phone-number.tz-format/id]
+          :req [:phone-number/calling-code
+                :phone-number/geographical?
+                :phone-number/possible?
+                :phone-number/valid?
+                :phone-number/type
+                :phone-number/region
+                :phone-number.short/valid?
+                :phone-number.short/possible?]))
+
 (s/def :phone-number/info
   (s/with-gen
-    (s/keys :opt [:phone-number/location
-                  :phone-number/carrier
-                  :phone-number.format/e164
-                  :phone-number.format/international
-                  :phone-number.format/national
-                  :phone-number.format/rfc3966
-                  :phone-number.format/raw-input
-                  :phone-number.tz-format/narrow-standalone
-                  :phone-number.tz-format/full
-                  :phone-number.tz-format/short
-                  :phone-number.tz-format/narrow
-                  :phone-number.tz-format/full-standalone
-                  :phone-number.tz-format/short-standalone
-                  :phone-number.tz-format/id
-                  ]
-            :req [:phone-number/calling-code
-                  :phone-number/geographical?
-                  :phone-number/possible?
-                  :phone-number/valid?
-                  :phone-number/type
-                  :phone-number/region
-                  :phone-number.short/valid?
-                  :phone-number.short/possible?])
+    info-keys
     #(gen/fmap
       phone/info
-      (s/gen :phone-number/any))))
+      (s/gen :phone-number/native))))
+
+(s/def :phone-number/info-valid
+  (s/with-gen
+    info-keys
+    #(gen/fmap
+      phone/info
+      (s/gen :phone-number/native-valid))))
+
+(s/def :phone-number/info-invalid
+  (s/with-gen
+    info-keys
+    #(gen/fmap
+      phone/info
+      (s/gen :phone-number/native-invalid))))
+
+(s/def :phone-number.arg/any
+  (s/or :native :phone-number/native
+        :map    :phone-number/info     ;; TODO: create another spec with map as an argument
+        :string :phone-number/string))
+
+(s/def :phone-number.arg/standalone
+  (s/or :native :phone-number/native
+        :map    :phone-number/info     ;; TODO: create another spec with map as an argument
+        :string :phone-number/string-standalone))
+
+(s/def :phone-number.arg/incomplete
+  (s/or :native :phone-number/native
+        :map    :phone-number/info     ;; TODO: create another spec with map as an argument
+        :string :phone-number/string-incomplete))
+
 
 ;;
 ;; Function specs (TODO)
@@ -283,4 +373,15 @@
 
 (s/fdef phone/native?
   :args (s/cat :object any?)
-  :ret  boolean?)
+  :ret  boolean?
+  :fn   (s/or :exact (s/and #(:ret %) #(= Phonenumber$PhoneNumber (class (-> % :args :object))))
+              :other #(not= Phonenumber$PhoneNumber (class (-> % :args :object)))))
+
+(s/fdef phone/number
+  :args (s/or :nil        (s/cat :phone-number nil?
+                                 :region-code  any?)
+              :standalone (s/cat :phone-number :phone-number.arg/standalone
+                                 :region-code  (s/nilable :phone-number.arg/region))
+              :twofold    (s/cat :phone-number :phone-number.arg/incomplete
+                                 :region-code  :phone-number.arg/region))
+  :ret  (s/nilable :phone-number/native))

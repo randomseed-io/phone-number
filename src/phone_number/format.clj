@@ -40,10 +40,28 @@
   (clojure.set/difference (set (keys all)) calling-coded #{::raw-input}))
 
 (def ^{:added "8.12.4-0"
+       :tag clojure.lang.PersistentVector}
+  all-calling-coded-vec
+  "Vector of formats (keywords)."
+  (vec calling-coded))
+
+(def ^{:added "8.12.4-0"
+       :tag clojure.lang.PersistentVector}
+  all-not-calling-coded-vec
+  "Vector of formats (keywords)."
+  (vec not-calling-coded))
+
+(def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentArrayMap}
   by-val
   "Map of PhoneNumberFormat values to possible format identifiers (keywords)."
   (clojure.set/map-invert all))
+
+(def ^{:added "8.12.4-0"
+       :tag clojure.lang.PersistentVector}
+  by-val-vec
+  "Vector of PhoneNumberFormat values."
+  (vec (keys by-val)))
 
 (def ^{:added "8.12.4-0"
        :const true
