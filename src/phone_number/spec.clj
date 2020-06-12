@@ -61,19 +61,19 @@
 
 (s/def :phone-number.arg/format :phone-number/format)
 
-(s/def :phone-number/format-standalone
+(s/def :phone-number/format-global
   (s/with-gen
     #(format/valid? % phone/*inferred-namespaces*)
     #(gen/elements format/all-calling-coded-vec)))
 
-(s/def :phone-number.arg/format-standalone :phone-number/format-standalone)
+(s/def :phone-number.arg/format-global :phone-number/format-global)
 
-(s/def :phone-number/format-incomplete
+(s/def :phone-number/format-regional
   (s/with-gen
     #(format/valid? % phone/*inferred-namespaces*)
     #(gen/elements format/all-not-calling-coded-vec)))
 
-(s/def :phone-number.arg./format-incomplete :phone-number/format-incomplete)
+(s/def :phone-number.arg./format-regional :phone-number/format-regional)
 
 ;;
 ;; Phone number time zone format specs
@@ -188,18 +188,18 @@
       (fn [n] (phone/format n nil (gen/generate (s/gen :phone-number/format))))
       (s/gen :phone-number/native))))
 
-(s/def :phone-number/string-standalone
+(s/def :phone-number/string-global
   (s/with-gen
     (s/and string? phone/valid-input?)
     #(gen/fmap
-      (fn [n] (phone/format n nil (gen/generate (s/gen :phone-number/format-standalone))))
+      (fn [n] (phone/format n nil (gen/generate (s/gen :phone-number/format-global))))
       (s/gen :phone-number/native))))
 
-(s/def :phone-number/string-incomplete
+(s/def :phone-number/string-regional
   (s/with-gen
     (s/and string? phone/valid-input?)
     #(gen/fmap
-      (fn [n] (phone/format n nil (gen/generate (s/gen :phone-number/format-incomplete))))
+      (fn [n] (phone/format n nil (gen/generate (s/gen :phone-number/format-regional))))
       (s/gen :phone-number/native))))
 
 (s/def :phone-number/string-valid
@@ -298,9 +298,9 @@
 (s/def :phone-number.format/national             string?)
 (s/def :phone-number.format/rfc3966              string?)
 (s/def :phone-number.format/raw-input            string?)
-(s/def :phone-number.tz-format/full-standalone   :phone-number.tz-format/timezones)
-(s/def :phone-number.tz-format/short-standalone  :phone-number.tz-format/timezones)
-(s/def :phone-number.tz-format/narrow-standalone :phone-number.tz-format/timezones)
+(s/def :phone-number.tz-format/full-global   :phone-number.tz-format/timezones)
+(s/def :phone-number.tz-format/short-global  :phone-number.tz-format/timezones)
+(s/def :phone-number.tz-format/narrow-global :phone-number.tz-format/timezones)
 (s/def :phone-number.tz-format/full              :phone-number.tz-format/timezones)
 (s/def :phone-number.tz-format/short             :phone-number.tz-format/timezones)
 (s/def :phone-number.tz-format/narrow            :phone-number.tz-format/timezones)
@@ -314,12 +314,12 @@
                 :phone-number.format/national
                 :phone-number.format/rfc3966
                 :phone-number.format/raw-input
-                :phone-number.tz-format/narrow-standalone
+                :phone-number.tz-format/narrow-global
                 :phone-number.tz-format/full
                 :phone-number.tz-format/short
                 :phone-number.tz-format/narrow
-                :phone-number.tz-format/full-standalone
-                :phone-number.tz-format/short-standalone
+                :phone-number.tz-format/full-global
+                :phone-number.tz-format/short-global
                 :phone-number.tz-format/id]
           :req [:phone-number/calling-code
                 :phone-number/geographical?
@@ -356,15 +356,15 @@
         :map    :phone-number/info     ;; TODO: create another spec with map as an argument
         :string :phone-number/string))
 
-(s/def :phone-number.arg/standalone
+(s/def :phone-number.arg/global
   (s/or :native :phone-number/native
         :map    :phone-number/info     ;; TODO: create another spec with map as an argument
-        :string :phone-number/string-standalone))
+        :string :phone-number/string-global))
 
-(s/def :phone-number.arg/incomplete
+(s/def :phone-number.arg/regional
   (s/or :native :phone-number/native
         :map    :phone-number/info     ;; TODO: create another spec with map as an argument
-        :string :phone-number/string-incomplete))
+        :string :phone-number/string-regional))
 
 
 ;;
@@ -378,10 +378,10 @@
               :other #(not= Phonenumber$PhoneNumber (class (-> % :args :object)))))
 
 (s/fdef phone/number
-  :args (s/or :nil        (s/cat :phone-number nil?
-                                 :region-code  any?)
-              :standalone (s/cat :phone-number :phone-number.arg/standalone
-                                 :region-code  (s/nilable :phone-number.arg/region))
-              :twofold    (s/cat :phone-number :phone-number.arg/incomplete
-                                 :region-code  :phone-number.arg/region))
+  :args (s/or :nil      (s/cat :phone-number nil?
+                               :region-code  any?)
+              :global   (s/cat :phone-number :phone-number.arg/global
+                               :region-code  (s/nilable :phone-number.arg/region))
+              :regional (s/cat :phone-number :phone-number.arg/regional
+                               :region-code  :phone-number.arg/region))
   :ret  (s/nilable :phone-number/native))
