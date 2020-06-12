@@ -29,27 +29,27 @@
 
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentHashSet}
-  calling-coded
+  global
   "Set of formats (keywords) that should identify values containing country code information."
   #{::e164 ::international ::rfc3966})
 
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentHashSet}
-  not-calling-coded
+  regional
   "Set of formats (keywords) that should identify values containing country code information."
-  (clojure.set/difference (set (keys all)) calling-coded #{::raw-input}))
+  (clojure.set/difference (set (keys all)) global #{::raw-input}))
 
-(def ^{:added "8.12.4-0"
+(def ^{:added "8.12.4-1"
        :tag clojure.lang.PersistentVector}
-  all-calling-coded-vec
+  global-vec
   "Vector of formats (keywords)."
-  (vec calling-coded))
+  (vec global))
 
-(def ^{:added "8.12.4-0"
+(def ^{:added "8.12.4-1"
        :tag clojure.lang.PersistentVector}
-  all-not-calling-coded-vec
+  regional-vec
   "Vector of formats (keywords)."
-  (vec not-calling-coded))
+  (vec regional))
 
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentArrayMap}
@@ -95,15 +95,49 @@
        (assert (valid? k) (str "Format specification " k " is not valid"))
        (all k)))))
 
-(defn calling-coded?
+(defn global?
   "Returns true if the given format contains country code information, false otherwise."
   {:added "8.12.4-0" :tag Boolean}
   [^clojure.lang.Keyword format]
-  (contains? calling-coded format))
+  (contains? global format))
 
-(defn not-calling-coded?
+(defn regional?
   "Returns true if the given format does not contain country code information, false
   otherwise."
   {:added "8.12.4-0" :tag Boolean}
   [^clojure.lang.Keyword format]
-  (contains? not-calling-coded format))
+  (contains? regional format))
+
+;;
+;; Backward compatibility
+;;
+
+(def ^{:added "8.12.4-0"
+       :deprecated "8.12.4-1"
+       :tag clojure.lang.PersistentHashSet}
+  calling-coded
+  "DEPRECATED: use `global`"
+  global)
+
+(def ^{:added "8.12.4-0"
+       :deprecated "8.12.4-1"
+       :tag Boolean
+       :arglists '([^clojure.lang.Keyword format])}
+  calling-coded?
+  "DEPRECATED: use `global?`"
+  global?)
+
+(def ^{:added "8.12.4-0"
+       :deprecated "8.12.4-1"
+       :tag clojure.lang.PersistentHashSet}
+  not-calling-coded
+  "DEPRECATED: use `regional`"
+  regional)
+
+(def ^{:added "8.12.4-0"
+       :deprecated "8.12.4-1"
+       :tag Boolean
+       :arglists '([^clojure.lang.Keyword format])}
+  not-calling-coded?
+  "DEPRECATED: use `regional?`"
+  regional?)

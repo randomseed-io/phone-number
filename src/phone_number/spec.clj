@@ -64,14 +64,14 @@
 (s/def :phone-number/format-global
   (s/with-gen
     #(format/valid? % phone/*inferred-namespaces*)
-    #(gen/elements format/all-calling-coded-vec)))
+    #(gen/elements format/global-vec)))
 
 (s/def :phone-number.arg/format-global :phone-number/format-global)
 
 (s/def :phone-number/format-regional
   (s/with-gen
     #(format/valid? % phone/*inferred-namespaces*)
-    #(gen/elements format/all-not-calling-coded-vec)))
+    #(gen/elements format/regional-vec)))
 
 (s/def :phone-number.arg./format-regional :phone-number/format-regional)
 

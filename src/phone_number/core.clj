@@ -170,13 +170,13 @@
     (util/inferred-contains? coll k)
     (and (contains? coll k))))
 
-(def ^{:added "8.12.4-0" :tag clojure.lang.LazySeq :private true}
-  calling-coded-formats-simple
-  (map (comp keyword name) format/calling-coded))
+(def ^{:added "8.12.4-1" :tag clojure.lang.LazySeq :private true}
+  global-formats-simple
+  (map (comp keyword name) format/global))
 
-(def ^{:added "8.12.4-0" :tag clojure.lang.LazySeq :private true}
-  not-calling-coded-formats-simple
-  (map (comp keyword name) format/not-calling-coded))
+(def ^{:added "8.12.4-1" :tag clojure.lang.LazySeq :private true}
+  regional-formats-simple
+  (map (comp keyword name) format/regional))
 
 (defn- phoneable-map-apply
   "Tries to apply the given function to a phone number obtained from a map using known
@@ -195,9 +195,9 @@
      (if (inf-contains? m :phone-number/info)
        (phoneable-map-apply f (inf-get m :phone-number/info) region-code)
        ;; try phone number formats containing region code information
-       (if-some [t (some m format/calling-coded)]
+       (if-some [t (some m format/global)]
          (f t nil)
-         (if-some [t (when *inferred-namespaces* (some m calling-coded-formats-simple))]
+         (if-some [t (when *inferred-namespaces* (some m global-formats-simple))]
            (f t nil)
            ;; try phone number formats without any region code information
            ;; obtain region from:
@@ -207,9 +207,9 @@
            (let [c (inf-get m :phone-number/calling-code)
                  r (if (some? c) nil (inf-get m :phone-number/region region-code))]
              (if (or (some? c) (some? r))
-               (if-some [t (some m format/not-calling-coded)]
+               (if-some [t (some m format/regional)]
                  (if (some? c) (f (str "+" c t) nil) (f t r))
-                 (if-some [t (when *inferred-namespaces* (some m not-calling-coded-formats-simple))]
+                 (if-some [t (when *inferred-namespaces* (some m regional-formats-simple))]
                    (if (some? c) (f (str "+" c t) nil) (f t r))
                    (if (some? c) (f nil nil) (f nil r))))
                (f nil nil)))))))))
