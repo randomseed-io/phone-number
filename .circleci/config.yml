@@ -37,3 +37,56 @@ jobs:
           paths:
             - ~/.m2
           key: v1-dependencies-{{ checksum "deps.edn" }}
+
+      - store_artifacts:
+          path: test-results
+
+  upload_codecov:
+    description: |
+      Upload coverage results to Codecov.io.
+
+      Make sure you run Kaocha with --plugin cloverage --codecov. For non-free
+      repos make sure to set your CODECOV_TOKEN.
+    parameters:
+      conf:
+        description: Used to specify the location of the .codecov.yml config file
+        type: string
+        default: ""
+      file:
+        description: Path to the code coverage data file to upload.
+        type: string
+        default: "target/coverage/codecov.json"
+      flags:
+        description: Flag the upload to group coverage metrics (e.g. unittests | integration | ui,chrome)
+        type: string
+        default: ""
+      token:
+        description: Set the private repository token (defaults to environment variable $CODECOV_TOKEN)
+        type: string
+        default: ""
+      upload_name:
+        description: Custom defined name of the upload. Visible in Codecov UI
+        type: string
+        default: ${CIRCLE_BUILD_NUM}
+    steps:
+      - run:
+          name: Upload Coverage Results to Codecov.io
+          command: |
+            for COVERAGE_FILE in `ls << parameters.file >>`; do
+            echo Uploading $COVERAGE_FILE to Codecov.io
+            {
+              if [[ ! -z "<< parameters.flags >>" ]]; then
+                echo -F << parameters.flags >>
+              fi
+
+              if [[ ! -z "<< parameters.conf >>" ]]; then
+                echo -y << parameters.token >>
+              elif [[ ! -z "${CODECOV_TOKEN}" ]]; then
+                echo -y ${CODECOV_TOKEN}
+              fi
+
+              if [[ ! -z "<< parameters.token >>" ]]; then
+                echo -t << parameters.token >>
+              fi
+            } | xargs bash <(curl -s https://codecov.io/bash) -n << parameters.upload_name >> -f $COVERAGE_FILE
+            done
