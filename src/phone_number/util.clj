@@ -96,25 +96,22 @@
      ((if (contains? coll k) k (keyword (name k))) coll default))))
 
 (defn fmap-k
-  "For each key and value of the given map m calls a function passed as the second
+  "For each key and value of the given map m calls a function passed as the first
   argument (passing successive keys during calls to it) and generates a map with
-  values updated by the results returned by the function."
+  values updated by the results returned by the function. When the third argument is
+  given it should be a map on which operations are performed instead of using the
+  original map. This may be helpful when we want to avoid merging the results with
+  another map."
   {:added "8.12.4-0" :tag clojure.lang.IPersistentMap}
-  [^clojure.lang.IFn f
-   ^clojure.lang.IPersistentMap m]
-  (into (empty m) (for [[k v] m] [k (f k)])))
-
-(defn fmap-k
-  "For each key and value of the given map m calls a function passed as the second
-  argument (passing successive keys during calls to it) and generates a map with
-  values updated by the results returned by the function."
-  {:added "8.12.4-0" :tag clojure.lang.IPersistentMap}
-  [^clojure.lang.IFn f
-   ^clojure.lang.IPersistentMap m]
-  (reduce-kv
-   (fn [^clojure.lang.IPersistentMap mp k v]
-     (assoc mp k (f k)))
-   m m))
+  ([^clojure.lang.IFn f
+    ^clojure.lang.IPersistentMap m]
+   (fmap-k f m m))
+  ([^clojure.lang.IFn f
+    ^clojure.lang.IPersistentMap m
+    ^clojure.lang.IPersistentMap dst]
+   (reduce-kv
+    (fn [^clojure.lang.IPersistentMap mp k v] (assoc mp k (f k)))
+    dst m)))
 
 (defn remove-empty-vals
   "Removes empty values from a map."
