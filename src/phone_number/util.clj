@@ -226,3 +226,10 @@
    (lazy-seq
     (when (.hasNext iter)
       (cons (.next iter) (lazy-iterator-seq coll iter))))))
+
+(defn char-ranges->set
+  "Returns a set of characters defined as a collection of collections with start and
+  stop character, e.g.: [\\A \\Z][\\0 \\9]"
+  {:added "8.12.4-1" :tag clojure.lang.IPersistentSet}
+  [& ranges]
+  (set (mapcat #(map char (range (byte (first %)) (inc (byte (second %))))) ranges)))
