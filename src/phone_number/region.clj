@@ -39,7 +39,7 @@
        :tag clojure.lang.PersistentHashMap}
   all-arg
   "Mapping of supported regions (keywords) to region values (strings)."
-  all)
+  (dissoc all :unknown))
 
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentHashMap}
@@ -51,7 +51,7 @@
        :tag clojure.lang.PersistentHashMap}
   by-val-arg
   "Mapping of supported region values (strings) to regions (keywords)."
-  by-val)
+  (clojure.set/map-invert all-arg))
 
 (def ^{:added "8.12.4-0"
        :const true
@@ -73,7 +73,7 @@
        :tag clojure.lang.PersistentVector}
   all-arg-vec
   "Vector of regions (keywords)."
-  all-vec)
+  (vec (keys all)))
 
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentVector}
@@ -85,7 +85,7 @@
        :tag clojure.lang.PersistentVector}
   by-val-arg-vec
   "Vector of regions (string values)."
-  by-val-vec)
+  (vec (keys by-val)))
 
 (defn valid?
   "Returns true if the given region-specification is a valid region code, false
