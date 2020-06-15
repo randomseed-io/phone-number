@@ -1007,7 +1007,13 @@
   according to rules. For example 112 may be valid in multiple regions but if one
   calls it from some particular region it might not be reachable. If it is not given
   then it is derived from the phone number's region code. However, when the `nil`
-  value is explicitly passed it remains unset."
+  value is explicitly passed it remains unset.
+
+  It is important to realize that certain properties of short numbers can only be
+  successfully calculated if the unprocessed form of a number (a string or a natural
+  number) does not contain country code and so it is delivered as it would be
+  dialed. It is advised to pass a region code as the second argument when short
+  numbers are tested."
   {:added "8.12.4-0" :tag clojure.lang.PersistentHashMap}
   ([^phone_number.core.Phoneable    phone-number]
    (short-info-core phone-number nil false nil nil))
@@ -1049,7 +1055,13 @@
 
   If there are four arguments then the last one should be a calling region code
   intended to be used with short numbers (like 112 etc.). It describes originating
-  region to help validate the possibility of reaching the destination number."
+  region to help validate the possibility of reaching the destination number.
+
+  It is important to realize that certain properties of short numbers can only be
+  successfully calculated if the unprocessed form of a number (a string or a natural
+  number) does not contain country code and so it is delivered as it would be
+  dialed. It is advised to pass a region code as the second argument when short
+  numbers are tested."
   {:added "8.12.4-0" :tag clojure.lang.PersistentHashMap}
   ([^phone_number.core.Phoneable phone-number]
    (info phone-number nil nil false))
