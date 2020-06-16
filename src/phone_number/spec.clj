@@ -36,7 +36,7 @@
 (s/def :phone-number.arg/region
   (s/with-gen
     #(region/valid? % phone/*inferred-namespaces*)
-    #(gen/elements region/all-vec)))
+    #(gen/elements region/all-arg-vec)))
 
 ;;
 ;; Phone number type specs
@@ -61,20 +61,19 @@
     #(format/valid? % phone/*inferred-namespaces*)
     #(gen/elements format/all-vec)))
 
-(s/def :phone-number.arg/format :phone-number/format)
 
 (s/def :phone-number/format-global
   (s/with-gen
     #(format/valid? % phone/*inferred-namespaces*)
     #(gen/elements format/global-vec)))
 
-(s/def :phone-number.arg/format-global :phone-number/format-global)
-
 (s/def :phone-number/format-regional
   (s/with-gen
     #(format/valid? % phone/*inferred-namespaces*)
     #(gen/elements format/regional-vec)))
 
+(s/def :phone-number.arg/format           :phone-number/format)
+(s/def :phone-number.arg/format-global    :phone-number/format-global)
 (s/def :phone-number.arg./format-regional :phone-number/format-regional)
 
 ;;
@@ -140,48 +139,41 @@
 ;; Phone number specs
 ;;
 
+(defn phone-gen
+  "Phone number generator for specs.
+  Options map:
+  :region, :type, :predicate, :retries, :locale, :random-seed, :early-shrinking"
+  {:added "8.12.4-1" :tag clojure.lang.Fn}
+  [^clojure.lang.IPersistentMap options]
+  (fn []
+    (gen/fmap
+     (fn [random-uuid]
+       (:phone-number/number
+        (phone/generate (:region          options)
+                        (:type            options)
+                        (:predicate       options)
+                        (:retries         options 150)
+                        (:locale          options)
+                        (:random-seed     options (.getMostSignificantBits random-uuid))
+                        (:early-shrinking options false))))
+     (gen/uuid))))
+
 (s/def :phone-number/native
   (s/with-gen
     phone/native?
-    #(gen/fmap (fn [random-seed]
-                 (:phone-number/number
-                  (phone/generate nil
-                                  nil
-                                  nil
-                                  150
-                                  nil
-                                  (.getMostSignificantBits random-seed)
-                                  true)))
-               (gen/uuid))))
+    (phone-gen {:early-shrinking true})))
 
 (s/def :phone-number/native-valid
   (s/with-gen
     phone/valid?
-    #(gen/fmap (fn [random-seed]
-                 (:phone-number/number
-                  (phone/generate nil
-                                  nil
-                                  phone/valid?
-                                  150
-                                  nil
-                                  (.getMostSignificantBits random-seed)
-                                  false)))
-               (gen/uuid))))
+    (phone-gen {:predicate phone/valid?})))
 
 (s/def :phone-number/native-invalid
   (s/with-gen
     phone/invalid?
-    #(gen/fmap (fn [random-seed]
-                 (:phone-number/number
-                  (phone/generate nil
-                                  nil
-                                  phone/invalid?
-                                  100
-                                  nil
-                                  (.getMostSignificantBits random-seed)
-                                  true)))
-               (gen/uuid))))
-
+    (phone-gen {:predicate       phone/invalid?
+                :retries         100
+                :early-shrinking true})))
 
 (s/def :phone-number/string
   (s/with-gen
@@ -192,14 +184,20 @@
 
 (s/def :phone-number/string-global
   (s/with-gen
-    (s/and string? phone/valid-input?)
+    (s/and string?
+           phone/valid-input?
+           phone/has-calling-code?)
     #(gen/fmap
       (fn [n] (phone/format n nil (gen/generate (s/gen :phone-number/format-global))))
       (s/gen :phone-number/native))))
 
 (s/def :phone-number/string-regional
   (s/with-gen
-    (s/and string? phone/valid-input?)
+    (s/and string? phone/valid-input?
+           #(not= \+ (first %)) ;; just for speed
+           #(not (phone/native? (try (phone/number %) (catch NumberParseException e nil))))
+           #(phone/native? (try (phone/number % (gen/generate (s/gen :phone-number.arg/region)))
+                                (catch Throwable e nil))))
     #(gen/fmap
       (fn [n] (phone/format n nil (gen/generate (s/gen :phone-number/format-regional))))
       (s/gen :phone-number/native))))
