@@ -143,11 +143,18 @@
 
   (^{:added "8.12.4-0" :tag Phonenumber$PhoneNumber} number
    [phone-number] [phone-number region-code]
-   "Takes a phone number represented as a string, a number, a map or a `PhoneNumber` object
-    and returns parsed `PhoneNumber` object. Second, optional argument should be a
-    keyword with region code which is helpful if a local number (without region code)
-    was given. If the region code argument is passed and the first argument is
-    already a kind of PhoneNumber then it will be ignored.")
+   "Takes a phone number represented as a string, a number, a map or a `PhoneNumber`
+   object and returns parsed `PhoneNumber` object. Second, optional argument should
+   be a keyword with region code which is helpful if a local number (without region
+   code) was given. If the region code argument is passed and the first argument is
+   already a kind of PhoneNumber then it will be ignored.
+
+   It is important to realize that certain properties of so called short
+   numbers (like an emergency numbers) can only be successfully calculated by other
+   functions if the unprocessed form of a number (a string or a natural number) does
+   not contain country code and so it is delivered as it would be dialed. It is
+   advised to pass a region code as the second argument when short numbers are
+   in use.")
 
   (^{:added "8.12.4-0" :tag Phonenumber$PhoneNumber} number-noraw
    [phone-number] [phone-number region-code]
@@ -846,7 +853,13 @@
   If the third argument is present then it should be a valid region code for the
   origination of a possible call. That hint will be used to restrict the check
   according to rules. For example 112 may be valid in multiple regions but if one
-  calls it from some particular region it might not be reachable."
+  calls it from some particular region it might not be reachable.
+
+  It is important to realize that certain properties of short numbers can only be
+  successfully calculated if the unprocessed form of a number (a string or a natural
+  number) does not contain country code and so it is delivered as it would be
+  dialed. It is advised to pass a region code as the second argument when short
+  numbers are tested."
   {:added "8.12.4-0" :tag clojure.lang.Keyword}
   ([^phone_number.core.Phoneable phone-number]
    (short-cost phone-number nil))
@@ -874,7 +887,13 @@
   true if it is exactly the emergency number. The second argument should be a valid
   region code (a keyword).
 
-  When the region-code argument is nil it returns nil."
+  When the region-code argument is nil it returns nil.
+
+  It is important to realize that certain properties of short numbers can only be
+  successfully calculated if the unprocessed form of a number (a string or a natural
+  number) does not contain country code and so it is delivered as it would be
+  dialed. It is advised to pass a region code as the second argument when short
+  numbers are tested."
   {:added "8.12.4-0" :tag clojure.lang.Keyword}
   ([^String                phone-number
     ^clojure.lang.Keyword  region-code]
@@ -891,7 +910,13 @@
   true if it can be used to connect to emergency services. The second argument should
   be a valid region code (a keyword).
 
-  When the region-code argument is nil it returns nil."
+  When the region-code argument is nil it returns nil.
+
+  It is important to realize that certain properties of short numbers can only be
+  successfully calculated if the unprocessed form of a number (a string or a natural
+  number) does not contain country code and so it is delivered as it would be
+  dialed. It is advised to pass a region code as the second argument when short
+  numbers are tested."
   {:added "8.12.4-0" :tag clojure.lang.Keyword}
   ([^String                phone-number
     ^clojure.lang.Keyword  region-code]
@@ -904,9 +929,15 @@
          (region/parse region-code *inferred-namespaces*)))))))
 
 (defn short-carrier-specific?
-  "Takes a short phone number (expressed as a string, a number, a map or a `PhoneNumber` object),
-  optional region code (or nil) and optional calling region code. Returns true if it
-  is a carrier-specific number."
+  "Takes a short phone number (expressed as a string, a number, a map or a
+  `PhoneNumber` object), optional region code (or nil) and optional calling region
+  code. Returns true if it is a carrier-specific number.
+
+  It is important to realize that certain properties of short numbers can only be
+  successfully calculated if the unprocessed form of a number (a string or a natural
+  number) does not contain country code and so it is delivered as it would be
+  dialed. It is advised to pass a region code as the second argument when short
+  numbers are tested."
   {:added "8.12.4-0" :tag Boolean}
   ([^phone_number.core.Phoneable phone-number]
    (short-carrier-specific? phone-number nil))
@@ -932,7 +963,13 @@
 (defn short-sms-service?
   "Takes a short phone number (expressed as a string, a number, a map or a `PhoneNumber`
   object), optional region code (or nil) and a calling region code. Returns true if
-  SMS is supported, false otherwise."
+  SMS is supported, false otherwise.
+
+  It is important to realize that certain properties of short numbers can only be
+  successfully calculated if the unprocessed form of a number (a string or a natural
+  number) does not contain country code and so it is delivered as it would be
+  dialed. It is advised to pass a region code as the second argument when short
+  numbers are tested."
   {:added "8.12.4-0" :tag Boolean}
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
@@ -1276,7 +1313,9 @@
 (defn has-calling-code?
   "For the given phone number returns true if the calling code is present in it, false
   otherwise. The region code can be explicit part of a number (as its prefix) or can
-  be inferred by making use of the region-code argument."
+  be inferred by making use of the region-code argument.
+
+  This function will always return `true` if a phone number was successfully parsed."
   {:added "8.12.4-0" :tag Boolean}
   ([^phone_number.core.Phoneable phone-number]
    (has-calling-code? phone-number nil))
