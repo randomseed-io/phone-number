@@ -12,7 +12,7 @@
                              :kaocha.plugin/profiling
                              :kaocha.plugin/notifier
                              :kaocha.plugin.alpha/spec-test-check
-                             :kaocha.plugin/cloverage],
+                             #_:kaocha.plugin/cloverage],
  :kaocha/reporter [kaocha.report/dots],
  :kaocha.plugin.capture-output/capture-output? true,
  :kaocha.plugin.profiling/count                   3,
