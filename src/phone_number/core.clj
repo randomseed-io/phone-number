@@ -65,23 +65,24 @@
     ::match/none
     "Etc/Unknown" "unknown" "none" "nil" "0"})
 
-(def ^{:added "8.12.4-1" :tag clojure.lang.PersistentHashSet}
+(def ^{:added "8.12.4-1" :tag clojure.lang.PersistentHashSet :const true}
   required-first-input-characters
   "A set of required first characters in a phone number which is a string."
   (util/char-ranges->set [\0 \9]))
 
-(def ^{:added "8.12.4-1" :tag clojure.lang.PersistentHashSet}
-  required-first-input-characters-if-plus
-  "A set of required first characters in a phone number which is a string and contains
-  a plus sign."
-  required-first-input-characters)
+(def ^{:added "8.12.4-1" :tag clojure.lang.PersistentHashSet :const true}
+  allowed-removable-characters
+  "A set of removable (like punctuation) characters in a phone number which is a
+  string. Used during input validation."
+  #{\space\tab\-\—\–\.\,\=\*\~\(\)\[\]\/})
 
-(def ^{:added "8.12.4-1" :tag clojure.lang.PersistentHashSet}
-  required-input-characters
-  "A set of required characters in a phone number which is a string
-  (applied to all characters except the first two or first 3 if there is a plus
-  sign)."
-  (util/char-ranges->set [\0 \9] [\A \Z] [\a \z]))
+(def ^{:added "8.12.4-1" :tag clojure.lang.PersistentHashSet :const true}
+  allowed-input-characters
+  "A set of allowed characters in a phone number which is a string
+  (applied to all characters except the first 3 on a string cleaned up from removable
+  characters)."
+  (clojure.set/union
+   (util/char-ranges->set [\0 \9] [\A \Z] [\a \z])))
 
 (def ^{:added "8.12.4-0" :tag clojure.lang.PersistentHashSet}
   regions
@@ -271,18 +272,18 @@
     [phone-number]
     (and
      (> (count phone-number) 1)
-     (let [digs   (remove #{\space\tab\-\—\–\.\,\=\*\~\(\)\[\]} phone-number)
+     (let [digs   (remove allowed-removable-characters phone-number)
            numb   (if (= \+ (first digs)) (rest digs) digs)
            tchars (split-at 3 numb)]
        (and (every? required-first-input-characters (tchars 0))
-            (every? required-input-characters       (tchars 1))))))
+            (every? allowed-input-characters        (tchars 1))))))
   (number-noraw
     ([phone-number]
      (number-noraw phone-number nil))
     ([phone-number
       ^clojure.lang.Keyword region-code]
      (assert (valid-input? phone-number)
-             "Phone number string should have at least 2 digits")
+             "Phone number string should begin with at least 3 digits")
      (when (some? phone-number)
        (.parse
         (util/instance)
@@ -294,7 +295,7 @@
     ([phone-number
       ^clojure.lang.Keyword region-code]
      (assert (valid-input? phone-number)
-             "Phone number string should have at least 2 digits")
+             "Phone number string should begin with at least 3 digits")
      (when (some? phone-number)
        (.parseAndKeepRawInput
         (util/instance)
