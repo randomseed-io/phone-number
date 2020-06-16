@@ -13,6 +13,7 @@
                               org.clojure/spec.alpha               {:mvn/version "0.2.176"}
                               org.clojure/test.check               {:mvn/version "0.10.0"}
                               midje/midje                          {:mvn/version "1.9.9"}
+                              expound                              {:mvn/version "0.8.4"}
                               lambdaisland/kaocha                  {:mvn/version "0.0-529"}
                               lambdaisland/kaocha-midje            {:mvn/version "0.0-5"}
                               lambdaisland/kaocha-cloverage        {:mvn/version "1.0-45"}
@@ -29,6 +30,7 @@
                   :extra-paths ["test"]
                   :extra-deps {org.clojure/test.check               {:mvn/version "0.10.0"}
                                midje/midje                          {:mvn/version "1.9.9"}
+                               expound                              {:mvn/version "0.8.4"}
                                lambdaisland/kaocha                  {:mvn/version "0.0-529"}
                                lambdaisland/kaocha-midje            {:mvn/version "0.0-5"}
                                lambdaisland/kaocha-cloverage        {:mvn/version "1.0-45"}}

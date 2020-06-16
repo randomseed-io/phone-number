@@ -15,7 +15,8 @@
             [clojure.spec.gen.alpha  :as           gen]
             [clojure.spec.test.alpha :as            st]
             [phone-number.core       :refer       :all]
-            [phone-number.spec       :as          spec])
+            [phone-number.spec       :as          spec]
+            [expound.alpha           :as       expound])
 
   (:import  [com.google.i18n.phonenumbers
              Phonenumber$PhoneNumber

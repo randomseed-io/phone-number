@@ -17,10 +17,12 @@
             [phone-number.country-code  :as country-code]
             [phone-number.calling-code  :as calling-code]
             [clojure.spec.alpha         :as            s]
+            [clojure.spec.test.alpha    :as           st]
             [clojure.spec.gen.alpha     :as          gen])
 
   (:import  [com.google.i18n.phonenumbers
-             Phonenumber$PhoneNumber]))
+             Phonenumber$PhoneNumber
+             NumberParseException]))
 
 ;;
 ;; Phone number region specs
