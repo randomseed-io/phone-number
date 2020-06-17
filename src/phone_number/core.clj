@@ -617,6 +617,27 @@
         (number-noraw phone-number region-code)))))))
 
 ;;
+;; Numeric representation
+;;
+
+(defn numeric
+  "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
+  object) and returns its regional part as an integer, positive number of type Long.
+
+  If the second argument is present then it should be a valid region code (a keyword)
+  to be used when the given phone number does not contain region information."
+  {:added "8.12.4-1" :tag Long}
+  ([^phone_number.core.Phoneable phone-number]
+   (numeric phone-number nil))
+  ([^phone_number.core.Phoneable phone-number
+    ^clojure.lang.Keyword        region-code]
+   (when-some [p (format phone-number region-code ::format/e164)]
+     (let [c (calling-code p nil)
+           d (if (or (nil? c) (<= c 0)) 1 (unchecked-inc (util/count-digits c)))]
+       (when-some [s (not-empty (subs p d))]
+         (Long/valueOf s))))))
+
+;;
 ;; Location
 ;;
 
