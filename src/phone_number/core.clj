@@ -272,11 +272,7 @@
     [phone-number]
     (and
      (> (count phone-number) 1)
-     (let [digs   (remove allowed-removable-characters phone-number)
-           numb   (if (= \+ (first digs)) (rest digs) digs)
-           tchars (split-at 3 numb)]
-       (and (every? required-first-input-characters (tchars 0))
-            (every? allowed-input-characters        (tchars 1))))))
+     (= 2 (count (take 2 (filter required-first-input-characters phone-number))))))
   (number-noraw
     ([phone-number]
      (number-noraw phone-number nil))
