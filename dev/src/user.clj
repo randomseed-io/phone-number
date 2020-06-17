@@ -1,7 +1,7 @@
 (ns user
   (:require
    [clojure.spec.alpha           :as                s]
-   [clojure.spec.test.alpha      :as               st]
+   [orchestra.spec.test          :as               st]
    [clojure.spec.gen.alpha       :as              gen]
    [clojure.repl                 :refer          :all]
    [clojure.tools.namespace.repl :refer [refresh
@@ -34,6 +34,8 @@
 
 (when (System/getProperty "nrepl.load")
   (require 'nrepl))
+
+;;(st/instrument)
 
 (defn test-all []
   (refresh)
