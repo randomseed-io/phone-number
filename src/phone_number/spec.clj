@@ -396,11 +396,11 @@
         :map     :phone-number.arg/map
         :string  :phone-number/string-regional))
 
+;; Please note that a standalone regional number will be invalid
+
 (s/def :phone-number.arg/number
   (s/or :global   :phone-number.arg/number-global
         :regional :phone-number.arg/number-regional))
-
-;; please note that a standalone regional number will be invalid
 
 ;;
 ;; Argument tuples which validity can be checked only when tested together
@@ -475,3 +475,10 @@
                :without-region-arg :phone-number.arg/number-global
                :with-region-arg    :phone-number.args/number.region)
   :ret  (s/nilable :phone-number/native))
+
+(s/fdef phone/format
+  :args (s/alt :arity-1 (s/cat :number :phone-number.arg/number-global)
+               :arity-2 (s/cat :number :phone-number.args/number.region)
+               :arity-3 (s/cat :number :phone-number.args/number.region
+                               :format (s/nilable :phone-number.arg/format)))
+  :ret  (s/nilable :phone-number/string))
