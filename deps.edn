@@ -37,6 +37,7 @@
                   :main-opts ["-m" "kaocha.runner",
                               "--config-file"   "tests.edn",
                               "--stc-num-tests" "100"
+                              "--stc-instrumentation"
                               "--stc-asserts"]
                   :jvm-opts  ["-Xmx512m"]}
 
