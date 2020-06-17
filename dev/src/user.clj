@@ -39,10 +39,10 @@
 
 (defn test-all []
   (refresh)
-  (load-facts :print-facts))
+  (st/with-instrument-disabled (load-facts :print-facts)))
 
 (comment 
   (refresh-all)
-  (test-all)
-
+  (st/with-instrument-disabled (test-all))
+  (st/with-instrument-disabled (run-all))
   )
