@@ -54,6 +54,13 @@
   `(try ~@body
         (catch NullPointerException  e# nil)))
 
+(defn count-digits
+  {:added "8.12.4-1" :tag 'long}
+  [^long n]
+  (if (zero? n) 1
+      (unchecked-inc
+       (long (Math/floor (Math/log10 n))))))
+
 (defn ns-infer
   "Takes a string of namespace name and a keyword. If the given keyword is not
   namespace-qualified it returns a new keyword with the given namespace added. If the

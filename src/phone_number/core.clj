@@ -1475,8 +1475,9 @@
     ^java.util.Random            rng
     ^Boolean                     early-shrinking]
    (when-some [template (number-noraw phone-number region-code)]
-     (let [calling-code   (str "+" (calling-code template nil))
-           prefix         (subs (format template nil ::format/e164) (count calling-code))
+     (let [calling-code   (calling-code template nil)
+           prefix         (subs (format template nil ::format/e164) (unchecked-inc (util/count-digits calling-code)))
+           calling-code   (str "+" calling-code)
            total-len      (unchecked-long (count prefix))
            retries        (unchecked-long retries)
            auto-shrink    (unchecked-long (if early-shrinking 0 (* retries 0.75)))
