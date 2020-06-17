@@ -35,7 +35,7 @@
 (when (System/getProperty "nrepl.load")
   (require 'nrepl))
 
-;;(st/instrument)
+(st/instrument)
 
 (defn test-all []
   (refresh)

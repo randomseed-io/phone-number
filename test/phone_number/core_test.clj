@@ -13,7 +13,7 @@
             [midje.sweet             :refer       :all]
             [midje.experimental      :refer  [for-all]]
             [clojure.spec.gen.alpha  :as           gen]
-            [clojure.spec.test.alpha :as            st]
+            [orchestra.spec.test     :as            st]
             [phone-number.core       :refer       :all]
             [phone-number.spec       :as          spec]
             [expound.alpha           :as       expound])
