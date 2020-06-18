@@ -1535,7 +1535,7 @@
                    random-digits (util/gen-digits random-len rng)
                    regional-part (str prefix random-digits)
                    skip-test     (< (count regional-part) min-digits)
-                   test-number   (when (nil? skip-test) (util/try-parse (number-fn (str calling-code regional-part) nil)))
+                   test-number   (when-not skip-test (util/try-parse (number-fn (str calling-code regional-part) nil)))
                    have-valid    (and (some? test-number) (validator test-number))
                    ;; retest is needed since there are zero-prefixed regional numbers
                    ;; which are not valid input when used without country calling code but with region argument
