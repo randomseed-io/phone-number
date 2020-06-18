@@ -140,7 +140,8 @@
   (^{:added "8.12.4-0" :tag Boolean} valid-input?
    [phone-number]
    "Takes a phone number represented as a string, a number, a map or a `PhoneNumber`
-    object and returns true if it is not empty or nil. Otherwise it returns nil.")
+    object and returns true if it is a valid input to be parsed (must be not empty
+    and not nil and have some minimal number of digits). Otherwise it returns false.")
 
   (^{:added "8.12.4-0" :tag Phonenumber$PhoneNumber} number
    [phone-number] [phone-number region-code]
@@ -1271,36 +1272,36 @@
      (type phone-number region-code)))))
 
 (defn is-uncertain-fixed-line-or-mobile?
-"Returns true if the given number belongs to a class of numbers that cannot be
+  "Returns true if the given number belongs to a class of numbers that cannot be
   certainly decided as being mobile or fixed-line, false otherwise. Please note that
   it will return false for mobile or fixed-line numbers that are certainly classified
   as such."
-{:added "8.12.4-0" :tag Boolean}
-([^phone_number.core.Phoneable phone-number]
- (is-uncertain-fixed-line-or-mobile? phone-number nil))
-([^phone_number.core.Phoneable phone-number
-  ^clojure.lang.Keyword        region-code]
- (util/try-parse-or-false
-  (= ::type/fixed-line-or-mobile
-     (type phone-number region-code)))))
+  {:added "8.12.4-0" :tag Boolean}
+  ([^phone_number.core.Phoneable phone-number]
+   (is-uncertain-fixed-line-or-mobile? phone-number nil))
+  ([^phone_number.core.Phoneable phone-number
+    ^clojure.lang.Keyword        region-code]
+   (util/try-parse-or-false
+    (= ::type/fixed-line-or-mobile
+       (type phone-number region-code)))))
 
 (defn is-maybe-mobile?
-"Returns true if the given number is a kind of a mobile number or a number that
+  "Returns true if the given number is a kind of a mobile number or a number that
   belongs to a class where it cannot be fully decided whether it is mobile or
   fixed-line. Returns false otherwise."
-{:added "8.12.4-0" :tag Boolean}
-([^phone_number.core.Phoneable phone-number]
- (is-maybe-mobile? phone-number nil))
-([^phone_number.core.Phoneable phone-number
-  ^clojure.lang.Keyword        region-code]
- (util/try-parse-or-false
-  (contains?
-   #{::type/fixed-line-or-mobile
-     ::type/mobile}
-   (type phone-number region-code)))))
+  {:added "8.12.4-0" :tag Boolean}
+  ([^phone_number.core.Phoneable phone-number]
+   (is-maybe-mobile? phone-number nil))
+  ([^phone_number.core.Phoneable phone-number
+    ^clojure.lang.Keyword        region-code]
+   (util/try-parse-or-false
+    (contains?
+     #{::type/fixed-line-or-mobile
+       ::type/mobile}
+     (type phone-number region-code)))))
 
 (defn is-maybe-fixed-line?
-"Returns true if the given number is a kind of a fixed-line number or a number that
+  "Returns true if the given number is a kind of a fixed-line number or a number that
   belongs to a class where it cannot be fully decided whether it is mobile or
   fixed-line. Returns false otherwise."
   {:added "8.12.4-0" :tag Boolean}
