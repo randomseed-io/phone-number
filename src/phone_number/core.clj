@@ -337,11 +337,8 @@
      (number (str phone-number) region-code)))
   (raw-input
     ([phone-number]
-     (assert false "Numeric phone number must have region code argument supplied"))
+     (raw-input (str phone-number)))
     ([phone-number ^clojure.lang.Keyword region-code]
-     (assert (valid-input? phone-number)
-             "Numeric phone number should be a positive natural number having at least 2 digits")
-     (assert (region/valid? region-code *inferred-namespaces*) "Region code must be valid")
      (raw-input (str phone-number) region-code)))
   (valid?
     ([phone-number] false)
