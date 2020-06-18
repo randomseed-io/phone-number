@@ -162,7 +162,7 @@
 (defn phone-gen
   "Phone number generator for specs.
   Options map:
-  :region, :type, :predicate, :retries, :locale, :random-seed, :early-shrinking"
+  :region, :type, :predicate, :retries, :min-digits, :locale, :random-seed, :early-shrinking :preserve-raw"
   {:added "8.12.4-1" :tag clojure.lang.Fn}
   [^clojure.lang.IPersistentMap options]
   (fn []
@@ -173,9 +173,11 @@
                         (:type            options)
                         (:predicate       options)
                         (:retries         options 150)
+                        (:min-digits      options 4)
                         (:locale          options)
                         (:random-seed     options (.getMostSignificantBits random-uuid))
-                        (:early-shrinking options false))))
+                        (:early-shrinking options false)
+                        (:preserve-raw    options true))))
      (gen/uuid))))
 
 ;;
