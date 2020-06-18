@@ -490,6 +490,18 @@
        (number-noraw phone-number region-code)
        (region/parse tested-region *inferred-namespaces*))))))
 
+(defn has-raw-input?
+  "Checks whether raw input string can be obtained from the given phone number."
+  {:added "8.12.4-1" :tag Boolean}
+  ([^phone_number.core.Phoneable phone-number]
+   (has-raw-input? phone-number nil))
+  ([^phone_number.core.Phoneable phone-number
+    ^clojure.lang.Keyword         region-code]
+   (util/try-parse-or-false
+    (when-some-input phone-number
+      (when-some [r (raw-input phone-number region-code)]
+        (string? r))))))
+
 ;;
 ;; Formatting
 ;;
