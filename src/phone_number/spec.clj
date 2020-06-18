@@ -186,8 +186,13 @@
 
 (s/def :phone-number/native
   (s/with-gen
-    phone/native?
+    (s/and phone/native?)
     (phone-gen {:early-shrinking true})))
+
+(s/def :phone-number/native-noraw
+  (s/with-gen
+    (s/and phone/native? (complement phone/has-raw-input?))
+    (phone-gen {:early-shrinking true :preserve-raw false})))
 
 (s/def :phone-number/native-valid
   (s/with-gen
@@ -384,7 +389,8 @@
       phone/info
       (s/gen :phone-number/native-invalid))))
 
-(s/def :phone-number.arg/map :phone-number/info)
+(s/def :phone-number.arg/map       :phone-number/info)
+
 ;; TODO - recreate it according to arg. processing rules (+ variants with/without region)
 
 (s/def :phone-number.arg/number-global
@@ -401,13 +407,19 @@
 ;; Please note that a standalone regional number will be invalid
 
 (s/def :phone-number.arg/number
-  (s/or :global   :phone-number.arg/number-global
-        :regional :phone-number.arg/number-regional))
+  (s/alt :global   :phone-number.arg/number-global
+         :regional :phone-number.arg/number-regional))
 
 ;;
 ;; Argument tuples which validity can be checked only when tested together
 ;; (mainly used in fdefs).
 ;;
+
+(s/def :phone-number/has-region-noraw
+  (s/with-gen
+    (s/and :phone-number/native-noraw
+           :phone-number/has-region)
+    (phone-gen {:preserve-raw false})))
 
 (s/def :phone-number.args/native.region
   (s/with-gen
@@ -466,11 +478,17 @@
 ;; Function specs (in progress)
 ;;
 
+;; Phoneable protocol
+
 (s/fdef phone/native?
   :args (s/cat :object any?)
   :ret  boolean?
   :fn   (s/or :exact (s/and #(:ret %) #(= Phonenumber$PhoneNumber    (class (-> % :args :object))))
               :other                  #(not= Phonenumber$PhoneNumber (class (-> % :args :object)))))
+
+(s/fdef phone/valid-input?
+  :args (s/cat :number any?)
+  :ret   boolean?)
 
 (s/fdef phone/number
   :args (s/alt :nil                (s/cat :phone-number nil? :region-code (s/? nil?))
@@ -478,9 +496,35 @@
                :with-region-arg    :phone-number.args/number.region)
   :ret  (s/nilable :phone-number/native))
 
+;; (s/fdef phone/number-noraw
+;;   :args (s/alt :nil                (s/cat :phone-number nil? :region-code (s/? nil?))
+;;                :without-region-arg :phone-number.arg/number-global
+;;                :with-region-arg    :phone-number.args/number.region)
+;;   :ret  (s/nilable :phone-number/native))
+
+(s/fdef phone/raw-input
+  :args (s/alt :nil     (s/cat :number nil? :region-code (s/? nil?))
+               :arity-1 (s/cat :number :phone-number.arg/number)
+               :arity-2 (s/cat :number :phone-number.args/number.region))
+  :ret  (s/nilable string?))
+
+;;
+;; Core functions
+;;
+
 (s/fdef phone/format
   :args (s/alt :arity-1 (s/cat :number :phone-number.arg/number-global)
                :arity-2 (s/cat :number :phone-number.args/number.region)
                :arity-3 (s/cat :number :phone-number.args/number.region
                                :format (s/nilable :phone-number.arg/format)))
   :ret  (s/nilable :phone-number/string))
+
+(s/fdef phone/region
+  :args (s/alt :arity-1 (s/cat :number :phone-number.arg/number-global)
+               :arity-2 (s/cat :number :phone-number.args/number.region))
+  :ret  (s/nilable :phone-number/region))
+
+(s/fdef phone/type
+  :args (s/alt :arity-1 (s/cat :number :phone-number.arg/number-global)
+               :arity-2 (s/cat :number :phone-number.args/number.region))
+  :ret  (s/nilable :phone-number/type))
