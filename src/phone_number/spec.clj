@@ -540,6 +540,11 @@
         :arity-2-ng :phone-number.args/number-global.region
         :arity-1    :phone-number.arg/number-global))
 
+(s/def :phone-number.args/valid-for-region?
+  (s/or :nil        (s/cat :phone-number nil? :region-code (s/nilable :phone-number.arg/region) :tested-region :phone-number.arg/region)
+        :arity-3-nr (s/cat :number-regional.region :phone-number.args/number-regional.region :tested-region :phone-number.arg/region)
+        :arity-3-ng (s/cat :number-global.region   :phone-number.args/number-global.region :tested-region :phone-number.arg/region)))
+
 ;;
 ;; Function specs (in progress)
 ;;
@@ -555,6 +560,10 @@
 (s/fdef phone/valid-input?
   :args (s/cat :number any?)
   :ret   boolean?)
+
+(s/fdef phone/valid?
+  :args :phone-number.args/number
+  :ret  boolean?)
 
 (s/fdef phone/number
   :args :phone-number.args/number
@@ -572,6 +581,14 @@
 ;; Core functions
 ;;
 
+(s/fdef phone/numeric
+  :args :phone-number.args/number
+  :ret  (s/nilable :phone-number/numeric))
+
+(s/fdef phone/calling-code
+  :args :phone-number.args/number
+  :ret  (s/nilable pos-int?))
+
 (s/fdef phone/format
   :args :phone-number.args/format
   :ret  (s/nilable :phone-number/string))
@@ -583,3 +600,69 @@
 (s/fdef phone/type
   :args :phone-number.args/number
   :ret  (s/nilable :phone-number/type))
+
+(s/fdef phone/possible?
+  :args :phone-number.args/number
+  :ret  boolean?)
+
+(s/fdef phone/impossible?
+  :args :phone-number.args/number
+  :ret  boolean?)
+
+(s/fdef phone/invalid?
+  :args :phone-number.args/number
+  :ret  boolean?)
+
+(s/fdef phone/has-raw-input?
+  :args :phone-number.args/number
+  :ret  boolean?)
+
+(s/fdef phone/has-calling-code?
+  :args :phone-number.args/number
+  :ret  boolean?)
+
+(s/fdef phone/has-location?
+  :args :phone-number.args/number
+  :ret  boolean?)
+
+(s/fdef phone/has-time-zone?
+  :args :phone-number.args/number
+  :ret  boolean?)
+
+(s/fdef phone/has-known-type?
+  :args :phone-number.args/number
+  :ret  boolean?)
+
+(s/fdef phone/geographical?
+  :args :phone-number.args/number
+  :ret  boolean?)
+
+(s/fdef phone/is-maybe-fixed-line?
+  :args :phone-number.args/number
+  :ret  boolean?)
+
+(s/fdef phone/is-maybe-mobile?
+  :args :phone-number.args/number
+  :ret  boolean?)
+
+(s/fdef phone/is-uncertain-fixed-line-or-mobile?
+  :args :phone-number.args/number
+  :ret  boolean?)
+
+(s/fdef phone/is-fixed-line-or-mobile?
+  :args :phone-number.args/number
+  :ret  boolean?)
+
+(s/fdef phone/short-to-emergency?
+  :args (s/or :regional :phone-number.args/string-regional.region
+              :global   :phone-number.args/string-global.region)
+  :ret  (s/nilable boolean?))
+
+(s/fdef phone/short-emergency?
+  :args (s/or :regional :phone-number.args/string-regional.region
+              :global   :phone-number.args/string-global.region)
+  :ret  (s/nilable boolean?))
+
+(s/fdef phone/valid-for-region?
+  :args :phone-number.args/valid-for-region?
+  :ret  boolean?)
