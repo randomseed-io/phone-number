@@ -173,12 +173,24 @@
                         (:type            options)
                         (:predicate       options)
                         (:retries         options 150)
-                        (:min-digits      options 4)
+                        (:min-digits      options 3)
                         (:locale          options)
                         (:random-seed     options (.getMostSignificantBits random-uuid))
                         (:early-shrinking options false)
                         (:preserve-raw    options true))))
      (gen/uuid))))
+
+(s/def :phone-number/noraw-has-region
+  (s/with-gen
+    (s/and :phone-number/native-noraw
+           :phone-number/has-region)
+    (phone-gen {:preserve-raw false})))
+
+(s/def :phone-number/noraw-has-calling-code
+  (s/with-gen
+    (s/and :phone-number/native-noraw
+           :phone-number/has-calling-code)
+    (phone-gen {:predicate phone/has-calling-code? :preserve-raw false})))
 
 ;;
 ;; Native form of a phone number
@@ -189,9 +201,15 @@
     (s/and phone/native?)
     (phone-gen {:early-shrinking true})))
 
+(s/def :phone-number/native-with-raw
+  (s/with-gen
+    (s/and phone/native? phone/has-raw-input?)
+    (phone-gen {:early-shrinking true :preserve-raw true})))
+
 (s/def :phone-number/native-noraw
   (s/with-gen
-    (s/and phone/native? (complement phone/has-raw-input?))
+    (s/and phone/native?
+           (complement phone/has-raw-input?))
     (phone-gen {:early-shrinking true :preserve-raw false})))
 
 (s/def :phone-number/native-valid
@@ -240,7 +258,7 @@
            phone/has-calling-code?)
     #(gen/fmap
       random-format-global
-      (s/gen :phone-number/native))))
+      (s/gen :phone-number/has-calling-code))))
 
 (s/def :phone-number/string-regional
   (s/with-gen
@@ -389,53 +407,69 @@
       phone/info
       (s/gen :phone-number/native-invalid))))
 
-(s/def :phone-number.arg/map       :phone-number/info)
-
-;; TODO - recreate it according to arg. processing rules (+ variants with/without region)
+(s/def :phone-number.arg/map                :phone-number/info) ;; TODO
+(s/def :phone-number.arg/map-regional       :phone-number/info)
+(s/def :phone-number.arg/map-global         :phone-number/info)
 
 (s/def :phone-number.arg/number-global
-  (s/or :native :phone-number/native
-        :map    :phone-number.arg/map
-        :string :phone-number/string-global))
+  (s/with-gen
+    (s/alt :native :phone-number/native
+           :map    :phone-number.arg/map-global
+           :string :phone-number/string-global
+           :nil    nil?)
+    #(gen/fmap
+      (juxt (gen/generate (gen/elements [random-format-global
+                                         phone/info
+                                         identity
+                                         (constantly nil)])))
+      (s/gen :phone-number/has-calling-code))))
 
 (s/def :phone-number.arg/number-regional
-  (s/or :native  :phone-number/native
-        :numeric :phone-number/numeric
-        :map     :phone-number.arg/map
-        :string  :phone-number/string-regional))
+  (s/with-gen
+    (s/alt :numeric :phone-number/numeric
+           :map     :phone-number.arg/map-regional
+           :string  :phone-number/string-regional)
+    #(gen/fmap
+      (juxt (gen/generate (gen/elements [random-format-regional
+                                         phone/info
+                                         phone/numeric])))
+      (s/gen :phone-number/has-region))))
 
 ;; Please note that a standalone regional number will be invalid
+;; This is just for abstract testing.
 
 (s/def :phone-number.arg/number
-  (s/alt :global   :phone-number.arg/number-global
-         :regional :phone-number.arg/number-regional))
+  (s/or :regional :phone-number.arg/number-regional
+        :global   :phone-number.arg/number-global))
 
 ;;
 ;; Argument tuples which validity can be checked only when tested together
 ;; (mainly used in fdefs).
 ;;
 
-(s/def :phone-number/has-region-noraw
-  (s/with-gen
-    (s/and :phone-number/native-noraw
-           :phone-number/has-region)
-    (phone-gen {:preserve-raw false})))
-
 (s/def :phone-number.args/native.region
   (s/with-gen
     (s/cat :phone-number :phone-number/native
-           :region-code  :phone-number.arg/region)
+           :region-code  (s/nilable :phone-number.arg/region))
     #(gen/fmap
       (juxt identity phone/region)
       (s/gen :phone-number/has-region))))
 
-(s/def :phone-number.args/string.region
+(s/def :phone-number.args/string-regional.region
   (s/with-gen
     (s/cat :phone-number :phone-number/string-regional
            :region-code  :phone-number.arg/region)
     #(gen/fmap
       (juxt random-format-regional phone/region)
       (s/gen :phone-number/has-region))))
+
+(s/def :phone-number.args/string-global.region
+  (s/with-gen
+    (s/cat :phone-number :phone-number/string-global
+           :region-code  (s/nilable :phone-number.arg/region))
+    #(gen/fmap
+      (juxt random-format-global phone/region)
+      (s/gen :phone-number/has-calling-code))))
 
 (s/def :phone-number.args/numeric.region
   (s/with-gen
@@ -453,26 +487,58 @@
       (juxt phone/info phone/region)
       (s/gen :phone-number/has-region))))
 
+(s/def :phone-number.args/map-regional.region
+  (s/with-gen
+    (s/cat :phone-number :phone-number.arg/map-regional
+           :region-code  :phone-number.arg/region)
+    #(gen/fmap
+      (juxt phone/info phone/region)
+      (s/gen :phone-number/has-region))))
+
+(s/def :phone-number.args/map-global.region
+  (s/with-gen
+    (s/cat :phone-number :phone-number.arg/map-global
+           :region-code  (s/nilable :phone-number.arg/region))
+    #(gen/fmap
+      (juxt phone/info phone/region)
+      (s/gen :phone-number/has-calling-code))))
+
 (s/def :phone-number.args/nil.region
-  (s/cat :phone-number nil?
-         :region-code (s/nilable :phone-number.arg/region)))
+  (s/with-gen
+    (s/cat :phone-number nil?
+           :region-code (s/nilable :phone-number.arg/region))
+    #(gen/fmap
+      (juxt (constantly nil) phone/region)
+      (s/gen :phone-number/has-region))))
 
 (s/def :phone-number.args/number-regional.region
-  (s/alt
-   :numeric :phone-number.args/numeric.region
-   :string  :phone-number.args/string.region
-   :native  :phone-number.args/native.region
-   :map     :phone-number.args/map.region
-   :nil     :phone-number.args/nil.region))
+  (s/alt :numeric :phone-number.args/numeric.region
+         :string  :phone-number.args/string-regional.region
+         :map     :phone-number.args/map-regional.region))
 
 (s/def :phone-number.args/number-global.region
-  (s/cat :phone-number :phone-number.arg/number-global
-         :region-code  (s/nilable :phone-number.arg/region)))
+  (s/alt :native :phone-number.args/native.region
+         :string :phone-number.args/string-global.region
+         :map    :phone-number.args/map-global.region
+         :nil    :phone-number.args/nil.region))
 
 (s/def :phone-number.args/number.region
-  (s/alt :nil       :phone-number.args/nil.region
-         :global    :phone-number.args/number-global.region
-         :regional  :phone-number.args/number-regional.region))
+  (s/or :nil      :phone-number.args/nil.region
+        :regional :phone-number.args/number-regional.region
+        :global   :phone-number.args/number-global.region))
+
+(s/def :phone-number.args/number
+  (s/or :nil        (s/cat :phone-number nil? :region-code (s/? (s/nilable :phone-number.arg/region)))
+        :arity-2    :phone-number.args/number.region
+        :arity-1    :phone-number.arg/number-global))
+
+(s/def :phone-number.args/format
+  (s/or :nil        (s/cat :phone-number nil? :region-code (s/? (s/nilable :phone-number.arg/region)))
+        :arity-3-nr (s/cat :number-regional.region :phone-number.args/number-regional.region :format (s/nilable :phone-number.arg/format))
+        :arity-2-nr :phone-number.args/number-regional.region
+        :arity-3-ng (s/cat :number-global.region   :phone-number.args/number-global.region :format (s/nilable :phone-number.arg/format))
+        :arity-2-ng :phone-number.args/number-global.region
+        :arity-1    :phone-number.arg/number-global))
 
 ;;
 ;; Function specs (in progress)
@@ -491,40 +557,29 @@
   :ret   boolean?)
 
 (s/fdef phone/number
-  :args (s/alt :nil                (s/cat :phone-number nil? :region-code (s/? nil?))
-               :without-region-arg :phone-number.arg/number-global
-               :with-region-arg    :phone-number.args/number.region)
+  :args :phone-number.args/number
+  :ret  (s/nilable :phone-number/native-with-raw))
+
+(s/fdef phone/number-noraw
+  :args :phone-number.args/number
   :ret  (s/nilable :phone-number/native))
 
-;; (s/fdef phone/number-noraw
-;;   :args (s/alt :nil                (s/cat :phone-number nil? :region-code (s/? nil?))
-;;                :without-region-arg :phone-number.arg/number-global
-;;                :with-region-arg    :phone-number.args/number.region)
-;;   :ret  (s/nilable :phone-number/native))
-
 (s/fdef phone/raw-input
-  :args (s/alt :nil     (s/cat :number nil? :region-code (s/? nil?))
-               :arity-1 (s/cat :number :phone-number.arg/number)
-               :arity-2 (s/cat :number :phone-number.args/number.region))
-  :ret  (s/nilable string?))
+  :args :phone-number.args/number
+  :ret  (s/nilable :phone-number/string))
 
 ;;
 ;; Core functions
 ;;
 
 (s/fdef phone/format
-  :args (s/alt :arity-1 (s/cat :number :phone-number.arg/number-global)
-               :arity-2 (s/cat :number :phone-number.args/number.region)
-               :arity-3 (s/cat :number :phone-number.args/number.region
-                               :format (s/nilable :phone-number.arg/format)))
+  :args :phone-number.args/format
   :ret  (s/nilable :phone-number/string))
 
 (s/fdef phone/region
-  :args (s/alt :arity-1 (s/cat :number :phone-number.arg/number-global)
-               :arity-2 (s/cat :number :phone-number.args/number.region))
+  :args :phone-number.args/number
   :ret  (s/nilable :phone-number/region))
 
 (s/fdef phone/type
-  :args (s/alt :arity-1 (s/cat :number :phone-number.arg/number-global)
-               :arity-2 (s/cat :number :phone-number.args/number.region))
+  :args :phone-number.args/number
   :ret  (s/nilable :phone-number/type))
