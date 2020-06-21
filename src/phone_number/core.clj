@@ -1349,10 +1349,11 @@
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code]
    (util/try-parse-or-false
-    (not (contains?
-          none
-          (.getCountryCode
-           (number-noraw phone-number region-code)))))))
+    (when-some-input phone-number
+      (not
+       (contains? none
+                  (.getCountryCode
+                   (number-noraw phone-number region-code))))))))
 
 (defn has-location?
   "For the given phone number returns true if the approximate geographic location is
