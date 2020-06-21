@@ -165,8 +165,9 @@
   (^{:added "8.12.4-0" :tag String} raw-input
    [phone-number] [phone-number region-code]
    "Returns a string used to initialize phone number object with the number
-   function. For strings and numbers it returns a string representation. For nil
-   values it returns nil.")
+   function. For strings and numbers it short-circuits on the given argument and
+   ignores any given region code. Returns a string representation. For nil values it
+   returns nil.")
 
   (^{:added "8.12.4-0" :tag Boolean} valid?
    [phone-number] [phone-number region-code]
@@ -302,7 +303,7 @@
     ([phone-number]
      (not-empty phone-number))
     ([phone-number ^clojure.lang.Keyword region-code]
-     (raw-input phone-number)))
+     (not-empty phone-number)))
   (valid?
     ([obj](valid? obj nil))
     ([obj
@@ -366,7 +367,7 @@
     ([phone-number]
      (phoneable-map-apply raw-input phone-number nil))
     ([phone-number ^clojure.lang.Keyword region-code]
-     (phoneable-map-apply raw-input phone-number)))
+     (phoneable-map-apply raw-input phone-number region-code)))
   (valid?
     ([phone-number]
      (phoneable-map-apply valid? phone-number nil))
@@ -525,13 +526,10 @@
    (let [f (format/parse format-specification *inferred-namespaces*)]
      (when-some-input phone-number
        (not-empty
-        (if (= :raw f)
-          (if (native? phone-number)
-            (raw-input phone-number)
-            (str phone-number))
-          (.format (util/instance)
-                   (number-noraw phone-number region-code)
-                   f)))))))
+        (when-some [p (number-noraw phone-number region-code)]
+          (if (= :raw f)
+            (raw-input p)
+            (.format (util/instance) p f))))))))
 
 (defn all-formats
   "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
@@ -637,11 +635,12 @@
    (numeric phone-number nil))
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code]
-   (when-some [p (format phone-number region-code ::format/e164)]
-     (let [c (calling-code p nil)
-           d (if (or (nil? c) (<= c 0)) 1 (unchecked-inc (util/count-digits c)))]
-       (when-some [s (not-empty (subs p d))]
-         (Long/valueOf s))))))
+   (when-some [phone-obj (number-noraw phone-number region-code)]
+     (when-some [as-string (format phone-obj nil ::format/e164)]
+       (let [ccode (calling-code phone-obj nil)
+             digits (if (or (nil? ccode) (<= ccode 0)) 1 (unchecked-inc (util/count-digits ccode)))]
+         (when-some [regional-number (not-empty (subs as-string digits))]
+           (Long/valueOf regional-number)))))))
 
 ;;
 ;; Location
@@ -1041,7 +1040,7 @@
                       :phone-number.short/valid?    false)
         (let [phone-string (if (and (nil? phone-string) (string? phone-number)) phone-number phone-string)
               phone-string (if (valid-input? phone-string) phone-string nil)
-              phone-number (if (nil? phone-string) (raw-input phone-number) phone-string)
+              phone-number (if (nil? phone-string) (raw-input phone-number region-code) phone-string)
               phone-number (if (nil? phone-number)
                              (format phone-obj nil ::format/national) ;; fallback
                              phone-number)]
@@ -1350,7 +1349,10 @@
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code]
    (util/try-parse-or-false
-    (not (contains? none (calling-code phone-number region-code))))))
+    (not (contains?
+          none
+          (.getCountryCode
+           (number-noraw phone-number region-code)))))))
 
 (defn has-location?
   "For the given phone number returns true if the approximate geographic location is
