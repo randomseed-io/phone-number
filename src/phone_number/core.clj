@@ -1494,6 +1494,24 @@
          rcode
          ptype))))))
 
+(defn- number-g
+  [^phone_number.core.Phoneable phone-number
+   ^clojure.lang.Keyword        region-code]
+  (if (native? phone-number)
+    phone-number
+    (.parseAndKeepRawInput
+     (util/instance) phone-number
+     (region/parse region-code *inferred-namespaces*))))
+
+(defn- number-g-noraw
+  [^phone_number.core.Phoneable phone-number
+   ^clojure.lang.Keyword        region-code]
+  (if (native? phone-number)
+    phone-number
+    (.parse
+     (util/instance) phone-number
+     (region/parse region-code *inferred-namespaces*))))
+
 (defn- gen-sample
   "Internal phone number samples generator."
   {:added "8.12.4-0" :tag Phonenumber$PhoneNumber}
@@ -1505,11 +1523,12 @@
     ^java.util.Random            rng
     ^Boolean                     early-shrinking
     ^Boolean                     preserve-raw]
-   (let [number-fn (if preserve-raw number number-noraw)]
+   (let [number-fn (if preserve-raw number-g number-g-noraw)]
      (when-some [template (number-fn phone-number region-code)]
        (let [min-digits     (if (nil? min-digits) 3 min-digits)
-             calling-code   (calling-code template nil)
-             prefix         (subs (format template nil ::format/e164) (unchecked-inc (util/count-digits calling-code)))
+             calling-code   (.getCountryCode template)
+             prefix         (subs (.format (util/instance) template (format/all ::format/e164))
+                                  (unchecked-inc (util/count-digits calling-code)))
              calling-code   (str "+" calling-code)
              total-len      (unchecked-long (count prefix))
              retries        (unchecked-long retries)
@@ -1542,7 +1561,8 @@
                    ;; retest is needed since there are zero-prefixed regional numbers
                    ;; which are not valid input when used without country calling code but with region argument
                    have-valid    (if (and have-valid (= \0 (first regional-part)))
-                                   (native? (util/try-parse-or-false (number-noraw regional-part (region test-number))))
+                                   (and (some? (region test-number))
+                                        (native? (util/try-parse-or-false (number-g-noraw regional-part (region test-number)))))
                                    have-valid)
                    shorten       (or have-valid (nil? last-valid))
                    new-prefix    (if (empty? prefix) nil (if shorten (subs prefix 0 (dec prefix-len)) prefix))]
@@ -1732,7 +1752,7 @@
                                     min-digits
                                     (every-pred predicate valid-type-fn valid-region-fn)
                                     rng
-                                    (if  non-geo-mode true early-shrinking)
+                                    (if non-geo-mode true early-shrinking)
                                     preserve-raw)
                  phone-number    (:phone-number/number result)]
              (if (some? phone-number)
