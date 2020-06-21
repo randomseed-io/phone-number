@@ -593,6 +593,13 @@
   :args :phone-number.args/format
   :ret  (s/nilable :phone-number/string))
 
+(s/fdef phone/all-formats
+  :args :phone-number.args/number
+  :ret  (s/nilable (s/map-of :phone-number/format
+                             :phone-number/string
+                             :conform-keys true
+                             :count (count format/all))))
+
 (s/fdef phone/region
   :args :phone-number.args/number
   :ret  (s/nilable :phone-number/region))
