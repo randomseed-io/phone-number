@@ -543,8 +543,9 @@
    (all-formats phone-number nil))
   ([^phone_number.core.Phoneable   phone-number
     ^clojure.lang.Keyword          region-code]
-   (let [p (number phone-number region-code)]
-     (util/fmap-k #(format p nil %) format/all))))
+   (when-some-input phone-number
+     (when-some [p (number phone-number region-code)]
+       (util/fmap-k #(format p nil %) format/all)))))
 
 (defn- all-formats-into
   "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
