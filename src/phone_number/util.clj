@@ -7,7 +7,7 @@
     phone-number.util
 
   (:refer-clojure :exclude [short])
-
+  (:require [trptr.java-wrapper.locale :as l])
   (:import [com.google.i18n.phonenumbers
             PhoneNumberUtil
             ShortNumberInfo
@@ -237,3 +237,24 @@
   {:added "8.12.4-1" :tag clojure.lang.IPersistentSet}
   [& ranges]
   (set (mapcat #(map char (range (byte (first %)) (inc (byte (second %))))) ranges)))
+
+(def ^{:added "8.12.4-1" :tag clojure.lang.IPersistentSet}
+  available-locales
+  "Set of all available locales (of type java.util.Locale)."
+  l/available-locales)
+
+(def ^{:added "8.12.4-1" :tag clojure.lang.IPersistentVector}
+  available-locales-vec
+  "Vector of all available locales (of type java.util.Locale)."
+  (vec available-locales))
+
+(defn valid-locale?
+  "Returns `true` if the given locale specification is valid and supported, false
+  otherwise. For `nil` it returns `true` assuming it will be a default, system
+  locale."
+  {:added "8.12.4-1" :tag Boolean}
+  [^java.util.Locale locale-specification]
+  (if (nil? locale-specification) true
+      (try
+        (contains? available-locales (l/locale locale-specification))
+        (catch Throwable e false))))
