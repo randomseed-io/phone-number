@@ -98,15 +98,21 @@
 (defn global?
   "Returns true if the given format contains country code information, false otherwise."
   {:added "8.12.4-0" :tag Boolean}
-  [^clojure.lang.Keyword format]
-  (contains? global format))
+  ([^clojure.lang.Keyword format]
+   (contains? global format))
+  ([^clojure.lang.Keyword format
+    ^Boolean use-infer]
+   (contains? global (util/ns-infer "phone-number.format" format use-infer))))
 
 (defn regional?
   "Returns true if the given format does not contain country code information, false
   otherwise."
   {:added "8.12.4-0" :tag Boolean}
-  [^clojure.lang.Keyword format]
-  (contains? regional format))
+  ([^clojure.lang.Keyword format]
+   (contains? regional format))
+  ([^clojure.lang.Keyword format
+    ^Boolean use-infer]
+   (contains? regional (util/ns-infer "phone-number.format" format use-infer))))
 
 ;;
 ;; Backward compatibility
