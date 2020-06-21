@@ -13,7 +13,7 @@
                              :kaocha.plugin/notifier
                              :kaocha.plugin.alpha/spec-test-check
                              :kaocha.plugin/cloverage],
- :kaocha/reporter [kaocha.report/dots],
+ :kaocha/reporter [kaocha.report/documentation],
  :kaocha.plugin.capture-output/capture-output? true,
  :kaocha.plugin.profiling/count                   3,
  :kaocha.plugin.randomize/seed            492209631,
