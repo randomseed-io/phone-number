@@ -7,6 +7,7 @@
     phone-number.spec
 
   (:require [phone-number.core          :as        phone]
+            [phone-number.util          :as         util]
             [phone-number.type          :as         type]
             [phone-number.match         :as        match]
             [phone-number.format        :as       format]
@@ -435,6 +436,16 @@
                                          phone/numeric])))
       (s/gen :phone-number/has-region))))
 
+(s/def :phone-number.arg/locale
+  (s/with-gen
+    (s/nilable util/valid-locale?)
+    #(gen/fmap
+      (gen/generate (gen/elements [identity
+                                   (fn [l] (.getLanguage l))
+                                   (comp keyword (fn [l] (.getLanguage l)))
+                                   (constantly nil)]))
+      (gen/elements util/available-locales-vec))))
+
 ;; Please note that a standalone regional number will be invalid
 ;; This is just for abstract testing.
 
@@ -545,6 +556,14 @@
         :arity-3-nr (s/cat :number-regional.region :phone-number.args/number-regional.region :tested-region :phone-number.arg/region)
         :arity-3-ng (s/cat :number-global.region   :phone-number.args/number-global.region :tested-region :phone-number.arg/region)))
 
+(s/def :phone-number.args/location
+  (s/or :nil        (s/cat :phone-number nil? :region-code (s/? (s/nilable :phone-number.arg/region)))
+        :arity-3-nr (s/cat :number-regional.region :phone-number.args/number-regional.region :locale (s/nilable :phone-number.arg/locale))
+        :arity-2-nr :phone-number.args/number-regional.region
+        :arity-3-ng (s/cat :number-global.region   :phone-number.args/number-global.region :locale (s/nilable :phone-number.arg/locale))
+        :arity-2-ng :phone-number.args/number-global.region
+        :arity-1    :phone-number.arg/number-global))
+
 ;;
 ;; Function specs (in progress)
 ;;
@@ -588,6 +607,10 @@
 (s/fdef phone/calling-code
   :args :phone-number.args/number
   :ret  (s/nilable pos-int?))
+
+(s/fdef phone/location
+  :args :phone-number.args/location
+  :ret  (s/nilable string?))
 
 (s/fdef phone/format
   :args :phone-number.args/format
