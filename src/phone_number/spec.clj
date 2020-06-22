@@ -683,6 +683,10 @@
   :args :phone-number.args/number
   :ret  (s/nilable :phone-number/type))
 
+(s/fdef phone/short-cost
+  :args :phone-number.args/number+opt-source-region
+  :ret  (s/nilable :phone-number/cost))
+
 (s/fdef phone/possible?
   :args :phone-number.args/number
   :ret  boolean?)
@@ -747,6 +751,18 @@
 
 (s/fdef phone/short-possible?
   :args :phone-number.args/number+opt-source-region
+  :ret  boolean?)
+
+(s/fdef phone/short-valid?
+  :args :phone-number.args/number+opt-source-region
+  :ret  boolean?)
+
+(s/fdef phone/short-carrier-specific?
+  :args :phone-number.args/number+opt-source-region
+  :ret  boolean?)
+
+(s/fdef phone/short-sms-service?
+  :args :phone-number.args/number+source-region
   :ret  boolean?)
 
 (s/fdef phone/valid-for-region?
