@@ -872,8 +872,8 @@
 
 (defn short-cost
   "Takes a short (like an emergency) phone number (expressed as a string, a number, a
-  map or a `PhoneNumber` object) and returns the expected cost class of that number as
-  a keyword.
+  map or a `PhoneNumber` object) and returns the expected cost class of that number
+  as a keyword.
 
   The second, optional argument should be a valid region code (a keyword) to be used
   when the given phone number does not contain region information. It is acceptable
