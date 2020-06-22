@@ -39,9 +39,9 @@
 (def ^{:added "8.12.4-1"
        :dynamic true
        :tag Boolean}
-  *info-calling-region-derived*
+  *info-dialing-region-derived*
   "Decides whether some of the results of the info function should be calculated using
-  calling region code derived from the given region code if the calling region was
+  dialing region code derived from the given region code if the dialing region was
   not passed as an argument. Default is `true`."
   true)
 
@@ -179,7 +179,7 @@
    returns nil.")
 
   (^{:added "8.12.4-0" :tag Boolean} valid?
-   [phone-number] [phone-number region-code] [phone-number region-code source-region]
+   [phone-number] [phone-number region-code] [phone-number region-code dialing-region]
    "Takes a phone number represented as a string, a number, a map or a `PhoneNumber`
    object and validates it. Returns true or false.
 
@@ -284,15 +284,15 @@
      (valid? obj))
     ([obj
       ^clojure.lang.Keyword region-code
-      ^clojure.lang.Keyword source-region]
-     (assert (region/valid? source-region *inferred-namespaces*)
-             "Tested region code must be valid and not nil")
+      ^clojure.lang.Keyword dialing-region]
+     (assert (region/valid? dialing-region *inferred-namespaces*)
+             "Dialing region code must be valid and not nil")
      (util/try-parse-or-false
       (when (some? obj)
         (.isValidNumberForRegion
          (util/instance)
          obj
-         (region/parse source-region *inferred-namespaces*))))))
+         (region/parse dialing-region *inferred-namespaces*))))))
 
   String
   (valid-input?
@@ -340,15 +340,15 @@
          (number-noraw obj region-code)))))
     ([obj
       ^clojure.lang.Keyword region-code
-      ^clojure.lang.Keyword source-region]
-     (assert (region/valid? source-region *inferred-namespaces*)
-             "Tested region code must be valid and not nil")
+      ^clojure.lang.Keyword dialing-region]
+     (assert (region/valid? dialing-region *inferred-namespaces*)
+             "Dialing region code must be valid and not nil")
      (util/try-parse-or-false
       (when (some? obj)
         (.isValidNumberForRegion
          (util/instance)
          (number-noraw obj region-code)
-         (region/parse source-region *inferred-namespaces*))))))
+         (region/parse dialing-region *inferred-namespaces*))))))
 
   Number
   (valid-input?
@@ -385,9 +385,9 @@
           (valid? (str phone-number) region-code)))
     ([phone-number
       ^clojure.lang.Keyword region-code
-      ^clojure.lang.Keyword source-region]
+      ^clojure.lang.Keyword dialing-region]
      (and (valid-input? phone-number)
-          (valid? (str phone-number) region-code source-region))))
+          (valid? (str phone-number) region-code dialing-region))))
 
   clojure.lang.IPersistentMap
   (valid-input?
@@ -416,8 +416,8 @@
      (phoneable-map-apply valid? phone-number region-code))
     ([phone-number
       ^clojure.lang.Keyword region-code
-      ^clojure.lang.Keyword source-region]
-     (phoneable-map-apply valid? phone-number region-code source-region)))
+      ^clojure.lang.Keyword dialing-region]
+     (phoneable-map-apply valid? phone-number region-code dialing-region)))
 
   nil
   (valid-input?
@@ -436,7 +436,7 @@
     ([phone-number ^clojure.lang.Keyword region-code] false)
     ([phone-number
       ^clojure.lang.Keyword region-code
-      ^clojure.lang.Keyword source-region] false))
+      ^clojure.lang.Keyword dialing-region] false))
 
   Object
   (valid-input?
@@ -468,7 +468,7 @@
      false)
     ([phone-number
       ^clojure.lang.Keyword region-code
-      ^clojure.lang.Keyword source-region]
+      ^clojure.lang.Keyword dialing-region]
      false)))
 
 (defmacro when-some-input
@@ -527,8 +527,8 @@
   {:added "8.12.4-0" :deprecated "8.12.4-1" :tag Boolean}
   [^phone_number.core.Phoneable  phone-number
    ^clojure.lang.Keyword          region-code
-   ^clojure.lang.Keyword        source-region]
-  (valid? phone-number region-code source-region))
+   ^clojure.lang.Keyword       dialing-region]
+  (valid? phone-number region-code dialing-region))
 
 (defn has-raw-input?
   "Checks whether raw input string can be obtained from the given phone number."
@@ -1003,7 +1003,7 @@
 
 (defn short-carrier-specific?
   "Takes a short phone number (expressed as a string, a number, a map or a
-  `PhoneNumber` object), optional region code (or nil) and optional calling region
+  `PhoneNumber` object), optional region code (or nil) and optional dialing region
   code. Returns true if it is a carrier-specific number.
 
   It is important to realize that certain properties of short numbers can only be
@@ -1035,7 +1035,7 @@
 
 (defn short-sms-service?
   "Takes a short phone number (expressed as a string, a number, a map or a `PhoneNumber`
-  object), optional region code (or nil) and a calling region code. Returns true if
+  object), optional region code (or nil) and a dialing region code. Returns true if
   SMS is supported, false otherwise.
 
   It is important to realize that certain properties of short numbers can only be
@@ -1078,7 +1078,7 @@
   (when-some-input phone-number
     (let [phone-obj    (number-noraw phone-number region-code)
           region-code  (region phone-obj nil)
-          region-f-der (and (false? region-from) *info-calling-region-derived*)
+          region-f-der (and (false? region-from) *info-dialing-region-derived*)
           region-from  (if region-f-der region-code region-from)
           sh-possible  (short-possible? phone-obj nil region-from)
           sh-valid     (short-valid?    phone-obj nil region-from)
@@ -1097,8 +1097,8 @@
            (build-map-fn
             :phone-number.short/valid?                  sh-valid
             :phone-number.short/possible?               sh-possible
-            :phone-number.short/calling-region          region-from
-            :phone-number.short/calling-region-derived? (when (some? region-from) region-f-der)
+            :phone-number.short/dialing-region          region-from
+            :phone-number.short/dialing-region-derived? (when (some? region-from) region-f-der)
             :phone-number.short/carrier-specific?       (short-carrier-specific? phone-obj nil region-from)
             :phone-number.short/cost                    (short-cost              phone-obj nil region-from)
             :phone-number.short/emergency?              (short-emergency?        phone-number region-code)
@@ -1166,7 +1166,7 @@
   geographic location, carrier data and full time zone information. When nil is
   passed then default locale settings will be used.
 
-  If there are four arguments then the last one should be a calling region code
+  If there are four arguments then the last one should be a dialing region code
   intended to be used with short numbers (like 112 etc.). It describes originating
   region to help validate the possibility of reaching the destination number.
 
@@ -1194,7 +1194,7 @@
            phone-obj    (number phone-number region-code)
            region-code  (region phone-obj nil)
            phone-number (if (string? phone-number) phone-number (raw-input phone-obj))
-           region-f-der (and (false? region-from) *info-calling-region-derived*)
+           region-f-der (and (false? region-from) *info-dialing-region-derived*)
            region-from  (if region-f-der region-code region-from)]
        (->> #:phone-number
             {:region                      region-code
@@ -1202,8 +1202,8 @@
                                             (valid?  phone-obj nil region-from)
                                             (valid?  phone-obj nil))
              :possible?                   (possible? phone-obj nil)
-             :calling-region-derived?     (when (some? region-from) region-f-der)
-             :calling-region              region-from
+             :dialing-region-derived?     (when (some? region-from) region-f-der)
+             :dialing-region              region-from
              :geographical?               (geographical? phone-obj nil)
              :type                        (type          phone-obj nil)
              :calling-code                (calling-code  phone-obj nil)
