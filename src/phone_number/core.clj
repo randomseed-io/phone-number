@@ -434,11 +434,10 @@
   [phone-number]
   (instance? Phonenumber$PhoneNumber phone-number))
 
-(def
-  ^{:added "8.12.4-0" :tag Boolean
-    :arglists '([^phone_number.core.Phoneable phone-number]
-                [^phone_number.core.Phoneable phone-number
-                 ^clojure.lang.Keyword        region-code])}
+(def ^{:added "8.12.4-0" :tag Boolean
+       :arglists '([^phone_number.core.Phoneable phone-number]
+                   [^phone_number.core.Phoneable phone-number
+                    ^clojure.lang.Keyword        region-code])}
   invalid?
   "Returns true if the given phone number (expressed as a string, a number,
   a map or a `PhoneNumber` object) is not valid."
@@ -462,11 +461,10 @@
        (util/instance)
        (number-noraw phone-number region-code))))))
 
-(def
-  ^{:added "8.12.4-0" :tag Boolean
-    :arglists '([^phone_number.core.Phoneable phone-number]
-                [^phone_number.core.Phoneable phone-number
-                 ^clojure.lang.Keyword        region-code])}
+(def ^{:added "8.12.4-0" :tag Boolean
+       :arglists '([^phone_number.core.Phoneable phone-number]
+                   [^phone_number.core.Phoneable phone-number
+                    ^clojure.lang.Keyword        region-code])}
   impossible?
   "Returns true if the given phone number (expressed as a string, a number, a map or a
   `PhoneNumber` object) is not possible."
