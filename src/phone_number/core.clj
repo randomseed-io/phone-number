@@ -812,7 +812,8 @@
   should be a valid region code for the origination of a possible call. That hint
   will be used to restrict the check according to rules. For example 112 may be valid
   in multiple regions but if one calls it from some particular region it might not be
-  reachable."
+  reachable. If this argument is nil the binary variant of this function is
+  called (without a source region)."
   {:added "8.12.4-0" :tag Boolean}
   ([^phone_number.core.Phoneable phone-number]
    (short-possible? phone-number nil))
