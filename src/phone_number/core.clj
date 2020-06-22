@@ -771,7 +771,8 @@
   "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
   object) and returns a map which keys are all possible time zone formats expressed
   as keywords and values are sequences of the number's time zones formatted
-  accordingly.
+  accordingly. If the given number is nil, invalid or time zone information is
+  unavailable for it this function returns nil.
 
   If the second argument is present then it should be a valid region code (a keyword)
   to be used when the given phone number does not contain region information. It is
@@ -790,9 +791,11 @@
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
     ^java.util.Locale            locale-specification]
-   (let [l (l/locale locale-specification)
-         p (number-noraw phone-number region-code)]
-     (util/fmap-k #(time-zones p nil l %) tz-format/all))))
+   (when-some-input phone-number
+     (let [p (number-noraw phone-number region-code)]
+       (when (some? (time-zones p nil ::tz-format/id))
+         (let [l (l/locale locale-specification)]
+           (util/fmap-k #(time-zones p nil l %) tz-format/all)))))))
 
 ;;
 ;; Short number specific
