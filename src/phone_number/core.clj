@@ -1004,6 +1004,8 @@
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
     ^clojure.lang.Keyword        region-from]
+   (assert (region/valid? region-from *inferred-namespaces*)
+           "Source region code must be valid and not nil")
    (util/try-parse-or-false
     (when-some-input phone-number
       (.isSmsServiceForRegion
@@ -1034,9 +1036,10 @@
     (let [phone-obj    (number-noraw phone-number region-code)
           region-code  (region phone-obj nil)
           region-f-der (false? region-from)
-          region-from  (if region-f-der region-code region-from)
+          region-from  (if region-f-der (if (some? region-code) region-code (region phone-obj nil)) region-from)
           sh-possible  (short-possible? phone-obj nil region-from)
           sh-valid     (short-valid?    phone-obj nil region-from)
+          have-from    (some? region-from)
           build-map-fn (if (nil? dst) hash-map (partial assoc dst))]
       (if-not (or sh-valid sh-possible)
         (build-map-fn :phone-number.short/possible? false
@@ -1055,9 +1058,9 @@
             :phone-number.short/calling-region-derived? region-f-der
             :phone-number.short/carrier-specific?       (short-carrier-specific? phone-obj nil region-from)
             :phone-number.short/cost                    (short-cost              phone-obj nil region-from)
-            :phone-number.short/sms-service?            (short-sms-service?      phone-obj nil region-from)
             :phone-number.short/emergency?              (short-emergency?        phone-number region-code)
-            :phone-number.short/to-emergency?           (short-to-emergency?     phone-number region-code))))))))
+            :phone-number.short/to-emergency?           (short-to-emergency?     phone-number region-code)
+            :phone-number.short/sms-service?            (and have-from (short-sms-service? phone-obj nil region-from)))))))))
 
 (defn short-info
   "Takes a short (like an emergency) phone number (expressed as a string, a number, a
