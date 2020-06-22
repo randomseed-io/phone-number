@@ -551,7 +551,7 @@
         :arity-2-ng :phone-number.args/number-global.region
         :arity-1    :phone-number.arg/number-global))
 
-(s/def :phone-number.args/valid-for-region?
+(s/def :phone-number.args/number+source-region
   (s/or :nil        (s/cat :phone-number           nil?
                            :region-code            (s/nilable :phone-number.arg/region)
                            :tested-region          :phone-number.arg/region)
@@ -559,6 +559,18 @@
                            :tested-region          :phone-number.arg/region)
         :arity-3-ng (s/cat :number-global.region   :phone-number.args/number-global.region
                            :tested-region          :phone-number.arg/region)))
+
+(s/def :phone-number.args/number+opt-source-region
+  (s/or :nil        (s/cat :phone-number           nil?
+                           :region-code            (s/nilable :phone-number.arg/region)
+                           :tested-region          :phone-number.arg/region)
+        :arity-3-nr (s/cat :number-regional.region :phone-number.args/number-regional.region
+                           :tested-region          (s/nilable :phone-number.arg/region))
+        :arity-2-nr :phone-number.args/number-regional.region
+        :arity-3-ng (s/cat :number-global.region   :phone-number.args/number-global.region
+                           :tested-region          (s/nilable :phone-number.arg/region))
+        :arity-2-ng :phone-number.args/number-global.region
+        :arity-1-ng :phone-number.arg/number-global))
 
 (s/def :phone-number.args/number+locale
   (s/or :nil        (s/cat :phone-number            nil?
@@ -733,6 +745,10 @@
               :global   :phone-number.args/string-global.region)
   :ret  (s/nilable boolean?))
 
+(s/fdef phone/short-possible?
+  :args :phone-number.args/number+opt-source-region
+  :ret  boolean?)
+
 (s/fdef phone/valid-for-region?
-  :args :phone-number.args/valid-for-region?
+  :args :phone-number.args/number+source-region
   :ret  boolean?)
