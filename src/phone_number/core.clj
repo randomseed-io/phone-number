@@ -245,31 +245,40 @@
     ^clojure.lang.IPersistentMap m
     ^clojure.lang.Keyword        region-code
     & more]
-   ;; try phone number object
-   (if (inf-contains? m :phone-number/number)
-     (apply f (inf-get m :phone-number/number) nil more)
-     ;; try phone number info map
-     (if (inf-contains? m :phone-number/info)
-       (apply phoneable-map-apply f (inf-get m :phone-number/info) region-code more)
-       ;; try phone number formats containing region code information
-       (if-some [t (some m format/global)]
-         (apply f t nil more)
-         (if-some [t (when *inferred-namespaces* (some m global-formats-simple))]
+   ;; prepare dialing region (try from a map with default to passed)
+   ;; only when the 4th argument is present (even if it's nil)
+   ;; dialing region that is derived or default is not applied
+   (let [more (when (some? (seq more))
+                (if (or (inf-get m :phone-number.dialing-region/derived?   false)
+                        (inf-get m :phone-number.dialing-region/defaulted? false))
+                  more
+                  (cons (inf-get m :phone-number/dialing-region (first more))
+                        (rest more))))]
+     ;; try phone number object
+     (if (inf-contains? m :phone-number/number)
+       (apply f (inf-get m :phone-number/number) nil more)
+       ;; try phone number info map
+       (if (inf-contains? m :phone-number/info)
+         (apply phoneable-map-apply f (inf-get m :phone-number/info) region-code more)
+         ;; try phone number formats containing region code information
+         (if-some [t (some m format/global)]
            (apply f t nil more)
-           ;; try phone number formats without any region code information
-           ;; obtain region from:
-           ;; - calling code number (:phone-number/calling-code)
-           ;; - different key (:phone-number/region or :region)
-           ;; - region code passed as an argument (region-code)
-           (let [c (inf-get m :phone-number/calling-code)
-                 r (if (some? c) nil (inf-get m :phone-number/region region-code))]
-             (if (or (some? c) (some? r))
-               (if-some [t (some m format/regional)]
-                 (if (some? c) (apply f (str "+" c t) nil more) (apply f t r more))
-                 (if-some [t (when *inferred-namespaces* (some m regional-formats-simple))]
+           (if-some [t (when *inferred-namespaces* (some m global-formats-simple))]
+             (apply f t nil more)
+             ;; try phone number formats without any region code information
+             ;; obtain region from:
+             ;; - calling code number (:phone-number/calling-code)
+             ;; - different key (:phone-number/region or :region)
+             ;; - region code passed as an argument (region-code)
+             (let [c (inf-get m :phone-number/calling-code)
+                   r (if (some? c) nil (inf-get m :phone-number/region region-code))]
+               (if (or (some? c) (some? r))
+                 (if-some [t (some m format/regional)]
                    (if (some? c) (apply f (str "+" c t) nil more) (apply f t r more))
-                   (if (some? c) (apply f nil nil more) (apply f nil r more))))
-               (apply f nil nil more)))))))))
+                   (if-some [t (when *inferred-namespaces* (some m regional-formats-simple))]
+                     (if (some? c) (apply f (str "+" c t) nil more) (apply f t r more))
+                     (if (some? c) (apply f nil nil more) (apply f nil r more))))
+                 (apply f nil nil more))))))))))
 
 ;;
 ;; Protocol implementation
@@ -408,7 +417,9 @@
   (valid-input?
     [phone-number]
     (if (phoneable-map-apply (fn [p _] (valid-input? p))
-                             phone-number nil) true false))
+                             phone-number
+                             nil)
+      true false))
   (number-noraw
     ([phone-number]
      (phoneable-map-apply number-noraw phone-number nil))
@@ -426,7 +437,7 @@
      (phoneable-map-apply raw-input phone-number region-code)))
   (valid?
     ([phone-number]
-     (phoneable-map-apply valid? phone-number nil))
+     (phoneable-map-apply valid? phone-number nil nil))
     ([phone-number ^clojure.lang.Keyword region-code]
      (phoneable-map-apply valid? phone-number region-code))
     ([phone-number
@@ -1117,11 +1128,16 @@
     (util/remove-empty-vals m)
     m))
 
-(defn- ^clojure.lang.PersistentHashMap info-remove-redundant
-  [^clojure.lang.PersistentHashMap m]
-  (dissoc m
-          :phone-number.short/dialing-region
-          :phone-number.short/dialing-region-derived?))
+(defn- ^clojure.lang.Keyword calc-dialing-region
+  [^clojure.lang.Keyword region-code
+   ^clojure.lang.Keyword dialing-region]
+  (if dialing-region
+    [dialing-region false false]
+    (if (some? *default-dialing-region*)
+      [*default-dialing-region* false true]
+      (if (and (false? dialing-region) (some? region-code))
+        [region-code true false]
+        [dialing-region nil nil]))))
 
 (defn- short-info-core
   "Internal short-info logic. Supports additional argument which should be string
@@ -1133,35 +1149,41 @@
    ^String                         phone-string
    ^clojure.lang.PersistentHashMap dst]
   (when-some-input phone-number
-    (let [phone-obj      (number-noraw phone-number region-code)
-          region-code    (region phone-obj nil)
-          dialing-r-miss (false? dialing-region)
-          region-f-der   (and dialing-r-miss *info-dialing-region-derived* (nil? *default-dialing-region*))
-          dialing-region (if region-f-der region-code (prep-dialing-region (if dialing-r-miss nil dialing-region)))
-          sh-possible    (short-possible? phone-obj nil dialing-region)
-          sh-valid       (short-valid?    phone-obj nil dialing-region)
-          have-from      (some? dialing-region)
-          build-map-fn    (if (nil? dst) hash-map (partial assoc dst))]
+    (let [phone-obj        (number-noraw phone-number region-code)
+          region-from-obj (region phone-obj nil)
+          region-code     (if (nil? region-from-obj) region-code region-from-obj)
+          [dialing-region
+           dialing-derived
+           dialing-default] (calc-dialing-region region-code dialing-region)
+          region-code       (if (and (nil? region-code) (some? dialing-region)) dialing-region region-code)
+          sh-possible       (short-possible? phone-obj nil dialing-region)
+          sh-valid          (short-valid?    phone-obj nil dialing-region)
+          have-from         (some? dialing-region)
+          build-map-fn      (if (nil? dst) hash-map (partial assoc dst))]
       (if-not (or sh-valid sh-possible)
         (build-map-fn :phone-number.short/possible? false
                       :phone-number.short/valid?    false)
-        (let [phone-string (if (and (nil? phone-string) (string? phone-number)) phone-number phone-string)
-              phone-string (if (valid-input? phone-string) phone-string nil)
-              phone-number (if (nil? phone-string) (raw-input phone-number region-code) phone-string)
-              phone-number (if (nil? phone-number)
-                             (format phone-obj nil ::format/national) ;; fallback
-                             phone-number)]
-          (info-remove-nils
-           (build-map-fn
-            :phone-number.short/valid?                  sh-valid
-            :phone-number.short/possible?               sh-possible
-            :phone-number.short/dialing-region          dialing-region
-            :phone-number.short/dialing-region-derived? (when (some? dialing-region) region-f-der)
-            :phone-number.short/carrier-specific?       (short-carrier-specific? phone-obj nil dialing-region)
-            :phone-number.short/cost                    (short-cost              phone-obj nil dialing-region)
-            :phone-number.short/emergency?              (short-emergency?        phone-number region-code)
-            :phone-number.short/to-emergency?           (short-to-emergency?     phone-number region-code)
-            :phone-number.short/sms-service?            (and have-from (short-sms-service? phone-obj nil dialing-region)))))))))
+        (let [phone-string   (if (and (nil? phone-string) (string? phone-number)) phone-number phone-string)
+              phone-string   (if (valid-input? phone-string) phone-string nil)
+              phone-number   (if (nil? phone-string) (raw-input phone-number region-code) phone-string)
+              phone-number   (if (nil? phone-number) (format phone-obj nil ::format/national) phone-number) ;; fallback
+              add-dialing-fn (if (some? dst) identity
+                                 #(assoc
+                                   %
+                                   :phone-number.short/dialing-region      dialing-region
+                                   :phone-number.dialing-region/derived?   dialing-derived
+                                   :phone-number.dialing-region/defaulted? dialing-default))
+              remove-nils-fn (if (nil? dst) info-remove-nils identity)]
+          (-> (build-map-fn
+               :phone-number.short/valid?                    sh-valid
+               :phone-number.short/possible?                 sh-possible
+               :phone-number.short/carrier-specific?         (short-carrier-specific? phone-obj nil dialing-region)
+               :phone-number.short/cost                      (short-cost              phone-obj nil dialing-region)
+               :phone-number.short/emergency?                (short-emergency?        phone-number region-code)
+               :phone-number.short/to-emergency?             (short-to-emergency?     phone-number region-code)
+               :phone-number.short/sms-service?              (and have-from (short-sms-service? phone-obj nil dialing-region)))
+              add-dialing-fn
+              remove-nils-fn))))))
 
 (defn short-info
   "Takes a short (like an emergency) phone number (expressed as a string, a number, a
@@ -1258,20 +1280,22 @@
     ^String                      locale-specification
     ^clojure.lang.Keyword        dialing-region]
    (when-some-input phone-number
-     (let [locale         (l/locale locale-specification)
-           phone-obj      (number phone-number region-code)
-           region-code    (region phone-obj nil)
-           phone-number   (if (string? phone-number) phone-number (raw-input phone-obj))
-           dialing-r-miss (false? dialing-region)
-           region-f-der   (and (false? dialing-region) *info-dialing-region-derived* (nil? *default-dialing-region*))
-           dialing-region (if region-f-der region-code (prep-dialing-region (if dialing-r-miss nil dialing-region)))]
+     (let [locale          (l/locale locale-specification)
+           phone-obj       (number phone-number region-code)
+           region-from-obj (region phone-obj nil)
+           region-code     (if (nil? region-from-obj) region-code region-from-obj)
+           phone-number    (if (string? phone-number) phone-number (raw-input phone-obj))
+           [dialing-region
+            dialing-derived
+            dialing-default] (calc-dialing-region region-code dialing-region)           ]
        (->> #:phone-number
             {:region                      region-code
              :valid?                      (if (some? dialing-region)
                                             (valid?  phone-obj nil dialing-region)
                                             (valid?  phone-obj nil))
              :possible?                   (possible? phone-obj nil)
-             :dialing-region-derived?     (when (some? dialing-region) region-f-der)
+             :dialing-region-derived?     dialing-derived
+             :dialing-region-defaulted?   dialing-default
              :dialing-region              dialing-region
              :geographical?               (geographical? phone-obj nil)
              :type                        (type          phone-obj nil)
@@ -1283,7 +1307,6 @@
              ::tz-format/short-standalone (time-zones    phone-obj nil locale ::tz-format/short-standalone)}
             (all-formats-into phone-obj nil)
             (short-info-core  phone-obj region-code dialing-region phone-number)
-            info-remove-redundant
             info-remove-nils)))))
 
 ;;
