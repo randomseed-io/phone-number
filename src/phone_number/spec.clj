@@ -588,36 +588,24 @@
         :arity-2-ng :phone-number.args/number-global.region
         :arity-1    :phone-number.arg/number-global))
 
-(s/def :phone-number.args/number+source-region
+(s/def :phone-number.args/number+dialing-region
   (s/or :nil        (s/cat :phone-number           nil?
                            :region-code            (s/nilable :phone-number.arg/region)
-                           :source-region          :phone-number.arg/region)
+                           :dialing-region          :phone-number.arg/region)
         :arity-3-nr (s/cat :number-regional.region :phone-number.args/number-regional.region
-                           :source-region          :phone-number.arg/region)
+                           :dialing-region          :phone-number.arg/region)
         :arity-3-ng (s/cat :number-global.region   :phone-number.args/number-global.region
-                           :source-region          :phone-number.arg/region)))
+                           :dialing-region          :phone-number.arg/region)))
 
-(s/def :phone-number.args/number+opt-source-region
+(s/def :phone-number.args/number+opt-dialing-region
   (s/or :nil        (s/cat :phone-number           nil?
                            :region-code            (s/nilable :phone-number.arg/region)
-                           :source-region          :phone-number.arg/region)
+                           :dialing-region          :phone-number.arg/region)
         :arity-3-nr (s/cat :number-regional.region :phone-number.args/number-regional.region
-                           :source-region          (s/nilable :phone-number.arg/region))
+                           :dialing-region          (s/nilable :phone-number.arg/region))
         :arity-2-nr :phone-number.args/number-regional.region
         :arity-3-ng (s/cat :number-global.region   :phone-number.args/number-global.region
-                           :source-region          (s/nilable :phone-number.arg/region))
-        :arity-2-ng :phone-number.args/number-global.region
-        :arity-1-ng :phone-number.arg/number-global))
-
-(s/def :phone-number.args/number+opt-source-region-not-nilable
-  (s/or :nil        (s/cat :phone-number           nil?
-                           :region-code            (s/nilable :phone-number.arg/region)
-                           :source-region          :phone-number.arg/region)
-        :arity-3-nr (s/cat :number-regional.region :phone-number.args/number-regional.region
-                           :source-region          :phone-number.arg/region)
-        :arity-2-nr :phone-number.args/number-regional.region
-        :arity-3-ng (s/cat :number-global.region   :phone-number.args/number-global.region
-                           :source-region          :phone-number.arg/region)
+                           :dialing-region          (s/nilable :phone-number.arg/region))
         :arity-2-ng :phone-number.args/number-global.region
         :arity-1-ng :phone-number.arg/number-global))
 
@@ -648,19 +636,19 @@
         :arity-2-ng :phone-number.args/number-global.region
         :arity-1    :phone-number.arg/number-global))
 
-(s/def :phone-number.args/number+locale+source-region
+(s/def :phone-number.args/number+locale+dialing-region
   (s/or :nil        (s/cat :phone-number nil? :region-code (s/? (s/nilable :phone-number.arg/region)))
         :arity-4-nr (s/cat :number-regional.region :phone-number.args/number-regional.region
                            :locale                 (s/nilable :phone-number.arg/locale)
-                           :source-region          (s/nilable :phone-number.arg/region))
+                           :dialing-region          (s/nilable :phone-number.arg/region))
         :arity-3-nr (s/cat :number-regional.region :phone-number.args/number-regional.region
-                           :source-region          (s/nilable :phone-number.arg/source-region))
+                           :dialing-region          (s/nilable :phone-number.arg/dialing-region))
         :arity-2-nr :phone-number.args/number-regional.region
         :arity-4-ng (s/cat :number-global.region   :phone-number.args/number-global.region
                            :locale                 (s/nilable :phone-number.arg/locale)
-                           :source-region          (s/nilable :phone-number.arg/region))
+                           :dialing-region          (s/nilable :phone-number.arg/region))
         :arity-3-ng (s/cat :number-global.region   :phone-number.args/number-global.region
-                           :source-region          (s/nilable :phone-number.arg/region))
+                           :dialing-region          (s/nilable :phone-number.arg/region))
         :arity-2-ng :phone-number.args/number-global.region
         :arity-1    :phone-number.arg/number-global))
 
@@ -681,7 +669,7 @@
   :ret   boolean?)
 
 (s/fdef phone/valid?
-  :args :phone-number.args/number+opt-source-region-not-nilable
+  :args :phone-number.args/number+opt-dialing-region
   :ret  boolean?)
 
 (s/fdef phone/number
@@ -749,7 +737,7 @@
   :ret  (s/nilable :phone-number/type))
 
 (s/fdef phone/short-cost
-  :args :phone-number.args/number+opt-source-region
+  :args :phone-number.args/number+opt-dialing-region
   :ret  (s/nilable :phone-number/cost))
 
 (s/fdef phone/has-raw-input?           :args :phone-number.args/number :ret boolean?)
@@ -770,7 +758,7 @@
   :ret  boolean?)
 
 (s/fdef phone/valid-for-region?
-  :args :phone-number.args/number+source-region
+  :args :phone-number.args/number+dialing-region
   :ret :phone-number/valid-for-region?)
 
 (s/fdef phone/short-to-emergency?
@@ -784,21 +772,21 @@
   :ret  :phone-number.short/emergency?)
 
 (s/fdef phone/short-possible?
-  :args :phone-number.args/number+opt-source-region
+  :args :phone-number.args/number+opt-dialing-region
   :ret  :phone-number.short/possible?)
 
 (s/fdef phone/short-valid?
-  :args :phone-number.args/number+opt-source-region
+  :args :phone-number.args/number+opt-dialing-region
   :ret  :phone-number.short/valid?)
 
 (s/fdef phone/short-carrier-specific?
-  :args :phone-number.args/number+opt-source-region
+  :args :phone-number.args/number+opt-dialing-region
   :ret  :phone-number.short/carrier-specific?)
 
 (s/fdef phone/short-sms-service?
-  :args :phone-number.args/number+source-region
+  :args :phone-number.args/number+opt-dialing-region
   :ret  :phone-number.short/sms-service?)
 
 (s/fdef phone/short-info
-  :args :phone-number.args/number+opt-source-region
+  :args :phone-number.args/number+opt-dialing-region
   :ret  (s/nilable :phone-number.short/info))

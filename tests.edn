@@ -19,6 +19,7 @@
  :kaocha.plugin.randomize/seed            492209631,
  :kaocha.plugin.randomize/randomize?           true,
  :kaocha.plugin.notifier/command     "bin/test-notifier %{message} %{title} %{icon} %{failed?}"
+ :kaocha/bindings {phone-number.core/*default-dialing-region* :phone-number.region/us}
  :cloverage/opts {:ns-exclude-regex [],
                   :text? false,
                   :lcov? false,

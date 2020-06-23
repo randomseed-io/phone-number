@@ -24,6 +24,8 @@
 
 (s/check-asserts true)
 
+(alter-var-root #'*default-dialing-region* (constantly :us))
+
 (facts "about `number`"
        (fact "when it returns nil for nil"
              (number nil) => nil

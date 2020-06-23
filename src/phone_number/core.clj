@@ -45,6 +45,14 @@
   not passed as an argument. Default is `true`."
   true)
 
+(def ^{:added "8.12.4-1"
+       :dynamic true
+       :tag Boolean}
+  *default-dialing-region*
+  "Sets a default dialing region (from where calls are originating) for functions that
+  accept default regions (except `valid?`). Default is nil."
+  nil)
+
 (def ^{:added "8.12.4-0"
        :dynamic true
        :tag Boolean}
@@ -52,7 +60,7 @@
   "Decides whether keywords which are not fully-qualified should be automatically
   qualified (by attaching default namespaces) when passed as arguments to functions
   that operate on phone number types, phone number formats, region codes and time
-  zone formats. Defaults to true."
+  zone formats. Defaults to `true`."
   true)
 
 ;;
@@ -183,13 +191,20 @@
    "Takes a phone number represented as a string, a number, a map or a `PhoneNumber`
    object and validates it. Returns true or false.
 
-   When 3 arguments are give the last one should be a source region code for which
+   When 3 arguments are given the last one should be a source region code for which
    the test is performed. It only makes sense to use it when the calling code for a
-   number is not the same as the calling code for the region."))
+   number is not the same as the calling code for the region. If that argument is nil
+   then a value stored in the dynamic variable `*default-dialing-region*` will be
+   used. If this value is also nil then the function will fall back to checking a
+   number without any dialing region."))
 
 ;;
 ;; Protocol helpers
 ;;
+
+(defn- ^clojure.lang.Keyword prep-dialing-region
+  [^clojure.lang.Keyword region-code]
+  (if (nil? region-code) *default-dialing-region* region-code))
 
 (defn- inf-get
   {:added "8.12.4-0"}
@@ -285,14 +300,14 @@
     ([obj
       ^clojure.lang.Keyword region-code
       ^clojure.lang.Keyword dialing-region]
-     (assert (region/valid? dialing-region *inferred-namespaces*)
-             "Dialing region code must be valid and not nil")
-     (util/try-parse-or-false
-      (when (some? obj)
-        (.isValidNumberForRegion
-         (util/instance)
-         obj
-         (region/parse dialing-region *inferred-namespaces*))))))
+     (if-some [dialing-region (prep-dialing-region dialing-region)]
+       (util/try-parse-or-false
+        (when (some? obj)
+          (.isValidNumberForRegion
+           (util/instance)
+           obj
+           (region/parse dialing-region *inferred-namespaces*))))
+       (valid? obj dialing-region))))
 
   String
   (valid-input?
@@ -341,14 +356,14 @@
     ([obj
       ^clojure.lang.Keyword region-code
       ^clojure.lang.Keyword dialing-region]
-     (assert (region/valid? dialing-region *inferred-namespaces*)
-             "Dialing region code must be valid and not nil")
-     (util/try-parse-or-false
-      (when (some? obj)
-        (.isValidNumberForRegion
-         (util/instance)
-         (number-noraw obj region-code)
-         (region/parse dialing-region *inferred-namespaces*))))))
+     (if-some [dialing-region (prep-dialing-region dialing-region)]
+       (util/try-parse-or-false
+        (when (some? obj)
+          (.isValidNumberForRegion
+           (util/instance)
+           (number-noraw obj region-code)
+           (region/parse dialing-region *inferred-namespaces*))))
+       (valid? obj region-code))))
 
   Number
   (valid-input?
@@ -470,6 +485,10 @@
       ^clojure.lang.Keyword region-code
       ^clojure.lang.Keyword dialing-region]
      false)))
+
+;;
+;; Other generic helpers
+;;
 
 (defmacro when-some-input
   [phone-num & body]
@@ -851,33 +870,38 @@
   present then it should be a valid region code (a keyword) to be used when the given
   phone number does not contain region information.
 
-  In its ternary form this function takes an additional argument (region-from) that
-  should be a valid region code for the origination of a possible call. That hint
-  will be used to restrict the check according to rules. For example 112 may be valid
-  in multiple regions but if one calls it from some particular region it might not be
-  reachable. If this argument is nil the binary variant of this function is
-  called (without a source region)."
+  In its ternary form this function takes an additional argument (dialing-region)
+  that should be a valid region code for the origination of a possible call. That
+  hint will be used to restrict the check according to rules. For example 112 may be
+  valid in multiple regions but if one calls it from some particular region it might
+  not be reachable. When this argument is missing or its value is nil and the dynamic
+  variable `*default-dialing-region*` is not nil then its value will be used to set
+  the dialing region. If this argument is missing or is nil and there is no default
+  the binary variant of this function is called (without a source region)."
   {:added "8.12.4-0" :tag Boolean}
   ([^phone_number.core.Phoneable phone-number]
    (short-possible? phone-number nil))
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code]
-   (util/try-parse-or-false
-    (when-some-input phone-number
-      (.isPossibleShortNumber
-       (util/short)
-       (number-noraw phone-number region-code)))))
-  ([^phone_number.core.Phoneable phone-number
-    ^clojure.lang.Keyword        region-code
-    ^clojure.lang.Keyword        region-from]
-   (if (nil? region-from)
-     (short-possible? phone-number region-code)
+   (if (some? *default-dialing-region*)
+     (short-possible? phone-number region-code nil)
      (util/try-parse-or-false
       (when-some-input phone-number
-        (.isPossibleShortNumberForRegion
+        (.isPossibleShortNumber
          (util/short)
-         (number-noraw phone-number region-code)
-         (region/parse region-from *inferred-namespaces*)))))))
+         (number-noraw phone-number region-code))))))
+  ([^phone_number.core.Phoneable phone-number
+    ^clojure.lang.Keyword        region-code
+    ^clojure.lang.Keyword        dialing-region]
+   (let [dialing-region (prep-dialing-region dialing-region)]
+     (if (nil? dialing-region)
+       (short-possible? phone-number region-code)
+       (util/try-parse-or-false
+        (when-some-input phone-number
+          (.isPossibleShortNumberForRegion
+           (util/short)
+           (number-noraw phone-number region-code)
+           (region/parse dialing-region *inferred-namespaces*))))))))
 
 (defn short-valid?
   "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
@@ -886,32 +910,38 @@
   present then it should be a valid region code (a keyword) to be used when the given
   phone number does not contain region information.
 
-  In its ternary form this function takes an additional argument (region-from) that
-  should be a valid region code for the origination of a possible call. That hint
-  will be used to restrict the check according to rules. For example 112 may be valid
-  in multiple regions but if one calls it from some particular region it might not be
-  reachable."
+  In its ternary form this function takes an additional argument (dialing-region)
+  that should be a valid region code for the origination of a possible call. That
+  hint will be used to restrict the check according to rules. For example 112 may be
+  valid in multiple regions but if one calls it from some particular region it might
+  not be reachable. When this argument is missing or its value is nil and the dynamic
+  variable `*default-dialing-region*` is not nil then its value will be used to set
+  the dialing region. If this argument is missing or is nil and there is no default
+  the binary variant of this function is called (without a source region)."
   {:added "8.12.4-0" :tag Boolean}
   ([^phone_number.core.Phoneable phone-number]
    (short-valid? phone-number nil))
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code]
-   (util/try-parse-or-false
-    (when-some-input phone-number
-      (.isValidShortNumber
-       (util/short)
-       (number-noraw phone-number region-code)))))
-  ([^phone_number.core.Phoneable phone-number
-    ^clojure.lang.Keyword        region-code
-    ^clojure.lang.Keyword        region-from]
-   (if (nil? region-from)
-     (short-valid? phone-number region-code)
+   (if (some? *default-dialing-region*)
+     (short-valid? phone-number region-code nil)
      (util/try-parse-or-false
       (when-some-input phone-number
-        (.isValidShortNumberForRegion
+        (.isValidShortNumber
          (util/short)
-         (number-noraw phone-number region-code)
-         (region/parse region-from *inferred-namespaces*)))))))
+         (number-noraw phone-number region-code))))))
+  ([^phone_number.core.Phoneable phone-number
+    ^clojure.lang.Keyword        region-code
+    ^clojure.lang.Keyword        dialing-region]
+   (let [dialing-region (prep-dialing-region dialing-region)]
+     (if (nil? dialing-region)
+       (short-valid? phone-number region-code)
+       (util/try-parse-or-false
+        (when-some-input phone-number
+          (.isValidShortNumberForRegion
+           (util/short)
+           (number-noraw phone-number region-code)
+           (region/parse dialing-region *inferred-namespaces*))))))))
 
 (defn short-cost
   "Takes a short (like an emergency) phone number (expressed as a string, a number, a
@@ -926,7 +956,11 @@
   If the third argument is present then it should be a valid region code for the
   origination of a possible call. That hint will be used to restrict the check
   according to rules. For example 112 may be valid in multiple regions but if one
-  calls it from some particular region it might not be reachable.
+  calls it from some particular region it might not be reachable. When this argument
+  is missing or its value is nil and the dynamic variable `*default-dialing-region*`
+  is not nil then its value will be used to set the dialing region. If this argument
+  is missing or is nil and there is no default the binary variant of this function is
+  called (without a source region).
 
   It is important to realize that certain properties of short numbers can only be
   successfully calculated if the unprocessed form of a number (a string or a natural
@@ -938,22 +972,25 @@
    (short-cost phone-number nil))
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code]
-   (when-some-input phone-number
-     (cost/by-val
-      (.getExpectedCost
-       (util/short)
-       (number-noraw phone-number region-code)))))
-  ([^phone_number.core.Phoneable phone-number
-    ^clojure.lang.Keyword        region-code
-    ^clojure.lang.Keyword        region-from]
-   (if (nil? region-from)
-     (short-cost phone-number region-code)
+   (if (some? *default-dialing-region*)
+     (short-cost phone-number region-code nil)
      (when-some-input phone-number
        (cost/by-val
-        (.getExpectedCostForRegion
+        (.getExpectedCost
          (util/short)
-         (number-noraw phone-number region-code)
-         (region/parse region-from *inferred-namespaces*)))))))
+         (number-noraw phone-number region-code))))))
+  ([^phone_number.core.Phoneable phone-number
+    ^clojure.lang.Keyword        region-code
+    ^clojure.lang.Keyword        dialing-region]
+   (let [dialing-region (prep-dialing-region dialing-region)]
+     (if (nil? dialing-region)
+       (short-cost phone-number region-code)
+       (when-some-input phone-number
+         (cost/by-val
+          (.getExpectedCostForRegion
+           (util/short)
+           (number-noraw phone-number region-code)
+           (region/parse dialing-region *inferred-namespaces*))))))))
 
 (defn short-emergency?
   "Takes a short (like an emergency) phone number (expressed as a string!) and returns
@@ -1006,6 +1043,11 @@
   `PhoneNumber` object), optional region code (or nil) and optional dialing region
   code. Returns true if it is a carrier-specific number.
 
+  When the third argument is present but it is nil and the dynamic variable
+  *default-dialing-region* is not nil then its value will be used to set the dialing
+  region. If this argument is nil and there is no default the binary variant of this
+  function is called (without a source region).
+
   It is important to realize that certain properties of short numbers can only be
   successfully calculated if the unprocessed form of a number (a string or a natural
   number) does not contain country code and so it is delivered as it would be
@@ -1016,27 +1058,30 @@
    (short-carrier-specific? phone-number nil))
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code]
-   (util/try-parse-or-false
-    (when-some-input phone-number
-      (.isCarrierSpecific
-       (util/short)
-       (number-noraw phone-number region-code)))))
-  ([^phone_number.core.Phoneable phone-number
-    ^clojure.lang.Keyword        region-code
-    ^clojure.lang.Keyword        region-from]
-   (if (nil? region-from)
-     (short-carrier-specific? phone-number region-code)
+   (if (some? *default-dialing-region*)
+     (short-carrier-specific? phone-number region-code nil)
      (util/try-parse-or-false
       (when-some-input phone-number
-        (.isCarrierSpecificForRegion
+        (.isCarrierSpecific
          (util/short)
-         (number-noraw phone-number region-code)
-         (region/parse region-from *inferred-namespaces*)))))))
+         (number-noraw phone-number region-code))))))
+  ([^phone_number.core.Phoneable phone-number
+    ^clojure.lang.Keyword        region-code
+    ^clojure.lang.Keyword        dialing-region]
+   (let [dialing-region (prep-dialing-region dialing-region)]
+     (if (nil? dialing-region)
+       (short-carrier-specific? phone-number region-code)
+       (util/try-parse-or-false
+        (when-some-input phone-number
+          (.isCarrierSpecificForRegion
+           (util/short)
+           (number-noraw phone-number region-code)
+           (region/parse dialing-region *inferred-namespaces*))))))))
 
 (defn short-sms-service?
-  "Takes a short phone number (expressed as a string, a number, a map or a `PhoneNumber`
-  object), optional region code (or nil) and a dialing region code. Returns true if
-  SMS is supported, false otherwise.
+  "Takes a short phone number (expressed as a string, a number, a map or
+  a `PhoneNumber` object), optional region code (or nil) and a dialing region
+  code. Returns true if SMS is supported, false otherwise.
 
   It is important to realize that certain properties of short numbers can only be
   successfully calculated if the unprocessed form of a number (a string or a natural
@@ -1044,27 +1089,39 @@
   dialed. It is advised to pass a region code as the second argument when short
   numbers are tested."
   {:added "8.12.4-0" :tag Boolean}
+  ([^phone_number.core.Phoneable phone-number]
+   (short-sms-service? phone-number nil nil))
+  ([^phone_number.core.Phoneable phone-number
+    ^clojure.lang.Keyword        region-code]
+   (short-sms-service? phone-number region-code nil))
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
-    ^clojure.lang.Keyword        region-from]
-   (assert (region/valid? region-from *inferred-namespaces*)
-           "Source region code must be valid and not nil")
-   (util/try-parse-or-false
-    (when-some-input phone-number
-      (.isSmsServiceForRegion
-       (util/short)
-       (number-noraw phone-number region-code)
-       (region/parse region-from *inferred-namespaces*))))))
+    ^clojure.lang.Keyword        dialing-region]
+   (let [dialing-region (prep-dialing-region dialing-region)]
+     (assert (region/valid? dialing-region *inferred-namespaces*)
+             "Dialing region code must be valid and not nil")
+     (util/try-parse-or-false
+      (when-some-input phone-number
+        (.isSmsServiceForRegion
+         (util/short)
+         (number-noraw phone-number region-code)
+         (region/parse dialing-region *inferred-namespaces*)))))))
 
 ;;
 ;; Generic reporting
 ;;
 
-(defn- ^clojure.lang.PersistentArrayMap info-remove-nils
-  [^clojure.lang.PersistentArrayMap m]
+(defn- ^clojure.lang.PersistentHashMap info-remove-nils
+  [^clojure.lang.PersistentHashMap m]
   (if *info-removed-nils*
     (util/remove-empty-vals m)
     m))
+
+(defn- ^clojure.lang.PersistentHashMap info-remove-redundant
+  [^clojure.lang.PersistentHashMap m]
+  (dissoc m
+          :phone-number.short/dialing-region
+          :phone-number.short/dialing-region-derived?))
 
 (defn- short-info-core
   "Internal short-info logic. Supports additional argument which should be string
@@ -1072,18 +1129,19 @@
   {:added "8.12.4-1" :tag clojure.lang.PersistentHashMap}
   [^phone_number.core.Phoneable    phone-number
    ^clojure.lang.Keyword           region-code
-   ^clojure.lang.Keyword           region-from
+   ^clojure.lang.Keyword           dialing-region
    ^String                         phone-string
    ^clojure.lang.PersistentHashMap dst]
   (when-some-input phone-number
-    (let [phone-obj    (number-noraw phone-number region-code)
-          region-code  (region phone-obj nil)
-          region-f-der (and (false? region-from) *info-dialing-region-derived*)
-          region-from  (if region-f-der region-code region-from)
-          sh-possible  (short-possible? phone-obj nil region-from)
-          sh-valid     (short-valid?    phone-obj nil region-from)
-          have-from    (some? region-from)
-          build-map-fn (if (nil? dst) hash-map (partial assoc dst))]
+    (let [phone-obj      (number-noraw phone-number region-code)
+          region-code    (region phone-obj nil)
+          dialing-r-miss (false? dialing-region)
+          region-f-der   (and dialing-r-miss *info-dialing-region-derived* (nil? *default-dialing-region*))
+          dialing-region (if region-f-der region-code (prep-dialing-region (if dialing-r-miss nil dialing-region)))
+          sh-possible    (short-possible? phone-obj nil dialing-region)
+          sh-valid       (short-valid?    phone-obj nil dialing-region)
+          have-from      (some? dialing-region)
+          build-map-fn    (if (nil? dst) hash-map (partial assoc dst))]
       (if-not (or sh-valid sh-possible)
         (build-map-fn :phone-number.short/possible? false
                       :phone-number.short/valid?    false)
@@ -1097,13 +1155,13 @@
            (build-map-fn
             :phone-number.short/valid?                  sh-valid
             :phone-number.short/possible?               sh-possible
-            :phone-number.short/dialing-region          region-from
-            :phone-number.short/dialing-region-derived? (when (some? region-from) region-f-der)
-            :phone-number.short/carrier-specific?       (short-carrier-specific? phone-obj nil region-from)
-            :phone-number.short/cost                    (short-cost              phone-obj nil region-from)
+            :phone-number.short/dialing-region          dialing-region
+            :phone-number.short/dialing-region-derived? (when (some? dialing-region) region-f-der)
+            :phone-number.short/carrier-specific?       (short-carrier-specific? phone-obj nil dialing-region)
+            :phone-number.short/cost                    (short-cost              phone-obj nil dialing-region)
             :phone-number.short/emergency?              (short-emergency?        phone-number region-code)
             :phone-number.short/to-emergency?           (short-to-emergency?     phone-number region-code)
-            :phone-number.short/sms-service?            (and have-from (short-sms-service? phone-obj nil region-from)))))))))
+            :phone-number.short/sms-service?            (and have-from (short-sms-service? phone-obj nil dialing-region)))))))))
 
 (defn short-info
   "Takes a short (like an emergency) phone number (expressed as a string, a number, a
@@ -1118,9 +1176,13 @@
   If the third argument is present then it should be a valid region code for the
   origination of a possible call. That hint will be used to restrict the check
   according to rules. For example 112 may be valid in multiple regions but if one
-  calls it from some particular region it might not be reachable. If it is not given
-  then it is derived from the phone number's region code. However, when the `nil`
-  value is explicitly passed it remains unset.
+  calls it from some particular region it might not be reachable. When this argument
+  is missing and the dynamic variable `*info-dialing-region-derived*` is set to
+  truthy value (not nil and not `false`) then the dialing region will be derived from
+  a region code of the number. When this argument is missing and the mentioned
+  variable is falsy or when this argument is present but it is nil and the dynamic
+  variable `*default-dialing-region*` is not nil (in both cases) then its value will
+  be used to set the dialing region.
 
   It is important to realize that certain properties of short numbers can only be
   successfully calculated if the unprocessed form of a number (a string or a natural
@@ -1135,8 +1197,8 @@
    (short-info-core phone-number region-code false nil nil))
   ([^phone_number.core.Phoneable    phone-number
     ^clojure.lang.Keyword           region-code
-    ^clojure.lang.Keyword           region-from]
-   (short-info-core phone-number region-code region-from nil nil)))
+    ^clojure.lang.Keyword           dialing-region]
+   (short-info-core phone-number region-code dialing-region nil nil)))
 
 (defn info
   "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
@@ -1168,7 +1230,13 @@
 
   If there are four arguments then the last one should be a dialing region code
   intended to be used with short numbers (like 112 etc.). It describes originating
-  region to help validate the possibility of reaching the destination number.
+  region to help validate the possibility of reaching the destination number. When
+  this argument is missing and the dynamic variable `*info-dialing-region-derived*`
+  is set to truthy value (not nil and not `false`) then the dialing region will be
+  derived from a region code of the number. When this argument is missing and the
+  mentioned variable is falsy or when this argument is present but it is nil and the
+  dynamic variable `*default-dialing-region*` is not nil (in both cases) then its
+  value will be used to set the dialing region.
 
   It is important to realize that certain properties of short numbers can only be
   successfully calculated if the unprocessed form of a number (a string or a natural
@@ -1188,22 +1256,23 @@
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
     ^String                      locale-specification
-    ^clojure.lang.Keyword        region-from]
+    ^clojure.lang.Keyword        dialing-region]
    (when-some-input phone-number
-     (let [locale       (l/locale locale-specification)
-           phone-obj    (number phone-number region-code)
-           region-code  (region phone-obj nil)
-           phone-number (if (string? phone-number) phone-number (raw-input phone-obj))
-           region-f-der (and (false? region-from) *info-dialing-region-derived*)
-           region-from  (if region-f-der region-code region-from)]
+     (let [locale         (l/locale locale-specification)
+           phone-obj      (number phone-number region-code)
+           region-code    (region phone-obj nil)
+           phone-number   (if (string? phone-number) phone-number (raw-input phone-obj))
+           dialing-r-miss (false? dialing-region)
+           region-f-der   (and (false? dialing-region) *info-dialing-region-derived* (nil? *default-dialing-region*))
+           dialing-region (if region-f-der region-code (prep-dialing-region (if dialing-r-miss nil dialing-region)))]
        (->> #:phone-number
             {:region                      region-code
-             :valid?                      (if (some? region-from)
-                                            (valid?  phone-obj nil region-from)
+             :valid?                      (if (some? dialing-region)
+                                            (valid?  phone-obj nil dialing-region)
                                             (valid?  phone-obj nil))
              :possible?                   (possible? phone-obj nil)
-             :dialing-region-derived?     (when (some? region-from) region-f-der)
-             :dialing-region              region-from
+             :dialing-region-derived?     (when (some? dialing-region) region-f-der)
+             :dialing-region              dialing-region
              :geographical?               (geographical? phone-obj nil)
              :type                        (type          phone-obj nil)
              :calling-code                (calling-code  phone-obj nil)
@@ -1213,7 +1282,8 @@
              ::tz-format/full-standalone  (time-zones    phone-obj nil locale ::tz-format/full-standalone)
              ::tz-format/short-standalone (time-zones    phone-obj nil locale ::tz-format/short-standalone)}
             (all-formats-into phone-obj nil)
-            (short-info-core  phone-obj region-code region-from phone-number)
+            (short-info-core  phone-obj region-code dialing-region phone-number)
+            info-remove-redundant
             info-remove-nils)))))
 
 ;;
@@ -1443,7 +1513,7 @@
   under the hood."
   {:added "8.12.4-0" :tag lazy_map.core.LazyMap}
   [^java.util.Locale      locale-specification
-   ^clojure.lang.Keyword  region-from
+   ^clojure.lang.Keyword  dialing-region
    ^lazy_map.core.LazyMap m]
   (if-some [n (:phone-number/number m)]
     (assoc m
@@ -1453,7 +1523,7 @@
               (:phone-number/number m)
               nil
               locale-specification
-              region-from)))
+              dialing-region)))
     m))
 
 (defn find-numbers
@@ -1477,21 +1547,30 @@
   The third optional argument should be a locale specification (`java.util.Locale`
   object or any other object that can initialize one, like a string with language
   and/or dialect). It will be used to render a value associated with
-  the `:phone-number/info` key."
+  the `:phone-number/info` key.
+
+  The last, optional argument should be a calling region code. It will be passed to
+  the `info` function used to generate additional information about a number.  When
+  this argument is missing and the dynamic variable `*info-dialing-region-derived*`
+  is set to truthy value (not nil and not `false`) then the dialing region will be
+  derived from a region code of the number. When this argument is missing and the
+  mentioned variable is falsy or when this argument is present but it is nil and the
+  dynamic variable `*default-dialing-region*` is not nil (in both cases) then its
+  value will be used to set the dialing region."
   {:added "8.12.4-0" :tag clojure.lang.LazySeq}
   ([^String               text]
-   (find-numbers text nil nil))
+   (find-numbers text nil false))
   ([^String               text
     ^clojure.lang.Keyword region-code]
-   (find-numbers text region-code nil))
+   (find-numbers text region-code false))
   ([^String               text
     ^clojure.lang.Keyword region-code
     ^java.util.Locale     locale-specification]
-   (find-numbers text region-code locale-specification nil))
+   (find-numbers text region-code locale-specification false))
   ([^String               text
     ^clojure.lang.Keyword region-code
     ^java.util.Locale     locale-specification
-    ^clojure.lang.Keyword region-from]
+    ^clojure.lang.Keyword dialing-region]
    (->> *inferred-namespaces*
         (region/parse region-code)
         (.findNumbers (util/instance) text)
@@ -1499,7 +1578,7 @@
         (map (comp
               (partial enrich-match
                        (l/locale locale-specification)
-                       (region/parse region-from *inferred-namespaces*))
+                       dialing-region)
               match/mapper)))))
 
 ;;
