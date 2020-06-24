@@ -50,7 +50,7 @@
        :tag Boolean}
   *default-dialing-region*
   "Sets a default dialing region (from where calls are originating) for functions that
-  accept default regions (except `valid?`). Default is nil."
+  accept default regions. Default is nil."
   nil)
 
 (def ^{:added "8.12.4-0"
