@@ -49,6 +49,6 @@
        (fact "when it returns nil for nil or empty"
              (info nil) => nil
              (info {})  => nil)
-       (fact "when it retains a dialing region when source is a map"
+       (fact "when it retains dialing region when source is a map"
              (:phone-number/dialing-region (info "112" :pl :pl :pl))        => :phone-number.region/pl
              (:phone-number/dialing-region (info (info "112" :pl :pl :pl))) => :phone-number.region/pl))
