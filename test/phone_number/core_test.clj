@@ -24,7 +24,7 @@
 
 (s/check-asserts true)
 
-(alter-var-root #'*default-dialing-region* (constantly :us))
+#_(alter-var-root #'*default-dialing-region* (constantly :us))
 
 (facts "about `number`"
        (fact "when it returns nil for nil or empty"
@@ -52,3 +52,26 @@
        (fact "when it retains dialing region when source is a map"
              (:phone-number/dialing-region (info "112" :pl :pl :pl))        => :phone-number.region/pl
              (:phone-number/dialing-region (info (info "112" :pl :pl :pl))) => :phone-number.region/pl))
+
+(facts "about `valid?`"
+       (fact "when it validates correct numbers"
+             (valid? "+448081570001")                                       => true
+             (valid? "+448081570001" nil)                                   => true
+             (valid? "+448081570001" nil nil)                               => false
+             (valid? "+448081570001" nil :gb)                               => true
+             (valid? "+448081570001" nil :pl)                               => false)
+       (fact "when it uses dialing region when source is a map (and up to 1 argument more)"
+             (valid? {:phone-number.format/e164 "+448081570001"})           => true
+             (valid? {:phone-number.format/e164 "+448081570001"} nil)       => true
+             (valid? {:phone-number.format/e164 "+448081570001"
+                      :phone-number/dialing-region :gb
+                      :phone-number.dialing-region/derived? true})          => true)
+       (fact "when it uses dialing region when source is a map (and 2 more arguments)"
+             (valid? {:phone-number.format/e164 "+448081570001"} nil nil)   => false
+             (valid? {:phone-number.format/e164 "+448081570001"} nil :pl)   => false
+             (valid? {:phone-number.format/e164 "+448081570001"} nil :gb)   => true
+             (valid? {:phone-number.format/e164 "+448081570001"
+                      :phone-number/dialing-region :gb} nil nil)            => true
+             (valid? {:phone-number.format/e164 "+448081570001"
+                      :phone-number/dialing-region :gb
+                      :phone-number.dialing-region/derived? true} nil nil)  => false))
