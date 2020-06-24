@@ -1141,15 +1141,28 @@
     m))
 
 (defn- ^clojure.lang.Keyword calc-dialing-region
-  [^clojure.lang.Keyword region-code
-   ^clojure.lang.Keyword dialing-region]
-  (if dialing-region
-    [dialing-region false false]
-    (if (some? *default-dialing-region*)
-      [*default-dialing-region* false true]
-      (if (and (false? dialing-region) (some? region-code))
-        [region-code true false]
-        [nil nil nil]))))
+  [^clojure.lang.Keyword        region-code
+   ^clojure.lang.Keyword        dialing-region
+   ^phone_number.core.Phoneable phone-number]
+  (if (and (map? phone-number)
+           (inf-contains? phone-number :phone-number/dialing-region)
+           (not (inf-get  phone-number :phone-number.dialing-region/derived?   false))
+           (not (inf-get  phone-number :phone-number.dialing-region/defaulted? false)))
+    ;; we have a map and it has dialing region
+    ;; that is not derived nor default
+    [(inf-get phone-number :phone-number/dialing-region) false false]
+    (if dialing-region
+      ;; we have dialing-region given as an argument
+      [dialing-region false false]
+      (if (some? *default-dialing-region*)
+        [*default-dialing-region* false true]
+        (if (and (false? dialing-region) (some? region-code))
+          [region-code true false]
+          (if (map? phone-number)
+            [(inf-get phone-number :phone-number/dialing-region)
+             (inf-get phone-number :phone-number.dialing-region/derived?)
+             (inf-get phone-number :phone-number.dialing-region/refaulted?)]
+            [nil nil nil]))))))
 
 (defn- short-info-core
   "Internal short-info logic. Supports additional argument which should be string
@@ -1158,15 +1171,15 @@
   [^phone_number.core.Phoneable    phone-number
    ^clojure.lang.Keyword           region-code
    ^clojure.lang.Keyword           dialing-region
-   ^String                         phone-string
+   ^String                         phone-orig
    ^clojure.lang.PersistentHashMap dst]
   (when-some-input phone-number
-    (let [phone-obj        (number-noraw phone-number region-code)
-          region-from-obj (region phone-obj nil)
-          region-code     (if (nil? region-from-obj) region-code region-from-obj)
+    (let [phone-obj         (number-noraw phone-number region-code)
+          region-from-obj   (region phone-obj nil)
+          region-code       (if (nil? region-from-obj) region-code region-from-obj)
           [dialing-region
            dialing-derived
-           dialing-default] (calc-dialing-region region-code dialing-region)
+           dialing-default] (calc-dialing-region region-code dialing-region (if (nil? phone-orig) phone-number phone-orig))
           region-code       (if (and (nil? region-code) (some? dialing-region)) dialing-region region-code)
           sh-possible       (short-possible? phone-obj nil dialing-region)
           sh-valid          (short-valid?    phone-obj nil dialing-region)
@@ -1175,9 +1188,10 @@
       (if-not (or sh-valid sh-possible)
         (build-map-fn :phone-number.short/possible? false
                       :phone-number.short/valid?    false)
-        (let [phone-string   (if (and (nil? phone-string) (string? phone-number)) phone-number phone-string)
-              phone-string   (if (valid-input? phone-string) phone-string nil)
-              phone-number   (if (nil? phone-string) (raw-input phone-number region-code) phone-string)
+        (let [phone-orig     (if (string? phone-orig) phone-orig (raw-input phone-obj))
+              phone-orig     (if (and (nil? phone-orig) (string? phone-number)) phone-number phone-orig)
+              phone-orig     (if (valid-input? phone-orig) phone-orig nil)
+              phone-number   (if (nil? phone-orig) (raw-input phone-number region-code) phone-orig)
               phone-number   (if (nil? phone-number) (format phone-obj nil ::format/national) phone-number) ;; fallback
               dialing-region (util/ns-infer "phone-number.region" dialing-region *inferred-namespaces*)
               add-dialing-fn (if (some? dst) identity
@@ -1293,15 +1307,14 @@
     ^String                      locale-specification
     ^clojure.lang.Keyword        dialing-region]
    (when-some-input phone-number
-     (let [locale          (l/locale locale-specification)
-           phone-obj       (number phone-number region-code)
-           region-from-obj (region phone-obj nil)
-           region-code     (if (nil? region-from-obj) region-code region-from-obj)
-           phone-number    (if (string? phone-number) phone-number (raw-input phone-obj))
+     (let [locale            (l/locale locale-specification)
+           phone-obj         (number phone-number region-code)
+           region-from-obj   (region phone-obj nil)
+           region-code       (if (nil? region-from-obj) region-code region-from-obj)
            [dialing-region
             dialing-derived
-            dialing-default] (calc-dialing-region region-code dialing-region)
-           dialing-region (util/ns-infer "phone-number.region" dialing-region *inferred-namespaces*)]
+            dialing-default] (calc-dialing-region region-code dialing-region phone-number)
+           dialing-region    (util/ns-infer "phone-number.region" dialing-region *inferred-namespaces*)]
        (->> #:phone-number
             {:region                      region-code
              :valid?                      (if (some? dialing-region)
