@@ -1179,6 +1179,7 @@
               phone-string   (if (valid-input? phone-string) phone-string nil)
               phone-number   (if (nil? phone-string) (raw-input phone-number region-code) phone-string)
               phone-number   (if (nil? phone-number) (format phone-obj nil ::format/national) phone-number) ;; fallback
+              dialing-region (util/ns-infer "phone-number.region" dialing-region *inferred-namespaces*)
               add-dialing-fn (if (some? dst) identity
                                  #(assoc
                                    %
@@ -1299,7 +1300,8 @@
            phone-number    (if (string? phone-number) phone-number (raw-input phone-obj))
            [dialing-region
             dialing-derived
-            dialing-default] (calc-dialing-region region-code dialing-region)           ]
+            dialing-default] (calc-dialing-region region-code dialing-region)
+           dialing-region (util/ns-infer "phone-number.region" dialing-region *inferred-namespaces*)]
        (->> #:phone-number
             {:region                      region-code
              :valid?                      (if (some? dialing-region)
