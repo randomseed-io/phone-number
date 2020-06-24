@@ -1171,7 +1171,7 @@
   [^phone_number.core.Phoneable    phone-number
    ^clojure.lang.Keyword           region-code
    ^clojure.lang.Keyword           dialing-region
-   ^String                         phone-orig
+   ^phone_number.core.Phoneable    phone-orig
    ^clojure.lang.PersistentHashMap dst]
   (when-some-input phone-number
     (let [phone-obj         (number-noraw phone-number region-code)
@@ -1188,10 +1188,10 @@
       (if-not (or sh-valid sh-possible)
         (build-map-fn :phone-number.short/possible? false
                       :phone-number.short/valid?    false)
-        (let [phone-orig     (if (string? phone-orig) phone-orig (raw-input phone-obj))
-              phone-orig     (if (and (nil? phone-orig) (string? phone-number)) phone-number phone-orig)
-              phone-orig     (if (valid-input? phone-orig) phone-orig nil)
-              phone-number   (if (nil? phone-orig) (raw-input phone-number region-code) phone-orig)
+        (let [phone-string   (if (string? phone-orig) phone-orig (raw-input phone-orig))
+              phone-string   (if (and (nil? phone-string) (string? phone-number)) phone-number phone-string)
+              phone-string   (if (valid-input? phone-string) phone-string nil)
+              phone-number   (if (nil? phone-string) (raw-input phone-number region-code) phone-string)
               phone-number   (if (nil? phone-number) (format phone-obj nil ::format/national) phone-number) ;; fallback
               dialing-region (util/ns-infer "phone-number.region" dialing-region *inferred-namespaces*)
               add-dialing-fn (if (some? dst) identity
