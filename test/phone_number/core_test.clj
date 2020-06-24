@@ -27,7 +27,7 @@
 (alter-var-root #'*default-dialing-region* (constantly :us))
 
 (facts "about `number`"
-       (fact "when it returns nil for nil"
+       (fact "when it returns nil for nil or empty"
              (number nil) => nil
              (number {})  => nil)
        (fact "when it returns PhoneNumber object for a string"
@@ -44,3 +44,11 @@
              (number 998)                                          => (throws AssertionError)
              (number "998")                                        => (throws NumberParseException)
              (number {:a 1})                                       =future=> (throws AssertionError)))
+
+(facts "about `info`"
+       (fact "when it returns nil for nil or empty"
+             (info nil) => nil
+             (info {})  => nil)
+       (fact "when it retains a dialing region when source is a map"
+             (:phone-number/dialing-region (info "112" :pl :pl :pl))        => :phone-number.region/pl
+             (:phone-number/dialing-region (info (info "112" :pl :pl :pl))) => :phone-number.region/pl))
