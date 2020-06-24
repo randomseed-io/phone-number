@@ -42,7 +42,7 @@
   *info-dialing-region-derived*
   "Decides whether some of the results of the info function should be calculated using
   dialing region code derived from the given region code if the dialing region was
-  not passed as an argument nor obtained from the *default-dialing-region* dynamic
+  not passed as an argument nor obtained from the `*default-dialing-region*` dynamic
   variable. Default is `true`."
   true)
 
@@ -51,7 +51,8 @@
        :tag Boolean}
   *default-dialing-region*
   "Sets a default dialing region (from where calls are originating) for functions that
-  accept default regions. Default is nil."
+  explicitly require dialing region code to be present (usually operating on short
+  numbers). Default is nil."
   nil)
 
 (def ^{:added "8.12.4-0"
@@ -194,7 +195,7 @@
 
    When 3 arguments are given the last one should be a source region code for which
    the test is performed. It only makes sense to use it when the calling code for a
-   number is not the same as the calling code for the region. If that argument is nil
+   number is not the same as the dialing code for the region. If that argument is nil
    then a value stored in the dynamic variable `*default-dialing-region*` will be
    used. If this value is also nil then the function will fall back to checking a
    number without any dialing region."))
@@ -1218,6 +1219,22 @@
   map or a `PhoneNumber` object) and returns a map containing all possible information
   about the number with keywords as keys.
 
+  Required keys:
+
+       :phone-number.short/valid?
+       :phone-number.short/possible?
+
+  Optional keys:
+
+       :phone-number.short/carrier-specific?
+       :phone-number.short/cost
+       :phone-number.short/emergency?
+       :phone-number.short/sms-service?
+       :phone-number.short/to-emergency?
+       :phone-number/dialing-region
+       :phone-number.dialing-region/derived?
+       :phone-number.dialing-region/defaulted?
+
   If the second argument is present then it should be a valid region code (a keyword)
   to be used when the given phone number does not contain region information. It is
   acceptable to pass nil as a value to tell the function that there is no explicit
@@ -1227,12 +1244,12 @@
   origination of a possible call. That hint will be used to restrict the check
   according to rules. For example 112 may be valid in multiple regions but if one
   calls it from some particular region it might not be reachable. When this argument
-  is missing and the dynamic variable `*info-dialing-region-derived*` is set to
-  truthy value (not nil and not `false`) then the dialing region will be derived from
-  a region code of the number. When this argument is missing and the mentioned
-  variable is falsy or when this argument is present but it is nil and the dynamic
-  variable `*default-dialing-region*` is not nil (in both cases) then its value will
-  be used to set the dialing region.
+  is missing or its value is nil and the dynamic variable `*default-dialing-region*`
+  is not nil then its value will be used to set the dialing region. If the dynamic
+  variable is also nil (which is the default) then the dynamic variable
+  `*info-dialing-region-derived*` is checked to be set to truthy value (not nil and
+  not `false`). If that is true then the dialing region will be derived from a region
+  code of the number.
 
   It is important to realize that certain properties of short numbers can only be
   successfully calculated if the unprocessed form of a number (a string or a natural
@@ -1253,17 +1270,43 @@
 (defn info
   "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
   object) and returns a map containing all possible information about the number with
-  keywords as keys. These include:
+  keywords as keys.
 
-  * validity (`:phone-number/valid?`)
-  * possibility of being a phone number (`:phone-number/possible?`),
-  * numerical calling code (`:phone-number/calling-code`),
-  * region code (`:phone-number/region`),
-  * type (`:phone-number/type`),
-  * approximate geographic location of the line (`:phone-number/location`),
-  * carrier information (`:phone-number/carrier`),
-  * time zones in most popular formats (`:phone-number.tz-format/` namespaced keys),
-  * all of the possible number formats (`:phone-number.format/` namespaced keys).
+  Required keys:
+
+      :phone-number/calling-code
+      :phone-number/geographical?
+      :phone-number/possible?
+      :phone-number/valid?
+      :phone-number/type
+      :phone-number.short/valid?
+      :phone-number.short/possible?
+
+  Optional keys:
+
+      :phone-number/region
+      :phone-number/location
+      :phone-number/carrier
+      :phone-number/dialing-region
+      :phone-number.dialing-region/derived?
+      :phone-number.dialing-region/defaulted?
+      :phone-number.format/e164
+      :phone-number.format/international
+      :phone-number.format/national
+      :phone-number.format/rfc3966
+      :phone-number.format/raw-input
+      :phone-number.tz-format/narrow-global
+      :phone-number.tz-format/full
+      :phone-number.tz-format/short
+      :phone-number.tz-format/narrow
+      :phone-number.tz-format/full-global
+      :phone-number.tz-format/short-global
+      :phone-number.tz-format/id
+      :phone-number.short/carrier-specific?
+      :phone-number.short/cost
+      :phone-number.short/emergency?
+      :phone-number.short/sms-service?
+      :phone-number.short/to-emergency?
 
   Keys with nil values assigned will be removed from the map unless the dynamic
   variable `*info-removed-nils*` is bound to false.
@@ -1281,12 +1324,12 @@
   If there are four arguments then the last one should be a dialing region code
   intended to be used with short numbers (like 112 etc.). It describes originating
   region to help validate the possibility of reaching the destination number. When
-  this argument is missing and the dynamic variable `*info-dialing-region-derived*`
-  is set to truthy value (not nil and not `false`) then the dialing region will be
-  derived from a region code of the number. When this argument is missing and the
-  mentioned variable is falsy or when this argument is present but it is nil and the
-  dynamic variable `*default-dialing-region*` is not nil (in both cases) then its
-  value will be used to set the dialing region.
+  this argument is missing or its value is nil and the dynamic variable
+  `*default-dialing-region*` is not nil then its value will be used to set the
+  dialing region. If the dynamic variable is also nil (which is the default) then the
+  dynamic variable `*info-dialing-region-derived*` is checked to be set to truthy
+  value (not nil and not `false`). If that is true then the dialing region will be
+  derived from a region code of the number.
 
   It is important to realize that certain properties of short numbers can only be
   successfully calculated if the unprocessed form of a number (a string or a natural
