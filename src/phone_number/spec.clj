@@ -355,8 +355,9 @@
 (s/def :phone-number.short/carrier-specific?       boolean?)
 (s/def :phone-number/valid-for-region?             boolean?)
 (s/def :phone-number/geographical?                 boolean?)
-(s/def :phone-number/dialing-region-derived?       boolean?)
-(s/def :phone-number/dialing-region-defaulted?     boolean?)
+(s/def :phone-number.dialing-region/derived?       boolean?)
+(s/def :phone-number.dialing-region/defaulted?     boolean?)
+(s/def :phone-number.dialing-region/valid-for?     boolean?)
 (s/def :phone-number/dialing-region-default        (s/nilable :phone-number/region))
 (s/def :phone-number/location                      (s/nilable string?))
 (s/def :phone-number/carrier                       (s/nilable string?))
@@ -381,7 +382,10 @@
                 :phone-number.short/cost
                 :phone-number.short/emergency?
                 :phone-number.short/sms-service?
-                :phone-number.short/to-emergency?]))
+                :phone-number.short/to-emergency?
+                :phone-number/dialing-region
+                :phone-number.dialing-region/derived?
+                :phone-number.dialing-region/defaulted?]))
 
 (def info-keys
   (s/keys :req [:phone-number/calling-code
@@ -395,8 +399,9 @@
                 :phone-number/location
                 :phone-number/carrier
                 :phone-number/dialing-region
-                :phone-number/dialing-region-derived?
-                :phone-number/dialing-region-defaulted?
+                :phone-number.dialing-region/valid-for?
+                :phone-number.dialing-region/derived?
+                :phone-number.dialing-region/defaulted?
                 :phone-number.format/e164
                 :phone-number.format/international
                 :phone-number.format/national
@@ -409,8 +414,6 @@
                 :phone-number.tz-format/full-global
                 :phone-number.tz-format/short-global
                 :phone-number.tz-format/id
-                :phone-number.short/dialing-region
-                :phone-number.short/dialing-region-derived?
                 :phone-number.short/carrier-specific?
                 :phone-number.short/cost
                 :phone-number.short/emergency?
