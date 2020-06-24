@@ -2,7 +2,8 @@
 
     ^{:doc    "Public specs of phone-number library."
       :author "Paweł Wilk"
-      :added  "8.12.4-0"}
+      :added  "8.12.4-0"
+      :no-doc true}
 
     phone-number.spec
 
@@ -352,11 +353,11 @@
 (s/def :phone-number.short/to-emergency?           (s/nilable boolean?))
 (s/def :phone-number.short/sms-service?            boolean?)
 (s/def :phone-number.short/carrier-specific?       boolean?)
-(s/def :phone-number.short/dialing-region-derived? boolean?)
-(s/def :phone-number.short/dialing-region          (s/nilable :phone-number/region))
 (s/def :phone-number/valid-for-region?             boolean?)
 (s/def :phone-number/geographical?                 boolean?)
 (s/def :phone-number/dialing-region-derived?       boolean?)
+(s/def :phone-number/dialing-region-defaulted?     boolean?)
+(s/def :phone-number/dialing-region-default        (s/nilable :phone-number/region))
 (s/def :phone-number/location                      (s/nilable string?))
 (s/def :phone-number/carrier                       (s/nilable string?))
 (s/def :phone-number/dialing-region                (s/nilable :phone-number/region))
@@ -376,9 +377,7 @@
 (def short-info-keys
   (s/keys :req [:phone-number.short/valid?
                 :phone-number.short/possible?]
-          :opt [:phone-number.short/dialing-region
-                :phone-number.short/dialing-region-derived?
-                :phone-number.short/carrier-specific?
+          :opt [:phone-number.short/carrier-specific?
                 :phone-number.short/cost
                 :phone-number.short/emergency?
                 :phone-number.short/sms-service?
@@ -397,6 +396,7 @@
                 :phone-number/carrier
                 :phone-number/dialing-region
                 :phone-number/dialing-region-derived?
+                :phone-number/dialing-region-defaulted?
                 :phone-number.format/e164
                 :phone-number.format/international
                 :phone-number.format/national
