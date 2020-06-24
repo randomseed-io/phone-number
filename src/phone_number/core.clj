@@ -42,7 +42,8 @@
   *info-dialing-region-derived*
   "Decides whether some of the results of the info function should be calculated using
   dialing region code derived from the given region code if the dialing region was
-  not passed as an argument. Default is `true`."
+  not passed as an argument nor obtained from the *default-dialing-region* dynamic
+  variable. Default is `true`."
   true)
 
 (def ^{:added "8.12.4-1"
