@@ -202,10 +202,6 @@
 ;; Protocol helpers
 ;;
 
-(defn- ^clojure.lang.Keyword prep-dialing-region
-  [^clojure.lang.Keyword region-code]
-  (if (nil? region-code) *default-dialing-region* region-code))
-
 (defn- inf-get
   {:added "8.12.4-0"}
   ([^clojure.lang.IPersistentMap coll
@@ -233,6 +229,22 @@
 (def ^{:added "8.12.4-1" :tag clojure.lang.LazySeq :private true}
   regional-formats-simple
   (map (comp keyword name) format/regional))
+
+(defn- ^clojure.lang.Keyword prep-dialing-region
+  ([^clojure.lang.Keyword region-code]
+   (if (nil? region-code) *default-dialing-region* region-code))
+  ([^clojure.lang.Keyword region-code
+    ^phone_number.core.Phoneable phone-number]
+   (if (nil? region-code)
+     (if (map? phone-number)
+       (inf-get phone-number :phone-number/dialing-region *default-dialing-region*)
+       *default-dialing-region*)
+     (if (and (map? phone-number) (inf-contains? phone-number :phone-unmber/dialing-region))
+       (if (or (inf-get phone-number :phone-number.dialing-region/derived?   false)
+               (inf-get phone-number :phone-number.dialing-region/defaulted? false))
+         region-code
+         (inf-get phone-number :phone-number/dialing-region *default-dialing-region*))
+       region-code))))
 
 (defn- phoneable-map-apply
   "Tries to apply the given function to a phone number obtained from a map using known
@@ -904,7 +916,7 @@
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
     ^clojure.lang.Keyword        dialing-region]
-   (let [dialing-region (prep-dialing-region dialing-region)]
+   (let [dialing-region (prep-dialing-region dialing-region phone-number)]
      (if (nil? dialing-region)
        (short-possible? phone-number region-code)
        (util/try-parse-or-false
@@ -944,7 +956,7 @@
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
     ^clojure.lang.Keyword        dialing-region]
-   (let [dialing-region (prep-dialing-region dialing-region)]
+   (let [dialing-region (prep-dialing-region dialing-region phone-number)]
      (if (nil? dialing-region)
        (short-valid? phone-number region-code)
        (util/try-parse-or-false
@@ -993,7 +1005,7 @@
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
     ^clojure.lang.Keyword        dialing-region]
-   (let [dialing-region (prep-dialing-region dialing-region)]
+   (let [dialing-region (prep-dialing-region dialing-region phone-number)]
      (if (nil? dialing-region)
        (short-cost phone-number region-code)
        (when-some-input phone-number
@@ -1079,7 +1091,7 @@
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
     ^clojure.lang.Keyword        dialing-region]
-   (let [dialing-region (prep-dialing-region dialing-region)]
+   (let [dialing-region (prep-dialing-region dialing-region phone-number)]
      (if (nil? dialing-region)
        (short-carrier-specific? phone-number region-code)
        (util/try-parse-or-false
@@ -1101,14 +1113,14 @@
   numbers are tested."
   {:added "8.12.4-0" :tag Boolean}
   ([^phone_number.core.Phoneable phone-number]
-   (short-sms-service? phone-number nil nil))
+   (short-sms-service? phone-number nil (prep-dialing-region nil phone-number)))
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code]
-   (short-sms-service? phone-number region-code nil))
+   (short-sms-service? phone-number region-code (prep-dialing-region nil phone-number)))
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
     ^clojure.lang.Keyword        dialing-region]
-   (let [dialing-region (prep-dialing-region dialing-region)]
+   (let [dialing-region (prep-dialing-region dialing-region phone-number)]
      (assert (region/valid? dialing-region *inferred-namespaces*)
              "Dialing region code must be valid and not nil")
      (util/try-parse-or-false
@@ -1137,7 +1149,7 @@
       [*default-dialing-region* false true]
       (if (and (false? dialing-region) (some? region-code))
         [region-code true false]
-        [dialing-region nil nil]))))
+        [nil nil nil]))))
 
 (defn- short-info-core
   "Internal short-info logic. Supports additional argument which should be string
