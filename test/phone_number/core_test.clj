@@ -51,7 +51,18 @@
              (info {})  => nil)
        (fact "when it retains dialing region when source is a map"
              (:phone-number/dialing-region (info "112" :pl :pl :pl))        => :phone-number.region/pl
-             (:phone-number/dialing-region (info (info "112" :pl :pl :pl))) => :phone-number.region/pl))
+             (:phone-number/dialing-region (info (info "112" :pl :pl :pl))) => :phone-number.region/pl)
+       (fact "when it is identical for long numbers when called twice"
+             (info (info "+448081570001"))                                  => (info "+448081570001")
+             (info (info "+448081570001" :gb))                              => (info "+448081570001" :gb)
+             (info (info "8081570001" :gb))                                 => (info "8081570001" :gb)
+             (info (info "8081570001" :gb :en) nil :en)                     => (info "8081570001" :gb :en)
+             (info (info "8081570001" :gb :en :gb) nil :en)                 => (info "8081570001" :gb :en :gb)
+             (info (info "8081570001" :gb :en) :gb :en :gb)                 => (info "8081570001" :gb :en :gb))
+       (fact "when it is identical for short numbers when called twice"
+             (info (info "112" :pl))                                        => (info "112" :pl)
+             (info (info "+48112" :pl))                                     => (info "+48112" :pl)
+             (info (info "112" :pl :en :pl))                                => (info "112" :pl :en :pl)))
 
 (facts "about `valid?`"
        (fact "when it validates correct numbers"
