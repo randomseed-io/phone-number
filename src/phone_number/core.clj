@@ -1072,9 +1072,9 @@
   code. Returns true if it is a carrier-specific number.
 
   When the third argument is present but it is nil and the dynamic variable
-  *default-dialing-region* is not nil then its value will be used to set the dialing
-  region. If this argument is nil and there is no default the binary variant of this
-  function is called (without a source region).
+  `*default-dialing-region*` is not nil then its value will be used to set the
+  dialing region. If this argument is nil and there is no default the binary variant
+  of this function is called (without a source region).
 
   It is important to realize that certain properties of short numbers can only be
   successfully calculated if the unprocessed form of a number (a string or a natural
