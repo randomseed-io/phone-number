@@ -273,40 +273,43 @@
                             (inf-get m :phone-number.dialing-region/defaulted? false))
                       more
                       (cons (inf-get m :phone-number/dialing-region) (rest more))))))
-         region-code    (if (some? region-code) region-code (inf-get m :phone-number/region))
-         number-obj     (inf-get m :phone-number/number)
-         region-code    (if (some? region-code) region-code (region number-obj nil))]
+         region-code  (if (some? region-code) region-code (inf-get m :phone-number/region))
+         number-obj   (inf-get m :phone-number/number)
+         region-code  (if (some? region-code) region-code (region number-obj nil))]
      ;; try phone number object
      (if (some? number-obj)
        (apply f number-obj region-code more)
        ;; try phone number info map
        (if (inf-contains? m :phone-number/info)
          (apply phoneable-map-apply f (inf-get m :phone-number/info) region-code more)
-         ;; try phone number formats without region code with region code we already have
-         (if-some [t (when (some? region-code) (some m format/regional))]
+         ;; try raw input
+         (if-some [t (inf-get m :phone-number.format/raw-input)]
            (apply f t region-code more)
-           ;; retry with simplified format key
-           (if-some [t (when (some? region-code) (when *inferred-namespaces* (some m regional-formats-simple)))]
+           ;; try phone number formats without region code + region code we already have
+           (if-some [t (when (some? region-code) (some m format/regional))]
              (apply f t region-code more)
-             ;; try phone number formats containing region code information
-             (if-some [t (some m format/global)]
+             ;; retry with simplified format key
+             (if-some [t (when (some? region-code) (when *inferred-namespaces* (some m regional-formats-simple)))]
                (apply f t region-code more)
-               (if-some [t (when *inferred-namespaces* (some m global-formats-simple))]
-                 (apply f t nil more)
-                 ;; try phone number formats without any region code information
-                 ;; obtain region from:
-                 ;; - calling code number (:phone-number/calling-code)
-                 ;; - different key (:phone-number/region or :region)
-                 ;; - region code passed as an argument (region-code)
-                 (let [c (inf-get m :phone-number/calling-code)
-                       r (if (some? c) nil (inf-get m :phone-number/region region-code))]
-                   (if (or (some? c) (some? r))
-                     (if-some [t (some m format/regional)]
-                       (if (some? c) (apply f (str "+" c t) nil more) (apply f t r more))
-                       (if-some [t (when *inferred-namespaces* (some m regional-formats-simple))]
-                         (if (some? c) (apply f (str "+" c t) nil more) (apply f t r more))
-                         (if (some? c) (apply f nil nil more) (apply f nil r more))))
-                     (apply f nil nil more))))))))))))
+               ;; try phone number formats containing region code information
+               (if-some [t (some m format/global)]
+                 (apply f t region-code more)
+                 (if-some [t (when *inferred-namespaces* (some m global-formats-simple))]
+                   (apply f t nil more)
+                   ;; try phone number formats without any region code information
+                   ;; obtain region from:
+                   ;; - calling code number (:phone-number/calling-code)
+                   ;; - different key (:phone-number/region or :region)
+                   ;; - region code passed as an argument (region-code)
+                   (let [c (inf-get m :phone-number/calling-code)
+                         r (if (some? c) nil (inf-get m :phone-number/region region-code))]
+                     (if (or (some? c) (some? r))
+                       (if-some [t (some m format/regional)]
+                         (if (some? c) (apply f (str "+" c t) region-code more) (apply f t r more))
+                         (if-some [t (when *inferred-namespaces* (some m regional-formats-simple))]
+                           (if (some? c) (apply f (str "+" c t) region-code more) (apply f t r more))
+                           (if (some? c) (apply f nil nil more) (apply f region-code r more))))
+                       (apply f nil nil more)))))))))))))
 
 ;;
 ;; Protocol implementation
