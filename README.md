@@ -1,4 +1,4 @@
-# phone-number – validation and inspection of phone numbers
+# Validation and inspection of phone numbers
 
 [![Phone-number on Clojars](https://img.shields.io/clojars/v/io.randomseed/phone-number.svg)](https://clojars.org/io.randomseed/phone-number)
 
@@ -34,6 +34,9 @@ Clojure library which uses Google's Libphonenumber to validate, inspect and gene
 (phone/info "+44 29 2018 3133")
 
 {:phone-number/country-code               44,
+ :phone-number/dialing-region             :phone-number.region/gb,
+ :phone-number.dialing-region/defaulted?  false,
+ :phone-number.dialing-region/derived?    true,
  :phone-number/geographical?              true,
  :phone-number/location                   "Cardiff",
  :phone-number/possible?                  true,
@@ -56,8 +59,11 @@ Clojure library which uses Google's Libphonenumber to validate, inspect and gene
 
 (phone/info "601 100 601" :pl :pl)
 
-{:phone-number/carrier                    "Plus",
- :phone-number/country-code               48,
+{:phone-number/country-code               48,
+ :phone-number/carrier                    "Plus",
+ :phone-number/dialing-region             :phone-number.region/pl,
+ :phone-number.dialing-region/defaulted?  false,
+ :phone-number.dialing-region/derived?    true,
  :phone-number/geographical?              false,
  :phone-number/location                   "Polska",
  :phone-number/possible?                  true,
@@ -75,9 +81,12 @@ Clojure library which uses Google's Libphonenumber to validate, inspect and gene
  :phone.number.short/possible?            false,
  :phone.number.short/valid?               false}
 
-(phone/info "8081 570001" :gb :phone-number.region/jp)
+(phone/info "8081 570001" :gb :en)
 
 {:phone-number/country-code               44,
+ :phone-number/dialing-region             :phone-number.region/gb,
+ :phone-number.dialing-region/defaulted?  false,
+ :phone-number.dialing-region/derived?    true,
  :phone-number/geographical?              false,
  :phone-number/possible?                  true,
  :phone-number/region                     :phone-number.region/gb,
@@ -147,18 +156,23 @@ phone/types
 ```clojure
 (phone/generate)
 
-{:phone-number/info {:phone-number/country-code         213,
-                     :phone-number/geographical?        false,
-                     :phone-number/possible?            true,
-                     :phone-number/region               :phone-number.region/dz,
-                     :phone-number/type                 :phone-number.type/unknown,
-                     :phone-number/valid?               false,
-                     :phone-number.format/e164          "+213181525997",
-                     :phone-number.format/international "+213 181525997",
-                     :phone-number.format/national      "181525997",
-                     :phone-number.format/rfc3966       "tel:+213-181525997",
-                     :phone.number.short/possible?      false,
-                     :phone.number.short/valid?         false},
+{:phone-number/info
+    {:phone-number/country-code              213,
+     :phone-number/geographical?             false,
+     :phone-number/possible?                 true,
+     :phone-number/region                    :phone-number.region/dz,
+     :phone-number/type                      :phone-number.type/unknown,
+     :phone-number/valid?                    false,
+     :phone-number/dialing-region            :phone-number.region/dz,
+     :phone-number.dialing-region/defaulted? false,
+     :phone-number.dialing-region/derived?   true,
+     :phone-number.dialing-region/valid-for? false,
+     :phone-number.format/e164               "+213181525997",
+     :phone-number.format/international      "+213 181525997",
+     :phone-number.format/national           "181525997",
+     :phone-number.format/rfc3966            "tel:+213-181525997",
+     :phone.number.short/possible?           false,
+     :phone.number.short/valid?              false},
  :phone-number/number #<com.google.i18n.phonenumbers.Phonenumber$PhoneNumber@3edea9e6>,
  :phone-number.sample/digits      ["+213" nil "181525997"],
  :phone-number.sample/hits        10,
@@ -209,14 +223,13 @@ For `deps.edn` add the following as an element of a map under `:deps` or
 io.randomseed/phone-number {:mvn/version "8.12.4-1"}
 ```
 
-Additionally you can use (in your development profile):
+Additionally, if you want to utilize specs and generators provided by the
+phone-number you can use (in your development profile):
 
 ```clojure
 org.clojure/spec.alpha {:mvn/version "0.2.176"}
 org.clojure/test.check {:mvn/version "0.10.0-alpha4"}
 ```
-
-If you want to utilize specs and generators provided by the phone-number.
 
 You can also download JAR from [Clojars](https://clojars.org/io.randomseed/phone-number).
 
