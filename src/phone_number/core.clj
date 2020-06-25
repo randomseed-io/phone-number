@@ -1326,6 +1326,12 @@
   value (not nil and not `false`). If that is true then the dialing region will be
   derived from a region code of the number.
 
+  The `:phone-number/valid?` key holds the return value of `valid?` function call
+  without any dialing region applied (even if it is passed as an argument or
+  extracted from a map given as input to the `info` function). There is also the
+  `:phone-number.dialing-region/valid-for?` key which holds the validity information
+  taking dialing region (passed, extracted or default) into account.
+
   It is important to realize that certain properties of short numbers can only be
   successfully calculated if the unprocessed form of a number (a string or a natural
   number) does not contain country code and so it is delivered as it would be
@@ -1810,15 +1816,13 @@
 (defn generate
   "Generates random phone number in a form of a map with the following keys:
 
-  * `:phone-number/number`      - a `PhoneNumber` object
-  * `:phone-number/info`        - a map with phone number information (evaluated on access)
-  * `:phone-number.sample/hits` - a number of valid hits encountered during sampling
-  * `:phone-number.sample/random-digits` - a number of ending digits which were randomly generated
-  * `:phone-number.sample/shrank-digits` - a number of ending digits which were removed due to shrinking
-  * `:phone-number.sample/nat-digits` - a number of digits of the used template without country code
-  * `:phone-number.sample/kept-digits` - a number of digits prevented from any mutations (static prefix)
+  * `:phone-number/number`        - a `PhoneNumber` object
+  * `:phone-number/info`          - a map with phone number information (evaluated on access)
+  * `:phone-number.sample/hits`   - a number of valid hits encountered during sampling
+  * `:phone-number.sample/digits` - a vector with used calling code prefix, template part and random part
   * `:phone-number.sample/max-samples` - a maximum number of samples declared
   * `:phone-number.sample/samples` - a number of samples processed before the result was formed
+  * `:phone-number.sample/random-seed` – random seed used to initialize pseudo-random generator
 
   It is important to note that the result may be valid or invalid phone number. To
   get only valid number pass the valid? predicate function as the third
