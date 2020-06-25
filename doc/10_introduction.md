@@ -10,14 +10,14 @@ To use phone-number in your project, add the following to dependencies section o
 `project.clj` or `build.boot`:
 
 ```clojure
-[io.randomseed/phone-number "8.12.4-0"]
+[io.randomseed/phone-number "8.12.4-1"]
 ```
 
 For `deps.edn` add the following as an element of a map under `:deps` or
 `:extra-deps` key:
 
 ```clojure
-io.randomseed/phone-number {:mvn/version "8.12.4-0"}
+io.randomseed/phone-number {:mvn/version "8.12.4-1"}
 ```
 
 You can also download JAR from
@@ -122,6 +122,10 @@ a map with most of the properties:
  :phone-number/location                   "Cardiff",
  :phone-number/possible?                  true,
  :phone-number/region                     :phone-number.region/gb,
+ :phone-number/dialing-region             :phone-number.region/gb,
+ :phone-number.dialing-region/inferred?   true,
+ :phone-number.dialing-region/defaulted?  false,
+ :phone-number.dialing-region/valid-for?  true,
  :phone-number/type                       :phone-number.type/fixed-line,
  :phone-number/valid?                     true,
  :phone-number.format/e164                "+442920183133",
@@ -152,6 +156,10 @@ region or calling code).
  :phone-number/geographical?              false,
  :phone-number/possible?                  true,
  :phone-number/region                     :phone-number.region/au,
+ :phone-number/dialing-region             :phone-number.region/au,
+ :phone-number.dialing-region/inferred?   true,
+ :phone-number.dialing-region/defaulted?  false,
+ :phone-number.dialing-region/valid-for?  true,
  :phone-number/type                       :phone-number.type/mobile,
  :phone-number/valid?                     true,
  :phone-number.format/e164                "+61491570006",
@@ -199,6 +207,10 @@ be converted to it (a string, a keyword, a symbol).
  :phone-number/geographical?              false,
  :phone-number/possible?                  true,
  :phone-number/region                     :phone-number.region/au,
+ :phone-number/dialing-region             :phone-number.region/au,
+ :phone-number.dialing-region/inferred?   true,
+ :phone-number.dialing-region/defaulted?  false,
+ :phone-number.dialing-region/valid-for?  true,
  :phone-number/type                       :phone-number.type/mobile,
  :phone-number/valid?                     true,
  :phone-number.format/e164                "+61491570006",
@@ -247,24 +259,28 @@ Short number example:
 
 (phone/info "997" :pl)
 
-{:phone-number/calling-code            48,
- :phone-number/geographical?           false,
- :phone-number/possible?               false,
- :phone-number/region                  :phone-number.region/pl,
- :phone-number/type                    :phone-number.type/unknown,
- :phone-number/valid?                  false,
- :phone-number.format/e164             "+48997",
- :phone-number.format/international    "+48 997",
- :phone-number.format/national         "997",
- :phone-number.format/raw-input        "997",
- :phone-number.format/rfc3966          "tel:+48-997",
- :phone-number.short/carrier-specific? false,
- :phone-number.short/cost              :phone-number.cost/toll-free,
- :phone-number.short/emergency?         true,
- :phone-number.short/possible?          true,
- :phone-number.short/sms-service?       false,
- :phone-number.short/to-emergency?      true,
- :phone-number.short/valid?             true}
+{:phone-number/calling-code             48,
+ :phone-number/geographical?            false,
+ :phone-number/possible?                false,
+ :phone-number/region                   :phone-number.region/pl,
+ :phone-number/dialing-region           :phone-number.region/pl,
+ :phone-number.dialing-region/inferred?  true,
+ :phone-number.dialing-region/defaulted? false,
+ :phone-number.dialing-region/valid-for? true,
+ :phone-number/type                      :phone-number.type/unknown,
+ :phone-number/valid?                    false,
+ :phone-number.format/e164               "+48997",
+ :phone-number.format/international      "+48 997",
+ :phone-number.format/national           "997",
+ :phone-number.format/raw-input          "997",
+ :phone-number.format/rfc3966            "tel:+48-997",
+ :phone-number.short/carrier-specific?   false,
+ :phone-number.short/cost                :phone-number.cost/toll-free,
+ :phone-number.short/emergency?           true,
+ :phone-number.short/possible?            true,
+ :phone-number.short/sms-service?         false,
+ :phone-number.short/to-emergency?        true,
+ :phone-number.short/valid?               true}
 ```
 
 ### Phone number types
@@ -307,6 +323,41 @@ example the region code `:pl` (or `phone-number.region/pl`) will be represented 
 It is possible to get all of the supported region codes with the
 [`phone-number.core/regions`](phone-number.core.html#var-regions) global variable.
 
+### Dialing region codes
+
+**Dialing region code** (a.k.a calling region code) is a region code that some of the
+functions use as a supplementary information to establish certain properties of
+a number. Semantically it describes **where** the call is made from (what is its
+origin).
+
+It is common to use dialing region when testing or validating short phone numbers
+since their properties depend on the originating region. For example the number `112`
+is a valid short number (see the `:phone-number.short/valid?` key in an info map)
+when dialed from Poland but not from USA.
+
+Dialing region codes may be passed directly to functions that make use of it (and
+that is the first and prioritized way to obtain this information) but they can also
+be taken from the global dynamic variable
+`phone-number.core/*default-dialing-region*`. If the phone number is in a form of
+a map with `:phone-number/dialing-region` key present then a value associated with it
+will be tried before (but only if this property is not derived nor defaulted).
+
+In case of `phone-number.core/info` and `phone-number.core/short-info` there is
+another source of getting a dialing region code which is by derivation from a region
+code of the number. It is tried when there is no dialing region passed as an
+argument, no default dialing region set and no dialing region read from a map (if
+a phone number is a map). The derivation is enabled by default but can be controlled
+using the `phone-number.core/*info-dialing-region-derived*` dynamic variable.
+
+The value of dialing region will affect all of the calculated properties of the
+checked number that depend on it but not the one returned by the
+`phone-number.core/valid?` function. In its case one have to use ternary variant for
+the dialing region to be taken into consideration (even passing `nil` to make the
+function use the default). The reason behind it is that it is very rare need to test
+a regular number for validity with a different dialing region. In the majority of
+cases the returned value will be `false` and it could be a potential point of failure
+(or misunderstanding), especially when some default dialing region is present.
+
 ### Calling codes
 
 **Calling code** is a prefix number used to create regional or global phone number
@@ -346,7 +397,8 @@ phone/formats
   :phone-number.format/international
   :phone-number.format/national
   :phone-number.format/raw-input
-  :phone-number.format/rfc3966}
+  :phone-number.format/rfc3966
+  :phone-number.format/raw-input}
 ```
 
 To get the phone number representation in a specific format use the
@@ -440,18 +492,22 @@ that make use of this function.
 
 (phone/generate)
 
-{:phone-number/info {:phone-number/country-code         213,
-                     :phone-number/geographical?        false,
-                     :phone-number/possible?            true,
-                     :phone-number/region               :phone-number.region/dz,
-                     :phone-number/type                 :phone-number.type/unknown,
-                     :phone-number/valid?               false,
-                     :phone-number.format/e164          "+213181525997",
-                     :phone-number.format/international "+213 181525997",
-                     :phone-number.format/national      "181525997",
-                     :phone-number.format/rfc3966       "tel:+213-181525997",
-                     :phone.number.short/possible?      false,
-                     :phone.number.short/valid?         false},
+{:phone-number/info {:phone-number/country-code              213,
+                     :phone-number/geographical?             false,
+                     :phone-number/possible?                 true,
+                     :phone-number/region                    :phone-number.region/dz,
+                     :phone-number/dialing-region            :phone-number.region/dz,
+                     :phone-number.dialing-region/inferred?  true,
+                     :phone-number.dialing-region/defaulted? false,
+                     :phone-number.dialing-region/valid-for? false,
+                     :phone-number/type                      :phone-number.type/unknown,
+                     :phone-number/valid?                    false,
+                     :phone-number.format/e164               "+213181525997",
+                     :phone-number.format/international      "+213 181525997",
+                     :phone-number.format/national           "181525997",
+                     :phone-number.format/rfc3966            "tel:+213-181525997",
+                     :phone.number.short/possible?           false,
+                     :phone.number.short/valid?              false},
  :phone-number/number             #<Phonenumber$PhoneNumber@3edea9e6>,
  :phone-number.sample/digits      ["+213" nil "181525997"],
  :phone-number.sample/hits        10,

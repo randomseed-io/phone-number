@@ -912,6 +912,9 @@
   present then it should be a valid region code (a keyword) to be used when the given
   phone number does not contain region information.
 
+  If the `default-dialing-region*` dynamic variable is set then it will be used as
+  a default dialing region if it is not passed as an argument.
+
   In its ternary form this function takes an additional argument (dialing-region)
   that should be a valid region code for the origination of a possible call. That
   hint will be used to restrict the check according to rules. For example 112 may be
@@ -947,6 +950,9 @@
   defined by Libphonenumber. Otherwise it returns false. If the second argument is
   present then it should be a valid region code (a keyword) to be used when the given
   phone number does not contain region information.
+
+  If the `default-dialing-region*` dynamic variable is set then it will be used as
+  a default dialing region if it is not passed as an argument.
 
   In its ternary form this function takes an additional argument (dialing-region)
   that should be a valid region code for the origination of a possible call. That
@@ -985,6 +991,9 @@
   when the given phone number does not contain region information. It is acceptable
   to pass nil as a value to tell the function that there is no explicit region
   information and it should extract it from a number.
+
+  If the `default-dialing-region*` dynamic variable is set then it will be used as
+  a default dialing region if it is not passed as an argument.
 
   If the third argument is present then it should be a valid region code for the
   origination of a possible call. That hint will be used to restrict the check
@@ -1071,10 +1080,8 @@
   `PhoneNumber` object), optional region code (or nil) and optional dialing region
   code. Returns true if it is a carrier-specific number.
 
-  When the third argument is present but it is nil and the dynamic variable
-  `*default-dialing-region*` is not nil then its value will be used to set the
-  dialing region. If this argument is nil and there is no default the binary variant
-  of this function is called (without a source region).
+  If the `default-dialing-region*` dynamic variable is set then it will be used as
+  a default dialing region if it is not passed as an argument.
 
   It is important to realize that certain properties of short numbers can only be
   successfully calculated if the unprocessed form of a number (a string or a natural
@@ -1106,6 +1113,9 @@
   `PhoneNumber` object), optional region code (or nil) and a dialing region
   code (uses `*default-dialing-code*` if not given). Returns true if SMS is
   supported, false otherwise.
+
+  If the `default-dialing-region*` dynamic variable is set then it will be used as
+  a default dialing region if it is not passed as an argument.
 
   It is important to realize that certain properties of short numbers can only be
   successfully calculated if the unprocessed form of a number (a string or a natural
@@ -1288,6 +1298,7 @@
       :phone-number/dialing-region
       :phone-number.dialing-region/derived?
       :phone-number.dialing-region/defaulted?
+      :phone-number.dialing-region/valid-for?
       :phone-number.format/e164
       :phone-number.format/international
       :phone-number.format/national
