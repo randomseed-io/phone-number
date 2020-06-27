@@ -782,7 +782,7 @@
    (location phone-number region-code nil))
   ([^phone_number.core.Phoneable    phone-number
     ^clojure.lang.Keyword           region-code
-    ^java.util.Locale               locale-specification]
+    ^clojure.lang.Keyword  locale-specification]
    (when-some-input phone-number
      (not-empty
       (.getDescriptionForNumber
@@ -832,7 +832,7 @@
    (carrier phone-number region-code nil))
   ([^phone_number.core.Phoneable   phone-number
     ^clojure.lang.Keyword          region-code
-    ^java.util.Locale              locale-specification]
+    ^clojure.lang.Keyword locale-specification]
    (when-some-input phone-number
      (not-empty
       (.getNameForNumber
@@ -873,7 +873,7 @@
    (time-zones phone-number region-code nil format-specification))
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
-    ^java.util.Locale            locale-specification
+    ^clojure.lang.Keyword        locale-specification
     ^clojure.lang.Keyword        format-specification]
    (let [l (l/locale locale-specification)
          f (tz-format/parse format-specification *inferred-namespaces*)]
@@ -905,7 +905,7 @@
    (time-zones-all-formats phone-number region-code nil))
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
-    ^java.util.Locale            locale-specification]
+    ^clojure.lang.Keyword        locale-specification]
    (when-some-input phone-number
      (let [p (number-noraw phone-number region-code)]
        (when (some? (time-zones p nil ::tz-format/id))
@@ -1637,8 +1637,8 @@
   object, automatically dereferenced when accessed due to lazy map structure used
   under the hood."
   {:added "8.12.4-0" :tag lazy_map.core.LazyMap}
-  [^java.util.Locale      locale-specification
-   ^clojure.lang.Keyword  dialing-region
+  [^java.util.Locale locale-specification
+   ^clojure.lang.Keyword dialing-region
    ^lazy_map.core.LazyMap m]
   (if-some [n (:phone-number/number m)]
     (assoc m
@@ -1690,11 +1690,11 @@
    (find-numbers text region-code false))
   ([^String               text
     ^clojure.lang.Keyword region-code
-    ^java.util.Locale     locale-specification]
+    ^clojure.lang.Keyword locale-specification]
    (find-numbers text region-code locale-specification false))
   ([^String               text
     ^clojure.lang.Keyword region-code
-    ^java.util.Locale     locale-specification
+    ^clojure.lang.Keyword locale-specification
     ^clojure.lang.Keyword dialing-region]
    (->> *inferred-namespaces*
         (region/parse region-code)
@@ -1948,14 +1948,14 @@
     ^clojure.lang.IFn     predicate
     ^Long                 retries
     ^Long                 min-digits
-    ^java.util.Locale     locale-specification]
+    ^clojure.lang.Keyword locale-specification]
    (generate region-code number-type predicate retries min-digits locale-specification nil false false))
   ([^clojure.lang.Keyword region-code
     ^clojure.lang.Keyword number-type
     ^clojure.lang.IFn     predicate
     ^Long                 retries
     ^Long                 min-digits
-    ^java.util.Locale     locale-specification
+    ^clojure.lang.Keyword locale-specification
     ^Long                 random-seed]
    (generate region-code number-type predicate retries min-digits locale-specification random-seed false false))
   ([^clojure.lang.Keyword region-code
@@ -1963,7 +1963,7 @@
     ^clojure.lang.IFn     predicate
     ^Long                 retries
     ^Long                 min-digits
-    ^java.util.Locale     locale-specification
+    ^clojure.lang.Keyword locale-specification
     ^Long                 random-seed
     ^Boolean              early-shrinking]
    (generate region-code number-type predicate retries min-digits locale-specification random-seed early-shrinking false))
@@ -1972,7 +1972,7 @@
     ^clojure.lang.IFn     predicate
     ^Long                 retries
     ^Long                 min-digits
-    ^java.util.Locale     locale-specification
+    ^clojure.lang.Keyword locale-specification
     ^Long                 random-seed
     ^Boolean              early-shrinking
     ^Boolean              preserve-raw]
