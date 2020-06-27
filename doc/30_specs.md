@@ -96,11 +96,11 @@ This page describes the generic specs. To use them just require `phone-number.sp
 |`:phone-number.arg/number`         | phone number (with calling code or without)           |
 
 Phone-number also contains specs for functions, however they are intended for testing
-and it is **NOT RECOMMENDED** to use instrumentation in production.
+and it is **NOT RECOMMENDED** to enable **instrumentation** in production.
 
 Please note that if you intend to use phone-number's specs in a program (not in
-phone-number's REPL) it's required to add proper dependencies since production
-profile of phone-number does not depend on spec library. Example, minimal `deps.edn`:
+phone-number's REPL) you should add proper dependencies since production profile of
+phone-number does not depend on spec nor test library. Example, minimal `deps.edn`:
 
 ``` clojure
 {:paths ["src" "resources"]
@@ -109,12 +109,12 @@ profile of phone-number does not depend on spec library. Example, minimal `deps.
 
  :aliases {
            :dev {
-                 :extra-deps {org.clojure/spec.alpha               {:mvn/version "0.2.176"}
-                              org.clojure/test.check               {:mvn/version "0.10.0"}}
+                 :extra-deps {org.clojure/spec.alpha  {:mvn/version "0.2.176"}
+                              org.clojure/test.check  {:mvn/version "0.10.0"}}
                  :extra-paths ["dev/src" "test"]
                  :jvm-opts ["-Dclojure.spec.compile-asserts=true"]}
 
            :test {
                   :extra-paths ["test"]
-                  :extra-deps {org.clojure/test.check               {:mvn/version "0.10.0"}}}}
+                  :extra-deps {org.clojure/test.check {:mvn/version "0.10.0"}}}}
 ```

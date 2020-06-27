@@ -4,7 +4,7 @@
 
 - Improvements:
     * Type-hinted `locale-specification` arguments as keywords
-    * Improved fetching the required data from phone numbers expressed as maps:
+    * Improved fetching of the required data from phone numbers expressed as maps:
       * `phone-number.core/raw-input`
       * `phone-number.core/valid-input?`
     * Changed from accepting phone numbers only as strings to polymorphic:
