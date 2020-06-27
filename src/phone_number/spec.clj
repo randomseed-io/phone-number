@@ -696,10 +696,11 @@
   :ret  (s/nilable ::pn/native))
 
 (s/fdef phone/raw-input
-  :args (s/or :nil        (s/cat :phone-number nil? :region-code (s/? (s/nilable :phone-number.arg/region)))
-              :arity-2    :phone-number.args/number.region
-              :arity-1    :phone-number.arg/number)
-  :ret  (s/nilable :phone-number/string))
+  :args (s/or :nil         (s/cat :phone-number nil? :region-code (s/? (s/nilable ::arg/region)))
+              :arity-2-nil (s/cat :number ::arg/number-regional :nil nil?)
+              :arity-2     ::args/number.region
+              :arity-1     ::arg/number)
+  :ret  (s/nilable ::pn/string))
 
 ;;
 ;; Core functions
