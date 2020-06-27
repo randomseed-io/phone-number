@@ -487,7 +487,7 @@
       (gen/elements util/available-locales-vec))))
 
 ;; Please note that a standalone regional number will be invalid
-;; This is just for abstract testing.
+;; This is just for abstract testing or raw input specific.
 
 (s/def :phone-number.arg/number
   (s/or :regional :phone-number.arg/number-regional
@@ -684,7 +684,9 @@
   :ret  (s/nilable :phone-number/native))
 
 (s/fdef phone/raw-input
-  :args :phone-number.args/number
+  :args (s/or :nil        (s/cat :phone-number nil? :region-code (s/? (s/nilable :phone-number.arg/region)))
+              :arity-2    :phone-number.args/number.region
+              :arity-1    :phone-number.arg/number)
   :ret  (s/nilable :phone-number/string))
 
 ;;
@@ -765,13 +767,11 @@
   :ret :phone-number/valid-for-region?)
 
 (s/fdef phone/short-to-emergency?
-  :args (s/or :regional :phone-number.args/string-regional.region
-              :global   :phone-number.args/string-global.region)
+  :args :phone-number.args/number
   :ret  :phone-number.short/to-emergency?)
 
 (s/fdef phone/short-emergency?
-  :args (s/or :regional :phone-number.args/string-regional.region
-              :global   :phone-number.args/string-global.region)
+  :args :phone-number.args/number
   :ret  :phone-number.short/emergency?)
 
 (s/fdef phone/short-possible?
