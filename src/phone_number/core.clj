@@ -540,6 +540,14 @@
   `(when (some? ~phone-num)
      ~@body))
 
+(defn- prep-raw-or-national+region
+  {:added "8.12.4-2" :tag clojure.lang.PersistentVector}
+  [^phone_number.core.Phoneable phone-number
+   ^clojure.lang.Keyword         region-code]
+  (let [region-code (if (nil? region-code) (region phone-number nil) region-code)]
+    [(or (raw-input phone-number) (format phone-number region-code ::format/national))
+     (region/parse region-code *inferred-namespaces*)]))
+
 ;;
 ;; Basic functions
 ;;
@@ -1037,46 +1045,52 @@
   true if it is exactly the emergency number. The second argument should be a valid
   region code (a keyword).
 
-  When the region-code argument is nil it returns nil.
-
   It is important to realize that certain properties of short numbers can only be
   successfully calculated if the unprocessed form of a number (a string or a natural
   number) does not contain country code and so it is delivered as it would be
   dialed. It is advised to pass a region code as the second argument when short
   numbers are tested."
-  {:added "8.12.4-0" :tag clojure.lang.Keyword}
-  ([^String                phone-number
-    ^clojure.lang.Keyword  region-code]
-   (when (some? region-code)
-     (util/try-parse-or-false
-      (when-some-input phone-number
+  {:added "8.12.4-0" :tag Boolean}
+  ([^phone_number.core.Phoneable phone-number]
+   (short-emergency? phone-number nil))
+  ([^phone_number.core.Phoneable phone-number
+    ^clojure.lang.Keyword         region-code]
+   (util/try-parse-or-false
+    (when-some-input phone-number
+      (let [[^String phone-string
+             ^String region-string] (prep-raw-or-national+region
+                                     phone-number
+                                     region-code)]
         (.isEmergencyNumber
          (util/short)
-         (str phone-number)
-         (region/parse region-code *inferred-namespaces*)))))))
+         phone-string
+         region-string))))))
 
 (defn short-to-emergency?
   "Takes a short (like an emergency) phone number (expressed as a string!) and returns
   true if it can be used to connect to emergency services. The second argument should
   be a valid region code (a keyword).
 
-  When the region-code argument is nil it returns nil.
-
   It is important to realize that certain properties of short numbers can only be
   successfully calculated if the unprocessed form of a number (a string or a natural
   number) does not contain country code and so it is delivered as it would be
   dialed. It is advised to pass a region code as the second argument when short
   numbers are tested."
-  {:added "8.12.4-0" :tag clojure.lang.Keyword}
-  ([^String                phone-number
-    ^clojure.lang.Keyword  region-code]
-   (when (some? region-code)
-     (util/try-parse-or-false
-      (when-some-input phone-number
+  {:added "8.12.4-0" :tag Boolean}
+  ([^phone_number.core.Phoneable phone-number]
+   (short-to-emergency? phone-number nil))
+  ([^phone_number.core.Phoneable phone-number
+    ^clojure.lang.Keyword         region-code]
+   (util/try-parse-or-false
+    (when-some-input phone-number
+      (let [[^String phone-string
+             ^String region-string] (prep-raw-or-national+region
+                                     phone-number
+                                     region-code)]
         (.connectsToEmergencyNumber
          (util/short)
-         (str phone-number)
-         (region/parse region-code *inferred-namespaces*)))))))
+         phone-string
+         region-string))))))
 
 (defn short-carrier-specific?
   "Takes a short phone number (expressed as a string, a number, a map or a
@@ -1360,13 +1374,13 @@
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code]
    (info phone-number region-code nil false))
-  ([^phone_number.core.Phoneable phone-number
-    ^clojure.lang.Keyword        region-code
-    ^String                      locale-specification]
+  ([^phone_number.core.Phoneable   phone-number
+    ^clojure.lang.Keyword           region-code
+    ^clojure.lang.Keyword  locale-specification]
    (info phone-number region-code locale-specification false))
   ([^phone_number.core.Phoneable phone-number
-    ^clojure.lang.Keyword        region-code
-    ^String                      locale-specification
+    ^clojure.lang.Keyword           region-code
+    ^clojure.lang.Keyword  locale-specification
     ^clojure.lang.Keyword        dialing-region]
    (when-some-input phone-number
      (let [locale            (l/locale locale-specification)
