@@ -4,7 +4,7 @@
   <groupId>io.randomseed</groupId>
   <artifactId>phone-number</artifactId>
   <packaging>jar</packaging>
-  <version>8.12.4-1</version>
+  <version>8.12.4-2</version>
   <name>phone-number</name>
   <description>Creation, validation and inspection of phone numbers</description>
   <url>https://randomseed.io/software/phone-number/</url>
@@ -17,7 +17,7 @@
   <scm>
     <connection>scm:git:git://github.com/randomseed-io/phone-number.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/randomseed-io/phone-number.git</developerConnection>
-    <tag>8.12.4-1</tag>
+    <tag>8.12.4-2</tag>
     <url>https://github.com/randomseed-io/phone-number/</url>
   </scm>
   <dependencies>

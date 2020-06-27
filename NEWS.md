@@ -1,5 +1,27 @@
 # History of phone-number releases
 
+## 8.12.4-2 (2020-06-27)
+
+- Improvements:
+    * Type-hinted `locale-specification` arguments as keywords
+    * Improved fetching the required data from phone numbers expressed as maps:
+      * `phone-number.core/raw-input`
+      * `phone-number.core/valid-input?`
+    * Changed from accepting phone numbers only as strings to polymorphic:
+      * `phone-number.core/short-emergency?`
+      * `phone-number.core/short-to-emergency?`
+    * Added namespaces and namespace aliases for shorter keywords notation:
+      * `phone-number`
+      * `phone-number.short`
+      * `phone-number.sample`
+      * `phone-number.dialing-region`
+      * `phone-number.arg` (specs only)
+      * `phone-number.args` (specs only)
+      * `phone-number.prop` (specs only)
+
+- Bug fixes:
+    * Fixed spec for `phone-number.core/raw-input`
+
 ## 8.12.4-1 (2020-06-24)
 
 - BREAKING CHANGES:
