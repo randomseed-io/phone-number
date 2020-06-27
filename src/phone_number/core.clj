@@ -447,10 +447,11 @@
   clojure.lang.IPersistentMap
   (valid-input?
     [phone-number]
-    (if (phoneable-map-apply (fn [p _] (valid-input? p))
-                             phone-number
-                             nil)
-      true false))
+    (or (valid-input? (inf-get phone-number :phone-number.format/raw-input))
+        (if (phoneable-map-apply (fn [p _] (valid-input? p))
+                                 phone-number
+                                 nil)
+          true false)))
   (number-noraw
     ([phone-number]
      (phoneable-map-apply number-noraw phone-number nil))
@@ -463,9 +464,11 @@
      (phoneable-map-apply number phone-number region-code)))
   (raw-input
     ([phone-number]
-     (phoneable-map-apply raw-input phone-number nil))
+     (or (inf-get phone-number :phone-number.format/raw-input)
+         (phoneable-map-apply raw-input phone-number nil)))
     ([phone-number ^clojure.lang.Keyword region-code]
-     (phoneable-map-apply raw-input phone-number region-code)))
+     (or (inf-get phone-number :phone-number.format/raw-input)
+         (phoneable-map-apply raw-input phone-number region-code))))
   (valid?
     ([phone-number]
      (phoneable-map-apply valid? phone-number nil))
