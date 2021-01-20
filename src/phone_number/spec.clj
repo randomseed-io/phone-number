@@ -732,7 +732,7 @@
   :ret  ::pn/location)
 
 (s/fdef phone/carrier
-  :args ::args/number+locale
+  :args ::args/number+locale-or-region
   :ret  ::pn/carrier)
 
 (s/fdef phone/format

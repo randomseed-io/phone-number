@@ -855,20 +855,38 @@
   object) and returns its possible carrier name as a string or nil if the carrier
   name happens to be empty.
 
-  If the second argument is present then it should be a valid region code (a keyword)
-  to be used when the given phone number does not contain region information. It is
+  If the second argument is present then it may be a valid region code (a keyword) to
+  be used when the given phone number does not contain region information. It is
   acceptable to pass nil as a value to tell the function that there is no explicit
   region information and it should extract it from a number.
 
   If the third argument is present then it should be a string specifying locale
   information or a `java.util.Locale` object. It will be used during rendering carrier
-  name. When nil is passed then the default locale settings will be used."
-  {:added "8.12.4-0" :tag String}
+  name. When nil is passed then the default locale settings will be used.
+
+  If there are 2 arguments and the second argument IS NOT fully-qualified keyword of
+  a valid region code it will be treated as a locale specification (without region
+  explicitly set). Using namespaced keyword is required to avoid ambiguity since
+  simple region codes and locale specs can be expressed using the very same
+  keywords."
+  {:added "8.12.4-0" :tag String
+   :arglists '([^phone_number.core.Phoneable phone-number]
+               [^phone_number.core.Phoneable phone-number
+                ^clojure.lang.Keyword        region-code]
+               [^phone_number.core.Phoneable phone-number
+                ^clojure.lang.Keyword        locale-specfication]
+               [^phone_number.core.Phoneable phone-number
+                ^clojure.lang.Keyword        region-code
+                ^clojure.lang.Keyword        locale-specfication])}
   ([^phone_number.core.Phoneable   phone-number]
    (carrier phone-number nil nil))
   ([^phone_number.core.Phoneable   phone-number
-    ^clojure.lang.Keyword          region-code]
-   (carrier phone-number region-code nil))
+    ^clojure.lang.Keyword          region-code-or-locale-spec]
+   (if (nil? region-code-or-locale-spec)
+     (carrier phone-number nil nil)
+     (if (region/valid? region-code-or-locale-spec false)
+       (carrier phone-number region-code-or-locale-spec nil)
+       (carrier phone-number nil region-code-or-locale-spec))))
   ([^phone_number.core.Phoneable   phone-number
     ^clojure.lang.Keyword          region-code
     ^clojure.lang.Keyword locale-specification]
