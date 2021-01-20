@@ -630,13 +630,30 @@
 
   If the second argument is present (and there are 3 arguments) then it should be a
   valid region code (a keyword) to be used when the given phone number does not
-  contain region information."
-  {:added "8.12.4-0" :tag String}
+  contain region information.
+
+  If there are 2 arguments and the second argument is a valid format specification it
+  will be used without setting the region. If the format specification doesn't look
+  like a valid format then it will be assumed it is a region code and format will be
+  set to a default."
+  {:added "8.12.4-0" :tag String
+   :arglists '([^phone_number.core.Phoneable phone-number]
+               [^phone_number.core.Phoneable phone-number
+                ^clojure.lang.Keyword        region-code]
+               [^phone_number.core.Phoneable phone-number
+                ^clojure.lang.Keyword        format-specfication]
+               [^phone_number.core.Phoneable phone-number
+                ^clojure.lang.Keyword        region-code
+                ^clojure.lang.Keyword        format-specfication])}
   ([^phone_number.core.Phoneable phone-number]
    (format phone-number nil format/default))
   ([^phone_number.core.Phoneable phone-number
-    ^clojure.lang.Keyword        region-code]
-   (format phone-number region-code format/default))
+    ^clojure.lang.Keyword        region-code-or-format-spec]
+   (if (nil? region-code-or-format-spec)
+     (format phone-number nil format/default)
+     (if (format/valid? region-code-or-format-spec *inferred-namespaces*)
+       (format phone-number nil region-code-or-format-spec)
+       (format phone-number region-code-or-format-spec format/default))))
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
     ^clojure.lang.Keyword        format-specification]

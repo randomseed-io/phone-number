@@ -407,7 +407,7 @@ To get the phone number representation in a specific format use the
 ```clojure
 (require '[phone-number.core :as phone])
 
-(phone/format "+442920183133" nil :rfc3966)
+(phone/format "+442920183133" :rfc3966)
 
 "tel:+44-29-2018-3133"
 ```

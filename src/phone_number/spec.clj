@@ -596,12 +596,13 @@
         :arity-1 ::arg/number-global))
 
 (s/def ::args/format
-  (s/or :nil        (s/cat :phone-number nil? :region-code (s/? (s/nilable ::arg/region)))
-        :arity-3-nr (s/cat :number-regional.region ::args/number-regional.region :format (s/nilable ::arg/format))
-        :arity-2-nr ::args/number-regional.region
-        :arity-3-ng (s/cat :number-global.region ::args/number-global.region :format (s/nilable ::arg/format))
-        :arity-2-ng ::args/number-global.region
-        :arity-1    ::arg/number-global))
+  (s/or :nil         (s/cat :phone-number nil? :region-code (s/? (s/nilable ::arg/region)))
+        :arity-3-nr  (s/cat :number-regional.region ::args/number-regional.region :format (s/nilable ::arg/format))
+        :arity-2-nr  ::args/number-regional.region
+        :arity-3-ng  (s/cat :number-global.region ::args/number-global.region :format (s/nilable ::arg/format))
+        :arity-2-ng  ::args/number-global.region
+        :arity-2-ngf (s/cat :number-global ::arg/number-global :format (s/? (s/nilable ::arg/format)))
+        :arity-1     ::arg/number-global))
 
 (s/def ::args/number+dialing-region
   (s/or :nil        (s/cat :phone-number           nil?
