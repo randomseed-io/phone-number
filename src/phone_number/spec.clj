@@ -625,16 +625,28 @@
         :arity-2-ng ::args/number-global.region
         :arity-1-ng ::arg/number-global))
 
+(s/def ::args/number+locale-or-region
+  (s/or :nil         (s/cat :phone-number           nil?
+                            :region-code            (s/? (s/nilable ::arg/region)))
+        :arity-3-nr  (s/cat :number-regional.region ::args/number-regional.region
+                            :locale                 (s/nilable ::arg/locale))
+        :arity-2-nr  ::args/number-regional.region
+        :arity-3-ng  (s/cat :number-global.region   ::args/number-global.region
+                            :locale                 (s/nilable ::arg/locale))
+        :arity-2-ng  ::args/number-global.region
+        :arity-2-ngl (s/cat :number-global ::arg/number-global :locale (s/? (s/nilable ::arg/locale)))
+        :arity-1     ::arg/number-global))
+
 (s/def ::args/number+locale
-  (s/or :nil        (s/cat :phone-number           nil?
-                           :region-code            (s/? (s/nilable ::arg/region)))
-        :arity-3-nr (s/cat :number-regional.region ::args/number-regional.region
-                           :locale                 (s/nilable ::arg/locale))
-        :arity-2-nr ::args/number-regional.region
-        :arity-3-ng (s/cat :number-global.region   ::args/number-global.region
-                           :locale                 (s/nilable ::arg/locale))
-        :arity-2-ng ::args/number-global.region
-        :arity-1    ::arg/number-global))
+  (s/or :nil         (s/cat :phone-number           nil?
+                            :region-code            (s/? (s/nilable ::arg/region)))
+        :arity-3-nr  (s/cat :number-regional.region ::args/number-regional.region
+                            :locale                 (s/nilable ::arg/locale))
+        :arity-2-nr  ::args/number-regional.region
+        :arity-3-ng  (s/cat :number-global.region   ::args/number-global.region
+                            :locale                 (s/nilable ::arg/locale))
+        :arity-2-ng  ::args/number-global.region
+        :arity-1     ::arg/number-global))
 
 (s/def ::args/number+tz+locale
   (s/or :nil        (s/cat :phone-number nil? :region-code (s/? (s/nilable ::arg/region)))
@@ -716,7 +728,7 @@
   :ret  (s/nilable ::pn/calling-code))
 
 (s/fdef phone/location
-  :args ::args/number+locale
+  :args ::args/number+locale-or-region
   :ret  ::pn/location)
 
 (s/fdef phone/carrier
