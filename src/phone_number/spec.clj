@@ -13,6 +13,7 @@
             [phone-number.type            :as           type]
             [phone-number.match           :as          match]
             [phone-number.format          :as         format]
+            [phone-number.leniency        :as       leniency]
             [phone-number.tz-format       :as      tz-format]
             [phone-number.region          :as         region]
             [phone-number.cost            :as           cost]
@@ -119,6 +120,17 @@
     #(gen/elements tz-format/all-vec)))
 
 (s/def ::arg/tz-format ::pn/tz-format)
+
+;;
+;; Phone number leniency specs
+;;
+
+(s/def ::pn/leniency
+  (s/with-gen
+    #(format/valid? % phone/*inferred-namespaces*)
+    #(gen/elements leniency/all-vec)))
+
+(s/def ::arg/leniency ::pn/leniency)
 
 ;;
 ;; Network calling code specs
