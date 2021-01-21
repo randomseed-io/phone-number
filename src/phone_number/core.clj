@@ -14,6 +14,7 @@
             [phone-number.match           :as          match]
             [phone-number.format          :as         format]
             [phone-number.tz-format       :as      tz-format]
+            [phone-number.leniency        :as       leniency]
             [phone-number.region          :as         region]
             [phone-number.cost            :as           cost]
             [phone-number.net-code        :as       net-code]
@@ -1694,19 +1695,14 @@
   automatically dereferenced when accessed due to lazy map structure used under the
   hood."
   {:added "8.12.4-0" :tag lazy_map.core.LazyMap}
-  [^java.util.Locale locale-specification
-   ^clojure.lang.Keyword dialing-region
+  [^clojure.lang.Keyword  locale-specification
+   ^clojure.lang.Keyword  dialing-region
    ^lazy_map.core.LazyMap m]
-  (if-some [n (::PN/number m)]
-    (assoc m
-           ::PN/info
-           (delay
-             (info
-              (::PN/number m)
-              nil
-              locale-specification
-              dialing-region)))
-    m))
+  (when-some [m (match/mapper m)]
+    (if (= locale-specification false) m
+        (if-some [n (::PN/number m)]
+          (assoc m ::PN/info (delay (info n nil locale-specification dialing-region)))
+          m))))
 
 (defn find-numbers
   "Searches for phone numbers in the given text. Returns a lazy sequence of maps where
@@ -1716,52 +1712,147 @@
   * `:phone-number.match/end`         - end index of a phone number substring
   * `:phone-number.match/raw-string`  - phone number substring
   * `:phone-number/number`            - phone number object
-  * `:phone-number/info`              - phone number properties map
+  * `:phone-number/info`              - optional info object (lazily evaluated)
 
   Phone number object is suitable to be used with majority of functions from
-  core. The info key is associated with a map holding all information rendered by
-  calling info function. This map is lazily evaluated (as a whole), meaning the info
-  function will be called when the value is accessed.
+  the core. It is a mutable Java object so be careful!
 
-  Optional, but highly recommended, second argument should be a region code to be
-  used as a hint when looking for numbers without any calling code prefix.
+  Optional but highly recommended `region-code` argument should be a region code to
+  be used as a hint when looking for numbers without any calling code prefix.
 
-  The third optional argument should be a locale specification (`java.util.Locale`
-  object or any other object that can initialize one, like a string with language
-  and/or dialect). It will be used to render a value associated with
-  the `:phone-number/info` key.
+  The `leniency` argument sets the matching leniency level during searching. Possible
+  levels are:
 
-  The last, optional argument should be a dialing region code. It will be passed to
-  the `info` function used to generate additional information about a number.  When
-  this argument is missing and the dynamic variable `*info-dialing-region-derived*`
-  is set to truthy value (not nil and not `false`) then the dialing region will be
-  derived from a region code of the number. When this argument is missing and the
-  mentioned variable is falsy or when this argument is present but it is nil and the
-  dynamic variable `*default-dialing-region*` is not nil (in both cases) then its
-  value will be used to set the dialing region."
-  {:added "8.12.4-0" :tag clojure.lang.LazySeq}
+  * `:phone-number.leniency/exact` – accepts valid phone numbers that are formatted
+  in a standard way (or as a single block)
+
+  * `:phone-number.leniency/possible` – accepts possible phone numbers (including
+  invalid ones)
+
+  * `:phone-number.leniency/strict` –accepts valid phone numbers that are possible
+  for the locale (and its formatting rules)
+
+  * `:phone-number.leniency/valid` – accepts possible AND valid phone numbers (this
+  is default)
+
+  If it's nil then it will be set to a default (`:phone-number.leniency/valid`).
+
+  The `max-tries` argument tells the searching engine to deliver only certain number
+  of matches. If it's not given then the maximum value of type `Long` will be used.
+
+  The `locale-specification` and `dialing-region` are not used during searching but
+  when the map under `:phone-number/info` key is generated. They are passed to the
+  `info` function. Note that setting `dialing-region` explicitly to nil will disable
+  it being derived from the detected region (yet it will still default to current
+  value of the `phone-number/*default-dialing-region*` if it's set) value. To
+  preserve default behaviour (derivation plus using the default from a dynamic
+  variable) and explicitly pass this argument, use `false`.
+
+  All keyword arguments except `locale-specification` (which can also be of other
+  type) are namespace inferred if `*inferred-namespace*` dynamic variable is set in
+  the calling context.
+
+  Some arities can have different variants (depending on the given arguments). It's
+  possible to detect when keywords describing different things are not
+  conflicting. The exception is when we have two final arguments which cannot be
+  easily distinguished without namespacing since they may have overlapping
+  values (like `:pl` as a dialing region and `:pl` as a locale specification). To use
+  shortened arity with them and allow function to properly detect what kind of data
+  it's dealing with, please use fully-qualified keywords to describe a dialing
+  region).
+
+  For the sake of efficiency it is possible to entirely disable generation of a map
+  under the `:phone-number/info` key. To do that just use arity with
+  `locale-specification` and set the value of this argument to `false`. For argument
+  values that you wish to be kept as default, use nil."
+  {:added "8.12.4-0" :tag clojure.lang.LazySeq
+   :arglists '([^String text]
+               [^String               text
+                ^clojure.lang.Keyword region-code]
+               [^String               text
+                ^clojure.lang.Keyword leniency]
+               [^String               text
+                ^clojure.lang.Keyword region-code
+                ^clojure.lang.Keyword leniency]
+               [^String               text
+                ^clojure.lang.Keyword region-code
+                ^long                 max-tries]
+               [^String               text
+                ^clojure.lang.Keyword leniency
+                ^long                 max-tries]
+               [^String               text
+                ^clojure.lang.Keyword region-code
+                ^clojure.lang.Keyword leniency
+                ^Long                 max-tries]
+               [^String               text
+                ^clojure.lang.Keyword region-code
+                ^clojure.lang.Keyword leniency
+                ^Long                 max-tries
+                ^clojure.lang.Keyword locale-specification]
+               [^String               text
+                ^clojure.lang.Keyword region-code
+                ^clojure.lang.Keyword leniency
+                ^Long                 max-tries
+                ^clojure.lang.Keyword dialing-region]
+               [^String               text
+                ^clojure.lang.Keyword region-code
+                ^clojure.lang.Keyword leniency
+                ^Long                 max-tries
+                ^clojure.lang.Keyword locale-specification
+                ^clojure.lang.Keyword dialing-region])}
+  ([]
+   nil)
   ([^String               text]
-   (find-numbers text nil false))
+   (find-numbers text nil nil nil nil false))
   ([^String               text
-    ^clojure.lang.Keyword region-code]
-   (find-numbers text region-code false))
+    ^clojure.lang.Keyword region-code-or-leniency]
+   (if (nil? region-code-or-leniency)
+     (find-numbers text nil nil nil nil false)
+     (if (leniency/valid? region-code-or-leniency *inferred-namespaces*)
+       (find-numbers text nil region-code-or-leniency nil nil false)
+       (find-numbers text region-code-or-leniency nil nil nil false))))
+  ([^String               text
+    ^clojure.lang.Keyword region-code-or-leniency
+    ^clojure.lang.Keyword leniency-or-max-tries]
+   (if (nil? leniency-or-max-tries)
+     (find-numbers text region-code-or-leniency)
+     (if (region/valid? region-code-or-leniency *inferred-namespaces*)
+       (if (leniency/valid? leniency-or-max-tries *inferred-namespaces*)
+         (find-numbers text region-code-or-leniency leniency-or-max-tries nil nil false)
+         (find-numbers text region-code-or-leniency nil leniency-or-max-tries nil false))
+       (if (leniency/valid? leniency-or-max-tries *inferred-namespaces*)
+         (find-numbers text nil leniency-or-max-tries nil nil false)
+         (find-numbers text nil nil leniency-or-max-tries nil false)))))
   ([^String               text
     ^clojure.lang.Keyword region-code
-    ^clojure.lang.Keyword locale-specification]
-   (find-numbers text region-code locale-specification false))
+    ^clojure.lang.Keyword leniency
+    ^long                 max-tries]
+   (find-numbers text region-code leniency max-tries nil false))
   ([^String               text
     ^clojure.lang.Keyword region-code
+    ^clojure.lang.Keyword leniency
+    ^Long                 max-tries
+    ^clojure.lang.Keyword locale-specification-or-dialing-region]
+   (if (nil? locale-specification-or-dialing-region)
+     (find-numbers text region-code leniency max-tries nil false)
+     (if (region/valid? locale-specification-or-dialing-region false)
+       (find-numbers text region-code leniency max-tries nil locale-specification-or-dialing-region)
+       (find-numbers text region-code leniency max-tries locale-specification-or-dialing-region false))))
+  ([^String               text
+    ^clojure.lang.Keyword region-code
+    ^clojure.lang.Keyword leniency
+    ^Long                 max-tries
     ^clojure.lang.Keyword locale-specification
     ^clojure.lang.Keyword dialing-region]
-   (->> *inferred-namespaces*
-        (region/parse region-code)
-        (.findNumbers (util/instance) text)
-        util/lazy-iterator-seq
-        (map (comp
-              (partial enrich-match
-                       (l/locale locale-specification)
-                       dialing-region)
-              match/mapper)))))
+   (when (some? text)
+     (->> (.findNumbers (util/instance)
+                        text
+                        (region/parse   region-code *inferred-namespaces*)
+                        (leniency/parse leniency    *inferred-namespaces*)
+                        (long (if (nil? max-tries) Long/MAX_VALUE max-tries)))
+          util/lazy-iterator-seq
+          (map #(enrich-match locale-specification dialing-region %))
+          seq))))
 
 ;;
 ;; Example numbers generation

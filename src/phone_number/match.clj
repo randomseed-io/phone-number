@@ -33,9 +33,11 @@
   {:added "8.12.4-0"
    :tag lazy_map.core.LazyMap}
   [^PhoneNumberMatch m]
-  (merge
-   (lazy-map #::{})
-   #::{:number      (.number    m)
-       :start       (.start     m)
-       :end         (.end       m)
-       :raw-string  (.rawString m)}))
+  (let [num (.number m)
+        num (locking num (if (.hasRawInput num) num (.setRawInput num (.rawString m))))]
+    (merge
+     (lazy-map #::{})
+     #::{:phone-number/number num
+         :start               (.start     m)
+         :end                 (.end       m)
+         :raw-string          (.rawString m)})))
