@@ -812,10 +812,10 @@
                [^phone_number.core.Phoneable phone-number
                 ^clojure.lang.Keyword        region-code]
                [^phone_number.core.Phoneable phone-number
-                ^clojure.lang.Keyword        locale-specfication]
+                ^clojure.lang.Keyword        locale-specification-FQ]
                [^phone_number.core.Phoneable phone-number
                 ^clojure.lang.Keyword        region-code
-                ^clojure.lang.Keyword        locale-specfication])}
+                ^clojure.lang.Keyword        locale-specification])}
   ([^phone_number.core.Phoneable    phone-number]
    (location phone-number nil nil))
   ([^phone_number.core.Phoneable    phone-number
