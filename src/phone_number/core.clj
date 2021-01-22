@@ -647,10 +647,10 @@
                [^phone_number.core.Phoneable phone-number
                 ^clojure.lang.Keyword        region-code]
                [^phone_number.core.Phoneable phone-number
-                ^clojure.lang.Keyword        format-specfication]
+                ^clojure.lang.Keyword        format-specification]
                [^phone_number.core.Phoneable phone-number
                 ^clojure.lang.Keyword        region-code
-                ^clojure.lang.Keyword        format-specfication])}
+                ^clojure.lang.Keyword        format-specification])}
   ([^phone_number.core.Phoneable phone-number]
    (format phone-number nil format/default))
   ([^phone_number.core.Phoneable phone-number
