@@ -128,7 +128,7 @@
 
 (s/def ::pn/leniency
   (s/with-gen
-    #(format/valid? % phone/*inferred-namespaces*)
+    #(leniency/valid? % phone/*inferred-namespaces*)
     #(gen/elements leniency/all-vec)))
 
 (s/def ::arg/leniency ::pn/leniency)
