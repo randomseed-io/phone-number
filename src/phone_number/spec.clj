@@ -13,6 +13,7 @@
             [phone-number.type            :as           type]
             [phone-number.match           :as          match]
             [phone-number.format          :as         format]
+            [phone-number.locale          :as         locale]
             [phone-number.leniency        :as       leniency]
             [phone-number.tz-format       :as      tz-format]
             [phone-number.region          :as         region]
@@ -502,13 +503,13 @@
 
 (s/def ::arg/locale
   (s/with-gen
-    (s/nilable util/valid-locale?)
+    #(locale/valid? % phone/*inferred-namespaces*)
     #(gen/fmap
       (gen/generate (gen/elements [identity
                                    (fn [l] (.getLanguage l))
                                    (comp keyword (fn [l] (.getLanguage l)))
                                    (constantly nil)]))
-      (gen/elements util/available-locales-vec))))
+      (gen/elements locale/by-val-vec))))
 
 ;; Please note that a standalone regional number will be invalid
 ;; This is just for abstract testing or raw input specific.
