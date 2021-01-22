@@ -1543,9 +1543,9 @@
     ^clojure.lang.Keyword          locale-spec-or-dialing-region]
    (if (nil? locale-spec-or-dialing-region)
      (info phone-number region-code nil false)
-     (if (locale/valid? locale-spec-or-dialing-region *inferred-namespaces*)
-       (info phone-number region-code locale-spec-or-dialing-region false)
-       (info phone-number region-code nil locale-spec-or-dialing-region))))
+     (if (region/valid? locale-spec-or-dialing-region false)
+       (info phone-number region-code nil locale-spec-or-dialing-region)
+       (info phone-number region-code locale-spec-or-dialing-region false))))
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
     ^clojure.lang.Keyword        locale-specification
@@ -1904,7 +1904,7 @@
                 ^clojure.lang.Keyword region-code
                 ^clojure.lang.Keyword leniency
                 ^Long                 max-tries
-                ^clojure.lang.Keyword dialing-region]
+                ^clojure.lang.Keyword dialing-region-FQ]
                [^String               text
                 ^clojure.lang.Keyword region-code
                 ^clojure.lang.Keyword leniency
