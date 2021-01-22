@@ -53,7 +53,7 @@
   (vec (keys by-val)))
 
 (defn valid?
-  "Returns `true` if the given locale specification is valid and supported, false
+  "Returns `true` if the given locale specification is valid and supported, `false`
   otherwise. For `nil` it returns `true` assuming it will be a default, system
   locale. If `strict` flag is set then for nil value it returns `false` and for
   keywords it only checks if they are in the locale
@@ -79,13 +79,14 @@
            (try (contains? by-val (l/locale locale-specification)) (catch Throwable e false)))))))
 
 (defn stricly-valid?
-  "Returns `true` if the given locale specification is valid and supported, false
+  "Returns `true` if the given locale specification is valid and supported, `false`
   otherwise. For `nil` it returns `false` and for keywords it only checks if they are
   in the locale map (`phone-number.locale/all`). If the key is not there, it returns
-  `false`. Namespace inference is supported using the second argument."
+  `false`. Namespace inference is supported using the second argument (the default is
+  not to infer)."
   {:added "8.12.4-3" :tag Boolean}
   ([^java.util.Locale locale-specification]
-   (valid? locale-specification true true))
+   (valid? locale-specification false true))
   ([^java.util.Locale locale-specification
     ^Boolean          use-infer]
    (valid? locale-specification use-infer true)))

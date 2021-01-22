@@ -807,7 +807,9 @@
   namespace set to `phone-number.locale`) then it will be treated as a **region
   code**. Using namespaced keyword for a locale (or using object other than keyword)
   is required to avoid ambiguity since simple region codes and locale specs can be
-  expressed using the very same keyword names."
+  expressed using the very same keyword names. Optionally (but a bad habit) you may
+  use simple keyword with locale and variant (e.g. `:pl_PL`) that will not match any
+  region but match locale object."
   {:added "8.12.4-0" :tag String
    :arglists '([^phone_number.core.Phoneable phone-number]
                [^phone_number.core.Phoneable phone-number
@@ -876,7 +878,9 @@
   namespace set to `phone-number.locale`) then it will be treated as a **region
   code**. Using namespaced keyword for a locale (or using object other than keyword)
   is required to avoid ambiguity since simple region codes and locale specs can be
-  expressed using the very same keyword names."
+  expressed using the very same keyword names. Optionally (but a bad habit) you may
+  use simple keyword with locale and variant (e.g. `:pl_PL`) that will not match any
+  region but match locale object."
   {:added "8.12.4-0" :tag String
    :arglists '([^phone_number.core.Phoneable phone-number]
                [^phone_number.core.Phoneable phone-number
@@ -954,10 +958,19 @@
   accordingly. If the given number is nil, invalid or time zone information is
   unavailable for it this function returns nil.
 
-  If the second argument is present then it should be a valid region code (a keyword)
-  to be used when the given phone number does not contain region information. It is
+  If the second argument is present then it may be a valid region code (a keyword) to
+  be used when the given phone number does not contain region information. It is
   possible to pass a nil value as this argument to ignore extra processing when
   region can be inferred from the number.
+
+  If there are 2 arguments and the second argument is a keyword but IS NOT a
+  **fully-qualified, valid locale specification** (`locale-specification-FQ` having
+  namespace set to `phone-number.locale`) then it will be treated as a **region
+  code**. Using namespaced keyword for a locale (or using object other than keyword)
+  is required to avoid ambiguity since simple region codes and locale specs can be
+  expressed using the very same keyword names. Optionally (but a bad habit) you may
+  use simple keyword with locale and variant (e.g. `:pl_PL`) that will not match any
+  region but match locale object.
 
   The third argument should be a Locale object or a string describing locale settings
   to be used when rendering locale-dependent time zone information. When there is no
@@ -1411,8 +1424,10 @@
 
   If the second argument is a locale specification (`locale-specification-FQ`) then
   it should be a **fully-qualified keyword** using `phone-number.locale`
-  namespace (or **object that is not a keyword**) in order to distinguish it from a
-  region code (which is favored as this argument).
+  namespace (or an **object that is not a keyword**) in order to distinguish it from
+  a region code (which is favored as this argument). Optionally (but a bad habit) you
+  may use simple keyword with locale and variant (e.g. `:pl_PL`) that will not match
+  any region but match locale object.
 
   If the third argument is present then it may be a string specifying locale
   information or a Locale object. It will be used during rendering strings describing
@@ -1785,8 +1800,8 @@
   The `locale-specification` and `dialing-region` are not used during searching but
   when the map under `:phone-number/info` key is generated. They are passed to the
   `info` function. Note that setting `dialing-region` explicitly to nil will disable
-  it being derived from the detected region (yet it will still default to current
-  value of the `phone-number/*default-dialing-region*` if it's set) value. To
+  it from being derived from the detected region (yet it will still default to
+  current value of the `phone-number/*default-dialing-region*` if it's set) value. To
   preserve default behaviour (derivation plus using the default from a dynamic
   variable) and explicitly pass this argument, use `false`.
 
@@ -1800,8 +1815,9 @@
   easily distinguished without namespacing since they may have overlapping
   values (like `:pl` as a dialing region and `:pl` as a locale specification). To use
   shortened arity with them and allow function to properly detect what kind of data
-  it's dealing with, please use fully-qualified keywords to describe a dialing
-  region).
+  it's dealing with, please use **fully-qualified keywords** to describe **a dialing
+  region**. Keyword without a proper namespace will be treated as locale
+  specification on this argument position.
 
   For the sake of efficiency it is possible to entirely disable generation of a map
   under the `:phone-number/info` key. To do that just use arity with
