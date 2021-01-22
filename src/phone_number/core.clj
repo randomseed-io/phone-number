@@ -913,33 +913,69 @@
 ;; Time zones
 ;;
 
+(defn- time-zones-core
+  {:added "8.12.4-3" :tag clojure.lang.LazySeq}
+  [^phone_number.core.Phoneable  phone-number
+   ^clojure.lang.Keyword         region-code]
+  (when-some-input phone-number
+    (->> region-code
+         (number-noraw phone-number)
+         (.getTimeZonesForNumber (util/time-zones-mapper))
+         util/lazy-iterator-seq
+         (remove none)
+         distinct
+         not-empty)))
+
 (defn time-zones
   "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
   object) and returns all possible time zones which relate to its geographical
   location as a lazy sequence of strings (representing zone identifiers in
   English). Returns nil if the list would be empty.
 
-  If the second argument is present then it should be a valid region code (a keyword)
-  to be used when the given phone number does not contain region information. It is
+  If the second argument is present then it may be a valid region code (a keyword) to
+  be used when the given phone number does not contain region information. It is
   acceptable to pass nil as a value to tell the function that there is no explicit
-  region information and it should extract it from a number."
-  {:added "8.12.4-0" :tag clojure.lang.LazySeq}
+  region information and it should extract it from a number. It may also be a format
+  specifier (also a keyword).
+
+  The third argument may be a format specification or a locale specification (both as
+  keywords).
+
+  If there are 4 arguments then the format specification should be the last and
+  locale specification should be last but one."
+  {:added "8.12.4-0" :tag clojure.lang.LazySeq
+   :arglists '([^phone_number.core.Phoneable phone-number]
+               [^phone_number.core.Phoneable phone-number
+                ^clojure.lang.Keyword        region-code]
+               [^phone_number.core.Phoneable phone-number
+                ^clojure.lang.Keyword        format-specification]
+               [^phone_number.core.Phoneable phone-number
+                ^clojure.lang.Keyword        region-code
+                ^clojure.lang.Keyword        format-specification]
+               [^phone_number.core.Phoneable phone-number
+                ^clojure.lang.Keyword        region-code
+                ^clojure.lang.Keyword        locale-specification]
+               [^phone_number.core.Phoneable phone-number
+                ^clojure.lang.Keyword        region-code
+                ^clojure.lang.Keyword        locale-specification
+                ^clojure.lang.Keyword        format-specification])}
   ([^phone_number.core.Phoneable  phone-number]
    (time-zones phone-number nil))
   ([^phone_number.core.Phoneable  phone-number
-    ^clojure.lang.Keyword         region-code]
-   (when-some-input phone-number
-     (->> region-code
-          (number-noraw phone-number)
-          (.getTimeZonesForNumber (util/time-zones-mapper))
-          util/lazy-iterator-seq
-          (remove none)
-          distinct
-          not-empty)))
+    ^clojure.lang.Keyword         region-code-or-format-spec]
+   (if (nil? region-code-or-format-spec)
+     (time-zones phone-number nil nil nil)
+     (if (tz-format/valid? region-code-or-format-spec *inferred-namespaces*)
+       (time-zones phone-number nil nil region-code-or-format-spec)
+       (time-zones phone-number region-code-or-format-spec nil nil))))
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
-    ^clojure.lang.Keyword        format-specification]
-   (time-zones phone-number region-code nil format-specification))
+    ^clojure.lang.Keyword        format-spec-or-locale-spec]
+   (if (nil? format-spec-or-locale-spec)
+     (time-zones phone-number region-code nil nil)
+     (if (tz-format/valid? format-spec-or-locale-spec *inferred-namespaces*)
+       (time-zones phone-number region-code nil format-spec-or-locale-spec)
+       (time-zones phone-number region-code format-spec-or-locale-spec nil))))
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
     ^clojure.lang.Keyword        locale-specification
@@ -975,12 +1011,24 @@
   The third argument should be a Locale object or a string describing locale settings
   to be used when rendering locale-dependent time zone information. When there is no
   third argument or it is nil then default locale settings will be used."
-  {:added "8.12.4-0" :tag clojure.lang.PersistentArrayMap}
+  {:added "8.12.4-0" :tag clojure.lang.PersistentArrayMap
+   :arglists '([^phone_number.core.Phoneable phone-number]
+               [^phone_number.core.Phoneable phone-number
+                ^clojure.lang.Keyword        region-code]
+               [^phone_number.core.Phoneable phone-number
+                ^clojure.lang.Keyword        locale-specification-FQ]
+               [^phone_number.core.Phoneable phone-number
+                ^clojure.lang.Keyword        region-code
+                ^clojure.lang.Keyword        locale-specification])}
   ([^phone_number.core.Phoneable phone-number]
    (time-zones-all-formats phone-number nil nil))
   ([^phone_number.core.Phoneable phone-number
-    ^clojure.lang.Keyword        region-code]
-   (time-zones-all-formats phone-number region-code nil))
+    ^clojure.lang.Keyword        region-code-or-locale-spec]
+   (if (nil? region-code-or-locale-spec)
+     (time-zones-all-formats phone-number nil nil)
+     (if (region/valid? region-code-or-locale-spec *inferred-namespaces*)
+       (time-zones-all-formats phone-number region-code-or-locale-spec nil)
+       (time-zones-all-formats phone-number nil region-code-or-locale-spec))))
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
     ^clojure.lang.Keyword        locale-specification]

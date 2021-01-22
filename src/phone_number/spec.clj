@@ -638,6 +638,17 @@
         :arity-2-ng ::args/number-global.region
         :arity-1-ng ::arg/number-global))
 
+(s/def ::args/number+locale
+  (s/or :nil         (s/cat :phone-number           nil?
+                            :region-code            (s/? (s/nilable ::arg/region)))
+        :arity-3-nr  (s/cat :number-regional.region ::args/number-regional.region
+                            :locale                 (s/nilable ::arg/locale))
+        :arity-2-nr  ::args/number-regional.region
+        :arity-3-ng  (s/cat :number-global.region   ::args/number-global.region
+                            :locale                 (s/nilable ::arg/locale))
+        :arity-2-ng  ::args/number-global.region
+        :arity-1     ::arg/number-global))
+
 (s/def ::args/number+locale-or-region
   (s/or :nil         (s/cat :phone-number           nil?
                             :region-code            (s/? (s/nilable ::arg/region)))
@@ -648,17 +659,6 @@
                             :locale                 (s/nilable ::arg/locale))
         :arity-2-ng  ::args/number-global.region
         :arity-2-ngl (s/cat :number-global ::arg/number-global :locale (s/? (s/nilable ::arg/locale)))
-        :arity-1     ::arg/number-global))
-
-(s/def ::args/number+locale
-  (s/or :nil         (s/cat :phone-number           nil?
-                            :region-code            (s/? (s/nilable ::arg/region)))
-        :arity-3-nr  (s/cat :number-regional.region ::args/number-regional.region
-                            :locale                 (s/nilable ::arg/locale))
-        :arity-2-nr  ::args/number-regional.region
-        :arity-3-ng  (s/cat :number-global.region   ::args/number-global.region
-                            :locale                 (s/nilable ::arg/locale))
-        :arity-2-ng  ::args/number-global.region
         :arity-1     ::arg/number-global))
 
 (s/def ::args/number+tz+locale
@@ -675,6 +675,28 @@
         :arity-3-ng (s/cat :number-global.region   ::args/number-global.region
                            :format                 (s/nilable ::arg/tz-format))
         :arity-2-ng ::args/number-global.region
+        :arity-1    ::arg/number-global))
+
+(s/def ::args/number+tz+locale-or-region
+  (s/or :nil        (s/cat :phone-number nil? :region-code (s/? (s/nilable (s/or :region ::arg/region :locale ::arg/locale))))
+        :arity-4-nr (s/cat :number-regional.region ::args/number-regional.region
+                           :locale                   (s/nilable ::arg/locale)
+                           :format                   (s/nilable ::arg/tz-format))
+        :arity-3-nr  (s/cat :number-regional.region  ::args/number-regional.region
+                            :format                  (s/nilable ::arg/tz-format))
+        :arity-3-nrl (s/cat :number-regional.region  ::args/number-regional.region
+                            :locale                  (s/nilable ::arg/locale))
+        :arity-2-nr  ::args/number-regional.region
+        :arity-4-ng  (s/cat :number-global.region    ::args/number-global.region
+                            :locale                  (s/nilable ::arg/locale)
+                            :format                  (s/nilable ::arg/tz-format))
+        :arity-3-ngf (s/cat :number-global.region    ::args/number-global.region
+                            :format                  (s/? (s/nilable ::arg/tz-format)))
+        :arity-3-ngl (s/cat :number-global.region    ::args/number-global.region
+                            :locale                  (s/nilable ::arg/locale))
+        :arity-2-ng  ::args/number-global.region
+        :arity-2-ngf (s/cat :number-global          ::arg/number-global
+                            :format                 (s/? (s/nilable ::arg/tz-format)))
         :arity-1    ::arg/number-global))
 
 (s/def ::args/number+locale+dialing-region
@@ -759,7 +781,7 @@
                               :min-count 1)))
 
 (s/fdef phone/time-zones-all-formats
-  :args ::args/number+locale
+  :args ::args/number+locale-or-region
   :ret  (s/nilable (s/map-of ::pn/tz-format
                              (s/coll-of string? :distinct true :min-count 1)
                              :conform-keys true
