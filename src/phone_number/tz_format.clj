@@ -51,9 +51,9 @@
    (contains? all (util/ns-infer "phone-number.tz-format" tz-format use-infer))))
 
 (defn transform
-  "For the given Locale object and TextStyle object renders a string describing a time
-  zone identifier (given as a string) passed as the first argument. If the style is nil
-  then the original zone-id object is returned."
+  "For the given `Locale` object and `TextStyle` object renders a string describing a
+  time zone identifier (given as a string) passed as the first argument. If the style
+  is nil then the original object passed as a `zone-id` argument is returned."
   {:added "8.12.4-0"
    :tag String}
   [^String           zone-id
