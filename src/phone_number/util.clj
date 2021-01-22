@@ -238,21 +238,19 @@
   [& ranges]
   (set (mapcat #(map char (range (byte (first %)) (inc (byte (second %))))) ranges)))
 
-(def ^{:added "8.12.4-1" :tag clojure.lang.IPersistentSet}
+(def ^{:added "8.12.4-1" :deprecated "8.12.4-3" :tag clojure.lang.IPersistentSet}
   available-locales
-  "Set of all available locales (of type java.util.Locale)."
+  "DEPRECATED: Please use `phone-number.locale/by-val-vec`."
   l/available-locales)
 
-(def ^{:added "8.12.4-1" :tag clojure.lang.IPersistentVector}
+(def ^{:added "8.12.4-1" :deprecated "8.12.4-3" :tag clojure.lang.IPersistentVector}
   available-locales-vec
-  "Vector of all available locales (of type java.util.Locale)."
+  "DEPRECATED: Please use `phone-number.locale/by-val-vec`."
   (vec available-locales))
 
 (defn valid-locale?
-  "Returns `true` if the given locale specification is valid and supported, false
-  otherwise. For `nil` it returns `true` assuming it will be a default, system
-  locale."
-  {:added "8.12.4-1" :tag Boolean}
+  "DEPRECATED: Please use `phone-number.locale/valid?`."
+  {:added "8.12.4-1" :deprecated "8.12.4-3" :tag Boolean}
   [^java.util.Locale locale-specification]
   (if (nil? locale-specification) true
       (try

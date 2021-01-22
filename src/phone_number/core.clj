@@ -133,7 +133,7 @@
   "A set of all possible phone number formats as a sequence of keywords."
   (set (keys format/all)))
 
-(def ^{:added "8.12.4-0" :tag clojure.lang.PersistentHashSet}
+(def ^{:added "8.12.4-3" :tag clojure.lang.PersistentHashSet}
   leniencies
   "A set of all possible phone number leniencies as a sequence of keywords."
   (set (keys leniency/all)))
