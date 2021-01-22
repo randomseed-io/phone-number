@@ -753,9 +753,9 @@
   :ret  (s/nilable ::prop/format))
 
 (s/fdef phone/time-zones
-  :args ::args/number+tz+locale
+  :args ::args/number+tz+locale-or-region
   :ret  (s/nilable (s/coll-of string?
-                              :distrinct true
+                              :distinct true
                               :min-count 1)))
 
 (s/fdef phone/time-zones-all-formats
