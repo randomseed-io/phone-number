@@ -678,7 +678,7 @@
         :arity-1    ::arg/number-global))
 
 (s/def ::args/number+tz+locale-or-region
-  (s/or :nil        (s/cat :phone-number nil? :region-code (s/? (s/nilable (s/or :region ::arg/region :locale ::arg/locale))))
+  (s/or :nil        (s/cat :phone-number nil? :other-args (s/? (s/nilable ::arg/region)))
         :arity-4-nr (s/cat :number-regional.region ::args/number-regional.region
                            :locale                   (s/nilable ::arg/locale)
                            :format                   (s/nilable ::arg/tz-format))

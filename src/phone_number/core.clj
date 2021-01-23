@@ -1920,25 +1920,31 @@
    (if (nil? region-code-or-leniency)
      (find-numbers text nil nil nil nil false)
      (if (leniency/valid? region-code-or-leniency *inferred-namespaces*)
-       (find-numbers text nil region-code-or-leniency nil nil false)
-       (find-numbers text region-code-or-leniency nil nil nil false))))
+       (find-numbers text nil region-code-or-leniency nil nil false)     ;; region code
+       (find-numbers text region-code-or-leniency nil nil nil false))))  ;; leniency
   ([^String               text
     ^clojure.lang.Keyword region-code-or-leniency
-    ^clojure.lang.Keyword leniency-or-max-tries]
-   (if (nil? leniency-or-max-tries)
+    ^clojure.lang.Keyword leniency-or-max-tries-or-locale-spec]
+   (if (nil? leniency-or-max-tries-or-locale-spec)
      (find-numbers text region-code-or-leniency)
      (if (region/valid? region-code-or-leniency *inferred-namespaces*)
-       (if (leniency/valid? leniency-or-max-tries *inferred-namespaces*)
-         (find-numbers text region-code-or-leniency leniency-or-max-tries nil nil false)
-         (find-numbers text region-code-or-leniency nil leniency-or-max-tries nil false))
-       (if (leniency/valid? leniency-or-max-tries *inferred-namespaces*)
-         (find-numbers text nil leniency-or-max-tries nil nil false)
-         (find-numbers text nil nil leniency-or-max-tries nil false)))))
+       (if (leniency/valid? leniency-or-max-tries-or-locale-spec *inferred-namespaces*)
+         (find-numbers text region-code-or-leniency leniency-or-max-tries-or-locale-spec nil nil false)         ;; region code, leniency
+         (if (number? leniency-or-max-tries-or-locale-spec)
+           (find-numbers text region-code-or-leniency nil leniency-or-max-tries-or-locale-spec nil false)       ;; region code, max-tries
+           (find-numbers text region-code-or-leniency nil nil leniency-or-max-tries-or-locale-spec false)))     ;; region code, locale spec
+       (if (number? leniency-or-max-tries-or-locale-spec)
+         (find-numbers text nil region-code-or-leniency leniency-or-max-tries-or-locale-spec nil false)         ;; leniency, max-tries
+         (find-numbers text nil region-code-or-leniency nil leniency-or-max-tries-or-locale-spec false))))) ;; leniency, locale spec
   ([^String               text
     ^clojure.lang.Keyword region-code
-    ^clojure.lang.Keyword leniency
-    ^long                 max-tries]
-   (find-numbers text region-code leniency max-tries nil false))
+    ^clojure.lang.Keyword leniency-or-locale-spec
+    ^Long                 max-tries-or-dialing-region]
+   (if (and                                    ; backward compatibility
+        (number? max-tries-or-dialing-region)
+        (leniency/valid? leniency-or-locale-spec *inferred-namespaces*))
+     (find-numbers text region-code leniency-or-locale-spec max-tries-or-dialing-region nil false)               ;; max-tries, leniency
+     (find-numbers text region-code nil  nil leniency-or-locale-spec max-tries-or-dialing-region)))              ;; locale spec, dialing region code
   ([^String               text
     ^clojure.lang.Keyword region-code
     ^clojure.lang.Keyword leniency
@@ -1947,8 +1953,8 @@
    (if (nil? locale-specification-or-dialing-region)
      (find-numbers text region-code leniency max-tries nil false)
      (if (region/valid? locale-specification-or-dialing-region false)
-       (find-numbers text region-code leniency max-tries nil locale-specification-or-dialing-region)
-       (find-numbers text region-code leniency max-tries locale-specification-or-dialing-region false))))
+       (find-numbers text region-code leniency max-tries nil locale-specification-or-dialing-region)             ;; dialing region code
+       (find-numbers text region-code leniency max-tries locale-specification-or-dialing-region false))))        ;; locale specification
   ([^String               text
     ^clojure.lang.Keyword region-code
     ^clojure.lang.Keyword leniency
