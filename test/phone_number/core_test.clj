@@ -9,14 +9,15 @@
 
   (:refer-clojure :exclude [format type])
 
-  (:require [clojure.spec.alpha      :as             s]
-            [midje.sweet             :refer       :all]
-            [midje.experimental      :refer  [for-all]]
-            [clojure.spec.gen.alpha  :as           gen]
-            [orchestra.spec.test     :as            st]
-            [phone-number.core       :refer       :all]
-            [phone-number.spec       :as          spec]
-            [expound.alpha           :as       expound])
+  (:require [clojure.spec.alpha      :as               s]
+            [midje.sweet             :refer         :all]
+            [midje.experimental      :refer    [for-all]]
+            [clojure.spec.gen.alpha  :as             gen]
+            [orchestra.spec.test     :as              st]
+            [phone-number            :as              PN]
+            [phone-number.core       :refer         :all]
+            [phone-number.spec       :as            spec]
+            [expound.alpha           :as         expound])
 
   (:import  [com.google.i18n.phonenumbers
              Phonenumber$PhoneNumber
@@ -25,6 +26,42 @@
 (s/check-asserts true)
 
 #_(alter-var-root #'*default-dialing-region* (constantly :us))
+
+(def text            "This is my number +448081570 001 Bye! 1a2b3c OK")
+(def found-number    {:phone-number/info (info "+448081570 001")
+                      :phone-number.match/raw-string "+448081570 001"
+                      :phone-number.match/start      18
+                      :phone-number.match/end        32})
+(def found-number-pl {:phone-number/info (info "+448081570 001" nil :pl)
+                      :phone-number.match/raw-string "+448081570 001"
+                      :phone-number.match/start      18
+                      :phone-number.match/end        32})
+(def found-number-en {:phone-number/info (info "+448081570 001" nil :en)
+                      :phone-number.match/raw-string "+448081570 001"
+                      :phone-number.match/start      18
+                      :phone-number.match/end        32})
+
+(def found-number-dial-de
+  {:phone-number/info (info "+448081570 001" nil nil :phone-number.region/de)
+   :phone-number.match/raw-string "+448081570 001"
+   :phone-number.match/start      18
+   :phone-number.match/end        32})
+
+(def found-number-en-dial-de
+  {:phone-number/info (info "+448081570 001" nil :en :phone-number.region/de)
+   :phone-number.match/raw-string "+448081570 001"
+   :phone-number.match/start      18
+   :phone-number.match/end        32})
+
+(def found-number-pl-dial-de
+  {:phone-number/info (info "+448081570 001" nil :pl :phone-number.region/de)
+   :phone-number.match/raw-string "+448081570 001"
+   :phone-number.match/start      18
+   :phone-number.match/end        32})
+
+(def find-number  (comp #(dissoc % :phone-number/number)
+                        (partial into {})
+                        first (partial find-numbers)))
 
 (facts "about `number`"
        (fact "when it returns nil for nil or empty"
@@ -86,3 +123,61 @@
              (valid? {:phone-number.format/e164 "+448081570001"
                       :phone-number/dialing-region :gb
                       :phone-number.dialing-region/derived? true} nil nil)  => false))
+
+(facts "about `find-numbers`"
+       (fact "when it finds single number in text"
+             (find-number text)                                 => found-number
+             (find-number text :gb)                             => found-number
+             (find-number text :pl)                             => found-number
+             (find-number text :valid)                          => found-number
+             (find-number text :phone-number.leniency/valid)    => found-number
+             (find-number text :exact)                          => {}
+             (find-number text :strict)                         => {}
+             (find-number text :gb :vaild)                      => found-number
+             (find-number text :gb :strict)                     => {}
+             (find-number text :gb :en)                         => found-number-en
+             (find-number text :gb :pl)                         => found-number-pl
+             (find-number text :gb :phone-number.locale/pl)     => found-number-pl
+             (find-number text :gb 2)                           => found-number
+             (find-number text :gb 0)                           => {}
+             (find-number text :valid 2)                        => found-number
+             (find-number text :valid 0)                        => {}
+             (find-number text :strict 2)                       => {}
+             (find-number text :strict 0)                       => {}
+             (find-number text :valid :pl)                      => found-number-pl
+             (find-number text :valid :en)                      => found-number-en
+             (find-number text :strict :pl)                     => {}
+             (find-number text :strict :en)                     => {}
+             (find-number text :gb :valid 2)                    => found-number
+             (find-number text :gb :strict 2)                   => {}
+             (find-number text :gb :valid 0)                    => {}
+             (find-number text :gb :strict 2)                   => {}
+             (find-number text :gb :strict 0)                   => {}
+             (find-number text :gb :en :de)                     => found-number-en-dial-de
+             (find-number text :gb :pl :de)                     => found-number-pl-dial-de
+             (find-number text :gb :phone-number.locale/pl :de) => found-number-pl-dial-de
+             (find-number text :gb :valid  2)                   => found-number
+             (find-number text :gb :strict 2 :pl)               => {}
+             (find-number text :gb :valid  0 :en)               => {}
+             (find-number text :gb :strict 2 :phone-number.locale/pl) => {}
+             (find-number text :gb :strict 0 :pl)               => {}
+             (find-number text :gb :valid  2 :pl)               => found-number-pl
+             (find-number text :gb :valid  2 :en)               => found-number-en
+             (find-number text :gb :strict 2 :phone-number.region/pl)     => {}
+             (find-number text :gb :valid  0 :phone-number.region/gb)     => {}
+             (find-number text :gb :strict 2 :phone-number.region/gb)     => {}
+             (find-number text :gb :strict 0 :phone-number.region/de)     => {}
+             (find-number text :gb :valid  2 :phone-number.region/de)     => found-number-dial-de
+             (find-number text :gb :valid  2 :phone-number.region/de)     => found-number-dial-de
+             (find-number text :gb :strict 2 :pl :phone-number.region/pl) => {}
+             (find-number text :gb :valid  0 :en :phone-number.region/gb) => {}
+             (find-number text :gb :strict 2 :phone-number.locale/pl :phone-number.region/gb) => {}
+             (find-number text :gb :strict 0 :pl :phone-number.region/de) => {}
+             (find-number text :gb :valid  2 :pl :phone-number.region/de) => found-number-pl-dial-de
+             (find-number text :gb :valid  2 :en :phone-number.region/de) => found-number-en-dial-de
+             (find-number text :gb :strict 2 :pl :pl) => {}
+             (find-number text :gb :valid  0 :en :gb) => {}
+             (find-number text :gb :strict 2 :phone-number.locale/pl :gb) => {}
+             (find-number text :gb :strict 0 :pl :de) => {}
+             (find-number text :gb :valid  2 :pl :de) => found-number-pl-dial-de
+             (find-number text :gb :valid  2 :en :de) => found-number-en-dial-de))
