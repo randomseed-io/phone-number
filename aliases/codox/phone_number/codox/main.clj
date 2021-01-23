@@ -2,13 +2,12 @@
   (:require [codox.main                      :as       c]
             [clojure.java.io                 :as      io]
             [clojure.edn                     :as     edn]
-            [clojure.tools.deps.alpha.reader :as       r]
-            [clojure.tools.deps.alpha        :as       d]
+            [clojure.tools.deps.alpha        :as    deps]
             [clojure.string                  :as     str]))
 
 (defn- read-deps
   []
-  (r/read-deps (r/default-deps)))
+  (:project-edn (deps/find-edn-maps)))
 
 (defn- get-options [deps & more]
   (let [key     (or (first more) :codox)
