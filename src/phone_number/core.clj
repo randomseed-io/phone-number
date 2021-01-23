@@ -663,8 +663,8 @@
    (if (nil? region-code-or-format-spec)
      (format phone-number nil format/default)
      (if (format/valid? region-code-or-format-spec *inferred-namespaces*)
-       (format phone-number nil region-code-or-format-spec)
-       (format phone-number region-code-or-format-spec format/default))))
+       (format phone-number nil region-code-or-format-spec)               ;; region code
+       (format phone-number region-code-or-format-spec format/default)))) ;; format spec
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
     ^clojure.lang.Keyword        format-specification]
@@ -831,8 +831,8 @@
    (if (nil? region-code-or-locale-spec)
      (location phone-number nil nil)
      (if (region/valid? region-code-or-locale-spec *inferred-namespaces*)
-       (location phone-number region-code-or-locale-spec nil)
-       (location phone-number nil region-code-or-locale-spec))))
+       (location phone-number region-code-or-locale-spec nil)     ;; region code
+       (location phone-number nil region-code-or-locale-spec))))  ;; locale spec
   ([^phone_number.core.Phoneable    phone-number
     ^clojure.lang.Keyword           region-code
     ^clojure.lang.Keyword  locale-specification]
@@ -902,8 +902,8 @@
    (if (nil? region-code-or-locale-spec)
      (carrier phone-number nil nil)
      (if (region/valid? region-code-or-locale-spec *inferred-namespaces*)
-       (carrier phone-number region-code-or-locale-spec nil)
-       (carrier phone-number nil region-code-or-locale-spec))))
+       (carrier phone-number region-code-or-locale-spec nil)    ;; region code
+       (carrier phone-number nil region-code-or-locale-spec)))) ;; locale spec
   ([^phone_number.core.Phoneable   phone-number
     ^clojure.lang.Keyword          region-code
     ^clojure.lang.Keyword locale-specification]
@@ -971,16 +971,16 @@
    (if (nil? region-code-or-format-spec)
      (time-zones phone-number nil nil nil)
      (if (tz-format/valid? region-code-or-format-spec *inferred-namespaces*)
-       (time-zones phone-number nil nil region-code-or-format-spec)
-       (time-zones phone-number region-code-or-format-spec nil nil))))
+       (time-zones phone-number nil nil region-code-or-format-spec)    ;; format spec
+       (time-zones phone-number region-code-or-format-spec nil nil)))) ;; region code
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
     ^clojure.lang.Keyword        format-spec-or-locale-spec]
    (if (nil? format-spec-or-locale-spec)
      (time-zones phone-number region-code nil nil)
      (if (tz-format/valid? format-spec-or-locale-spec *inferred-namespaces*)
-       (time-zones phone-number region-code nil format-spec-or-locale-spec)
-       (time-zones phone-number region-code format-spec-or-locale-spec nil))))
+       (time-zones phone-number region-code nil format-spec-or-locale-spec)    ;; format spec
+       (time-zones phone-number region-code format-spec-or-locale-spec nil)))) ;; region code
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
     ^clojure.lang.Keyword        locale-specification
@@ -1032,8 +1032,8 @@
    (if (nil? region-code-or-locale-spec)
      (time-zones-all-formats phone-number nil nil)
      (if (region/valid? region-code-or-locale-spec *inferred-namespaces*)
-       (time-zones-all-formats phone-number region-code-or-locale-spec nil)
-       (time-zones-all-formats phone-number nil region-code-or-locale-spec))))
+       (time-zones-all-formats phone-number region-code-or-locale-spec nil)    ;; region-code
+       (time-zones-all-formats phone-number nil region-code-or-locale-spec)))) ;; locale spec
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
     ^clojure.lang.Keyword        locale-specification]
@@ -1536,16 +1536,16 @@
    (if (nil? region-code-or-locale-spec)
      (info phone-number nil nil false)
      (if (region/valid? region-code-or-locale-spec *inferred-namespaces*)
-       (info phone-number region-code-or-locale-spec nil false)
-       (info phone-number nil region-code-or-locale-spec false))))
+       (info phone-number region-code-or-locale-spec nil false)               ;; region code
+       (info phone-number nil region-code-or-locale-spec false))))            ;; locale spec
   ([^phone_number.core.Phoneable   phone-number
     ^clojure.lang.Keyword          region-code
     ^clojure.lang.Keyword          locale-spec-or-dialing-region]
    (if (nil? locale-spec-or-dialing-region)
      (info phone-number region-code nil false)
      (if (region/valid? locale-spec-or-dialing-region false)
-       (info phone-number region-code nil locale-spec-or-dialing-region)
-       (info phone-number region-code locale-spec-or-dialing-region false))))
+       (info phone-number region-code nil locale-spec-or-dialing-region)       ;; dialing region code
+       (info phone-number region-code locale-spec-or-dialing-region false))))  ;; locale spec (favored)
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
     ^clojure.lang.Keyword        locale-specification
@@ -1887,14 +1887,24 @@
                 ^clojure.lang.Keyword leniency]
                [^String               text
                 ^clojure.lang.Keyword region-code
+                ^clojure.lang.Keyword locale-specification]
+               [^String               text
+                ^clojure.lang.Keyword region-code
                 ^long                 max-tries]
                [^String               text
                 ^clojure.lang.Keyword leniency
                 ^long                 max-tries]
+               [^String               text
+                ^clojure.lang.Keyword leniency
+                ^clojure.lang.Keyword locale-specification]
                [^String               text
                 ^clojure.lang.Keyword region-code
                 ^clojure.lang.Keyword leniency
                 ^Long                 max-tries]
+               [^String               text
+                ^clojure.lang.Keyword region-code
+                ^clojure.lang.Keyword locale-specification
+                ^Long                 dialing-region]
                [^String               text
                 ^clojure.lang.Keyword region-code
                 ^clojure.lang.Keyword leniency
