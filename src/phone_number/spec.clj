@@ -745,8 +745,8 @@
 
 (s/fdef phone/raw-input
   :args (s/or :nil         (s/cat :phone-number nil? :region-code (s/? (s/nilable ::arg/region)))
-              :arity-2-nil (s/cat :number ::arg/number-regional :nil nil?)
-              :arity-2     ::args/number.region
+              :arity-2-nr  (s/cat :number ::arg/number-regional :region-code (s/? (s/nilable ::arg/region)))
+              :arity-2-ng  (s/cat :number ::arg/number-global   :region-code (s/? (s/nilable ::arg/region)))
               :arity-1     ::arg/number)
   :ret  (s/nilable ::pn/string))
 
