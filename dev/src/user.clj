@@ -2,6 +2,7 @@
   (:require
    [clojure.spec.alpha           :as                s]
    [orchestra.spec.test          :as               st]
+   [clojure.spec.test.alpha      :as              cst]
    [clojure.spec.gen.alpha       :as              gen]
    [clojure.repl                 :refer          :all]
    [clojure.tools.namespace.repl :refer [refresh
@@ -39,10 +40,12 @@
 
 (defn test-all []
   (refresh)
-  (st/with-instrument-disabled (load-facts :print-facts)))
+  (cst/with-instrument-disabled
+    (binding [phone/*default-dialing-region* :phone-number.region/us]
+      (load-facts :print-facts))))
 
 (comment 
   (refresh-all)
-  (st/with-instrument-disabled (test-all))
-  (st/with-instrument-disabled (run-all))
+  (cst/with-instrument-disabled (test-all))
+  (cst/with-instrument-disabled (run-all))
   )

@@ -27,6 +27,11 @@
 
 #_(alter-var-root #'*default-dialing-region* (constantly :us))
 
+(defmacro with-dfl-dialing-reg
+  [& body]
+  `(binding [*default-dialing-region* :us]
+     ~@body))
+
 (def text            "This is my number +448081570 001 Bye! 1a2b3c OK")
 (def found-number    {:phone-number/info (info "+448081570 001")
                       :phone-number.match/raw-string "+448081570 001"
@@ -103,26 +108,29 @@
 
 (facts "about `valid?`"
        (fact "when it validates correct numbers"
-             (valid? "+448081570001")                                       => true
-             (valid? "+448081570001" nil)                                   => true
-             (valid? "+448081570001" nil nil)                               => false
-             (valid? "+448081570001" nil :gb)                               => true
-             (valid? "+448081570001" nil :pl)                               => false)
+             (valid? "+448081570001")                                        => true
+             (valid? "+448081570001" nil)                                    => true
+             (with-dfl-dialing-reg (valid? "+448081570001" nil nil))         => false
+             (valid? "+448081570001" nil :gb)                                => true
+             (valid? "+448081570001" nil :pl)                                => false)
        (fact "when it uses dialing region when source is a map (and up to 1 argument more)"
-             (valid? {:phone-number.format/e164 "+448081570001"})           => true
-             (valid? {:phone-number.format/e164 "+448081570001"} nil)       => true
+             (valid? {:phone-number.format/e164 "+448081570001"})            => true
+             (valid? {:phone-number.format/e164 "+448081570001"} nil)        => true
              (valid? {:phone-number.format/e164 "+448081570001"
                       :phone-number/dialing-region :gb
-                      :phone-number.dialing-region/derived? true})          => true)
+                      :phone-number.dialing-region/derived? true})           => true)
        (fact "when it uses dialing region when source is a map (and 2 more arguments)"
-             (valid? {:phone-number.format/e164 "+448081570001"} nil nil)   => false
-             (valid? {:phone-number.format/e164 "+448081570001"} nil :pl)   => false
-             (valid? {:phone-number.format/e164 "+448081570001"} nil :gb)   => true
-             (valid? {:phone-number.format/e164 "+448081570001"
-                      :phone-number/dialing-region :gb} nil nil)            => true
-             (valid? {:phone-number.format/e164 "+448081570001"
-                      :phone-number/dialing-region :gb
-                      :phone-number.dialing-region/derived? true} nil nil)  => false))
+             (with-dfl-dialing-reg
+               (valid? {:phone-number.format/e164 "+448081570001"} nil nil)) => false
+             (valid? {:phone-number.format/e164 "+448081570001"} nil :pl)    => false
+             (valid? {:phone-number.format/e164 "+448081570001"} nil :gb)    => true
+             (with-dfl-dialing-reg
+               (valid? {:phone-number.format/e164 "+448081570001"
+                        :phone-number/dialing-region :gb} nil nil))          => true
+             (with-dfl-dialing-reg
+               (valid? {:phone-number.format/e164 "+448081570001"
+                        :phone-number/dialing-region :gb
+                        :phone-number.dialing-region/derived? true} nil nil)) => false))
 
 (facts "about `find-numbers`"
        (fact "when it finds single number in text"
