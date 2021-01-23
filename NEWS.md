@@ -1,5 +1,21 @@
 # History of phone-number releases
 
+## 8.12.4-3 (2021-01-23)
+
+- Improvements:
+    * More relaxed arities (usually allowing to skip region code)
+    * Locale support moved to a separate file (with parsing and validation)
+    * Added leniency support (`phone-number/leniency`, `phone-number.core/leniencies`)
+    * Added leniency and max-tries support to `phone-number.core/find-numbers`
+    * Added tests for `phone-number.core/find-numbers`
+    * Specs updated to reflect changes
+    * Documentation updated
+
+- Bug fixes:
+    * Fixed typo in spec for `phone-number.core/time-zones` return value
+    * Fixed setting the default value of dialing region in `phone-number.core/info`
+      when main arity is called by other arities.
+
 ## 8.12.4-2 (2020-06-27)
 
 - Improvements:

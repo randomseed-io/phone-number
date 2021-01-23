@@ -10,14 +10,14 @@ To use phone-number in your project, add the following to dependencies section o
 `project.clj` or `build.boot`:
 
 ```clojure
-[io.randomseed/phone-number "8.12.4-2"]
+[io.randomseed/phone-number "8.12.4-3"]
 ```
 
 For `deps.edn` add the following as an element of a map under `:deps` or
 `:extra-deps` key:
 
 ```clojure
-io.randomseed/phone-number {:mvn/version "8.12.4-2"}
+io.randomseed/phone-number {:mvn/version "8.12.4-3"}
 ```
 
 You can also download JAR from
@@ -123,7 +123,7 @@ a map with most of the properties:
  :phone-number/possible?                  true,
  :phone-number/region                     :phone-number.region/gb,
  :phone-number/dialing-region             :phone-number.region/gb,
- :phone-number.dialing-region/inferred?   true,
+ :phone-number.dialing-region/derived?    true,
  :phone-number.dialing-region/defaulted?  false,
  :phone-number.dialing-region/valid-for?  true,
  :phone-number/type                       :phone-number.type/fixed-line,
@@ -149,7 +149,7 @@ region or calling code).
 ```clojure
 (require '[phone-number.core :as phone])
 
-(phone/info "0491 570 006" :au)
+(phone/info "0491 570 006" :phone-number.region/au)
 
 {:phone-number/calling-code               61,
  :phone-number/carrier                    "Telstra",
@@ -157,7 +157,7 @@ region or calling code).
  :phone-number/possible?                  true,
  :phone-number/region                     :phone-number.region/au,
  :phone-number/dialing-region             :phone-number.region/au,
- :phone-number.dialing-region/inferred?   true,
+ :phone-number.dialing-region/derived?    true,
  :phone-number.dialing-region/defaulted?  false,
  :phone-number.dialing-region/valid-for?  true,
  :phone-number/type                       :phone-number.type/mobile,
@@ -208,7 +208,7 @@ be converted to it (a string, a keyword, a symbol).
  :phone-number/possible?                  true,
  :phone-number/region                     :phone-number.region/au,
  :phone-number/dialing-region             :phone-number.region/au,
- :phone-number.dialing-region/inferred?   true,
+ :phone-number.dialing-region/derived?    true,
  :phone-number.dialing-region/defaulted?  false,
  :phone-number.dialing-region/valid-for?  true,
  :phone-number/type                       :phone-number.type/mobile,
@@ -264,7 +264,7 @@ Short number example:
  :phone-number/possible?                false,
  :phone-number/region                   :phone-number.region/pl,
  :phone-number/dialing-region           :phone-number.region/pl,
- :phone-number.dialing-region/inferred?  true,
+ :phone-number.dialing-region/derived?   true,
  :phone-number.dialing-region/defaulted? false,
  :phone-number.dialing-region/valid-for? true,
  :phone-number/type                      :phone-number.type/unknown,
@@ -497,7 +497,7 @@ that make use of this function.
                      :phone-number/possible?                 true,
                      :phone-number/region                    :phone-number.region/dz,
                      :phone-number/dialing-region            :phone-number.region/dz,
-                     :phone-number.dialing-region/inferred?  true,
+                     :phone-number.dialing-region/derived?   true,
                      :phone-number.dialing-region/defaulted? false,
                      :phone-number.dialing-region/valid-for? false,
                      :phone-number/type                      :phone-number.type/unknown,

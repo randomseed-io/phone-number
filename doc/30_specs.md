@@ -45,6 +45,7 @@ This page describes the generic specs. To use them just require `phone-number.sp
 |-----------------------------------|-------------------------------------------------------|
 |`:phone-number/region`             | region code                                           |
 |`:phone-number/type`               | phone number type                                     |
+|`:phone-number/leniency`           | phone number leniency                                 |
 |`:phone-number/format`             | phone number format                                   |
 |`:phone-number/format-global`      | phone number format<br>(with calling code prefix)     |
 |`:phone-number/format-regional`    | phone number format<br>(without calling code prefix)  |
@@ -105,7 +106,7 @@ phone-number does not depend on spec nor test library. Example, minimal `deps.ed
 ``` clojure
 {:paths ["src" "resources"]
 
- :deps {io.randomseed/phone-number {:mvn/version "8.12.4-2"}}
+ :deps {io.randomseed/phone-number {:mvn/version "8.12.4-3"}}
 
  :aliases {
            :dev {
