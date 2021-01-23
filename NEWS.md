@@ -1,5 +1,16 @@
 # History of phone-number releases
 
+## 8.12.16-0 (2021-01-23)
+
+- Improvements:
+  * Libphonenumber dependency updated to match version 8.12.16
+  * Geocoder dependency updated to match version 2.152
+  * Carrier dependency updated to match version 1.142
+  * Development dependencies updated to match newest versions
+
+- Bug fixes:
+  * Some local tests (run from REPL) are now using proper default region
+
 ## 8.12.4-3 (2021-01-23)
 
 - Improvements:

@@ -106,16 +106,16 @@ phone-number does not depend on spec nor test library. Example, minimal `deps.ed
 ``` clojure
 {:paths ["src" "resources"]
 
- :deps {io.randomseed/phone-number {:mvn/version "8.12.4-3"}}
+ :deps {io.randomseed/phone-number {:mvn/version "8.12.16-0"}}
 
  :aliases {
            :dev {
-                 :extra-deps {org.clojure/spec.alpha  {:mvn/version "0.2.176"}
-                              org.clojure/test.check  {:mvn/version "0.10.0"}}
+                 :extra-deps {org.clojure/spec.alpha  {:mvn/version "0.2.194"}
+                              org.clojure/test.check  {:mvn/version "1.1.0"}}
                  :extra-paths ["dev/src" "test"]
                  :jvm-opts ["-Dclojure.spec.compile-asserts=true"]}
 
            :test {
                   :extra-paths ["test"]
-                  :extra-deps {org.clojure/test.check {:mvn/version "0.10.0"}}}}
+                  :extra-deps {org.clojure/test.check {:mvn/version "1.1.0"}}}}
 ```

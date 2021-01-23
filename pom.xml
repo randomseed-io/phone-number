@@ -4,7 +4,7 @@
   <groupId>io.randomseed</groupId>
   <artifactId>phone-number</artifactId>
   <packaging>jar</packaging>
-  <version>8.12.4-3</version>
+  <version>8.12.16-0</version>
   <name>phone-number</name>
   <description>Creation, validation and inspection of phone numbers</description>
   <url>https://randomseed.io/software/phone-number/</url>
@@ -17,7 +17,7 @@
   <scm>
     <connection>scm:git:git://github.com/randomseed-io/phone-number.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/randomseed-io/phone-number.git</developerConnection>
-    <tag>8.12.4-3</tag>
+    <tag>8.12.16-0</tag>
     <url>https://github.com/randomseed-io/phone-number/</url>
   </scm>
   <dependencies>
@@ -29,12 +29,12 @@
     <dependency>
       <groupId>com.googlecode.libphonenumber</groupId>
       <artifactId>geocoder</artifactId>
-      <version>2.140</version>
+      <version>2.152</version>
     </dependency>
     <dependency>
       <groupId>com.googlecode.libphonenumber</groupId>
       <artifactId>carrier</artifactId>
-      <version>1.130</version>
+      <version>1.142</version>
     </dependency>
     <dependency>
       <groupId>malabarba</groupId>
@@ -44,7 +44,7 @@
     <dependency>
       <groupId>com.googlecode.libphonenumber</groupId>
       <artifactId>libphonenumber</artifactId>
-      <version>8.12.4</version>
+      <version>8.12.16</version>
     </dependency>
     <dependency>
       <groupId>trptr</groupId>
