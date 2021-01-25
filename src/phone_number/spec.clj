@@ -36,31 +36,31 @@
 ;; Namespaces for easy use of keywords
 ;;
 
-(alias 'arg  (create-ns 'phone-number.arg))   ;; in for input specs
-(alias 'ret  (create-ns 'phone-number.ret))   ;; ns for output specs
-(alias 'args (create-ns 'phone-number.args))
-(alias 'prop (create-ns 'phone-number.prop))
+(alias 'arg   (create-ns 'phone-number.arg))   ;; for internal arg specs
+(alias 'args  (create-ns 'phone-number.args))  ;; for internal args specs
+(alias 'prop  (create-ns 'phone-number.prop))  ;; for additional properties
+(alias 'input (create-ns 'phone-number.input)) ;; in for public input specs
 
 ;;
 ;; Phone number region specs
 ;;
 
-(s/def ::ret/region
+(s/def ::pn/region ; generic spec (includes defaults and unknowns)
   (s/with-gen
     #(region/valid? % phone/*inferred-namespaces*)
     #(gen/elements region/all-vec)))
 
-(s/def ::arg/region
+(s/def ::arg/region ; argument spec (only data valid as argument)
   (s/with-gen
     #(region/valid-arg? % phone/*inferred-namespaces*)
     #(gen/elements region/all-arg-vec)))
 
-(s/def ::pn/region
+(s/def ::input/region ; public spec (validates input)
   ::arg/region)
 
 (defn random-region-code
   []
-  (gen/generate (s/gen ::ret/region)))
+  (gen/generate (s/gen ::pn/region)))
 
 (defn random-region-code-arg
   []
@@ -79,6 +79,9 @@
   (s/with-gen
     #(type/valid-arg? % phone/*inferred-namespaces*)
     #(gen/elements type/all-arg-vec)))
+
+(s/def ::input/type
+  ::arg/type)
 
 ;;
 ;; Phone number format specs
@@ -424,7 +427,7 @@
                 ::pn/type
                 ::short/valid?
                 ::short/possible?]
-          :opt [::ret/region
+          :opt [::pn/region
                 ::pn/location
                 ::pn/carrier
                 ::pn/dialing-region
@@ -800,7 +803,7 @@
 
 (s/fdef phone/region
   :args ::args/number
-  :ret  (s/nilable ::ret/region))
+  :ret  (s/nilable ::pn/region))
 
 (s/fdef phone/type
   :args ::args/number
