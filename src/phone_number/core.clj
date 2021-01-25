@@ -264,6 +264,7 @@
 
 (declare region)
 (declare format)
+(declare native?)
 
 (defn- phoneable-map-apply
   "Tries to apply the given function to a phone number obtained from a map using known
@@ -279,6 +280,7 @@
    ;; prepare dialing region (try from a map with default to passed)
    ;; only when the 4th argument is present and it's nil or false
    ;; dialing region that is derived or default is not applied
+   ;; remember to clean-up non-compliant values not accepted as arguments (line :unknown)
    (let [dialing-region (first more)
          more (if dialing-region
                 more
@@ -290,7 +292,9 @@
                       more
                       (cons (inf-get m ::PN/dialing-region) (rest more))))))
          region-code  (if (some? region-code) region-code (inf-get m ::PN/region))
+         region-code  (when (region/valid-arg? region-code *inferred-namespaces*) region-code)
          number-obj   (inf-get m ::PN/number)
+         number-obj   (when (native? number-obj) number-obj)
          region-code  (if (some? region-code) region-code (region number-obj nil))]
      ;; try phone number object
      (if (some? number-obj)
@@ -317,8 +321,13 @@
                    ;; - calling code number (:phone-number/calling-code)
                    ;; - different key (:phone-number/region or :region)
                    ;; - region code passed as an argument (region-code)
+                   ;;
+                   ;; [remember to validate dirty return values from info function]
+                   ;;
                    (let [c (inf-get m ::PN/calling-code)
-                         r (if (some? c) nil (inf-get m ::PN/region region-code))]
+                         c (when (calling-code/valid-arg? c) c)
+                         r (when (nil? c) (inf-get m ::PN/region region-code))
+                         r (when (region/valid-arg? r *inferred-namespaces*) r)]
                      (if (or (some? c) (some? r))
                        (if-some [t (some m format/regional)]
                          (if (some? c) (apply f (str "+" c t) region-code more) (apply f t r more))
