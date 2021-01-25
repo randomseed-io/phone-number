@@ -78,7 +78,8 @@
        :const true
        :tag clojure.lang.PersistentHashSet}
   none
-  "A set containing values considered to be none, unknown or empty."
+  "A set containing values considered to be none, unknown or empty in the domain of
+  processing phone numbers and codes."
   #{nil 0 false "" () {}
     :zero :nil :null
     :none :unknown      :etc/unknown
