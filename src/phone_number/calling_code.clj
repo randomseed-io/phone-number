@@ -48,6 +48,12 @@
   default-val 0)
 
 (def ^{:added "8.12.4-0"
+       :tag clojure.lang.PersistentHashSet}
+  all-arg
+  "Set of supported calling codes to be passed as arguments."
+  (disj all unknown))
+
+(def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentVector}
   all-vec
   "Vector of all supported calling codes."
@@ -55,9 +61,21 @@
 
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentVector}
+  all-arg-vec
+  "Vector of all supported calling codes to be used as arguments."
+  (vec all-arg))
+
+(def ^{:added "8.12.4-0"
+       :tag clojure.lang.PersistentVector}
   by-val-vec
   "Vector of all supported calling codes."
   all-vec)
+
+(def ^{:added "8.12.4-0"
+       :tag clojure.lang.PersistentVector}
+  by-val-arg-vec
+  "Vector of all supported calling codes."
+  all-arg-vec)
 
 (defn valid?
   "Returns true if the given region-specification is a valid region code, false
@@ -66,12 +84,19 @@
   [^Integer calling-code]
   (contains? all calling-code))
 
+(defn valid-arg?
+  "Returns true if the given region-specification is a valid region code to be used as
+  an argument, false otherwise."
+  {:added "8.12.4-0" :tag Boolean}
+  [^Integer calling-code]
+  (contains? all-arg calling-code))
+
 (defn parse
   "Parses a calling code and returns a value that can be supplied to
   Libphonenumber methods."
   {:added "8.12.4-0" :tag Integer}
   ([^Integer calling-code]
-   (assert (valid? calling-code)
+   (assert (valid-arg? calling-code)
            (str "Calling code " calling-code " is not valid"))
    calling-code))
 
@@ -80,3 +105,9 @@
   {:added "8.12.4-0" :tag Integer}
   ([] (rand-nth all-vec))
   ([^java.util.Random rng] (util/get-rand-nth all-vec rng)))
+
+(defn generate-sample-arg
+  "Generates a random country calling code to be used as an argument."
+  {:added "8.12.4-0" :tag Integer}
+  ([] (rand-nth all-vec))
+  ([^java.util.Random rng] (util/get-rand-nth all-arg-vec rng)))
