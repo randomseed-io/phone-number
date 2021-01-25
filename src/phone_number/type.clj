@@ -127,14 +127,14 @@
   ([^java.util.Random rng] (util/get-rand-nth by-val-vec rng)))
 
 (defn generate-arg-sample
-  "Generates random number type suitable to be used as an argument."
+  "Generates random number type suitable to be used as value of an argument."
   {:added "8.12.4-0" :tag clojure.lang.Keyword}
-  ([] (rand-nth all-vec))
+  ([] (rand-nth all-arg-vec))
   ([^java.util.Random rng] (util/get-rand-nth all-arg-vec rng)))
 
-(defn generate-sample-val
-  "Generates random number type (PhoneNumberType value) suitable to be used as an
-  argument."
+(defn generate-arg-sample-val
+  "Generates random number type (PhoneNumberType value) suitable to be used as value of
+  an argument."
   {:added "8.12.4-0" :tag PhoneNumberUtil$PhoneNumberType}
-  ([] (rand-nth by-val-vec))
+  ([] (rand-nth by-val-arg-vec))
   ([^java.util.Random rng] (util/get-rand-nth by-val-arg-vec rng)))
