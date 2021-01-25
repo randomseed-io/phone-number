@@ -2109,7 +2109,7 @@
 (def ^{:added "8.12.4-0" :tag clojure.lang.PersistentVector :private true}
   region-net-code-mix
   "Vector of supported global network codes mixed with region codes."
-  (into region/all-vec net-code/all-vec))
+  (into region/all-arg-vec net-code/all-vec))
 
 (defn- region-or-code-sample
   "Random sampler of region codes mixed with global network calling codes."

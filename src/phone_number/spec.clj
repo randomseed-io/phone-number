@@ -36,7 +36,8 @@
 ;; Namespaces for easy use of keywords
 ;;
 
-(alias 'arg  (create-ns 'phone-number.arg))
+(alias 'arg  (create-ns 'phone-number.arg))   ;; in for input specs
+(alias 'ret  (create-ns 'phone-number.ret))   ;; ns for output specs
 (alias 'args (create-ns 'phone-number.args))
 (alias 'prop (create-ns 'phone-number.prop))
 
@@ -44,19 +45,22 @@
 ;; Phone number region specs
 ;;
 
-(s/def ::pn/region
+(s/def ::ret/region
   (s/with-gen
     #(region/valid? % phone/*inferred-namespaces*)
     #(gen/elements region/all-vec)))
 
 (s/def ::arg/region
   (s/with-gen
-    #(region/valid? % phone/*inferred-namespaces*)
+    #(region/valid-arg? % phone/*inferred-namespaces*)
     #(gen/elements region/all-arg-vec)))
+
+(s/def ::pn/region
+  ::arg/region)
 
 (defn random-region-code
   []
-  (gen/generate (s/gen ::pn/region)))
+  (gen/generate (s/gen ::ret/region)))
 
 (defn random-region-code-arg
   []
@@ -383,7 +387,7 @@
 (s/def ::dialing-region/derived?       boolean?)
 (s/def ::dialing-region/defaulted?     boolean?)
 (s/def ::dialing-region/valid-for?     boolean?)
-(s/def ::pn/dialing-region-default     (s/nilable ::pn/region))
+(s/def ::pn/dialing-region-default     (s/nilable ::arg/region))
 (s/def ::pn/location                   (s/nilable string?))
 (s/def ::pn/carrier                    (s/nilable string?))
 (s/def ::pn/dialing-region             (s/nilable ::pn/region))
@@ -420,7 +424,7 @@
                 ::pn/type
                 ::short/valid?
                 ::short/possible?]
-          :opt [::pn/region
+          :opt [::ret/region
                 ::pn/location
                 ::pn/carrier
                 ::pn/dialing-region
@@ -796,7 +800,7 @@
 
 (s/fdef phone/region
   :args ::args/number
-  :ret  (s/nilable ::pn/region))
+  :ret  (s/nilable ::ret/region))
 
 (s/fdef phone/type
   :args ::args/number

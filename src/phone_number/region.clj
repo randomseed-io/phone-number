@@ -30,10 +30,12 @@
   all
   "Mapping of supported regions (keywords) to region values (strings)."
   (let [tns (str (ns-name *ns*))]
-    (into #::{}
-          (map
-           (juxt #(keyword tns (clojure.string/lower-case %)) identity)
-           (.getSupportedRegions (util/instance))))))
+    (assoc
+     (into #::{}
+           (map
+            (juxt #(keyword tns (clojure.string/lower-case %)) identity)
+            (.getSupportedRegions (util/instance))))
+     unknown unknown-val)))
 
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentHashMap}
@@ -73,7 +75,7 @@
        :tag clojure.lang.PersistentVector}
   all-arg-vec
   "Vector of regions (keywords)."
-  (vec (keys all)))
+  (vec (keys all-arg)))
 
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentVector}
@@ -85,7 +87,7 @@
        :tag clojure.lang.PersistentVector}
   by-val-arg-vec
   "Vector of regions (string values)."
-  (vec (keys by-val)))
+  (vec (keys by-val-arg)))
 
 (defn valid?
   "Returns true if the given region-specification is a valid region code, false
@@ -137,11 +139,11 @@
 (defn generate-arg-sample
   "Generates random region code."
   {:added "8.12.4-0" :tag clojure.lang.Keyword}
-  ([] (rand-nth all-vec))
+  ([] (rand-nth all-arg-vec))
   ([^java.util.Random rng] (util/get-rand-nth all-arg-vec rng)))
 
 (defn generate-arg-sample-val
   "Generates random region code (string value)."
   {:added "8.12.4-0" :tag String}
-  ([] (rand-nth by-val-vec))
+  ([] (rand-nth by-val-arg-vec))
   ([^java.util.Random rng] (util/get-rand-nth by-val-arg-vec rng)))
