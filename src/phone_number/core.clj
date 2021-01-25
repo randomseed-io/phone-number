@@ -87,7 +87,7 @@
     ::format/unknown    ::format/none
     ::tz-format/unknown ::tz-format/none
     ::match/none
-    "Etc/Unknown" "unknown" "none" "nil" "0"})
+    "Etc/Unknown" "unknown" "none" "nil" "0" "ZZ"})
 
 (def ^{:added "8.12.4-1" :tag clojure.lang.PersistentHashSet :const true}
   required-first-input-characters
