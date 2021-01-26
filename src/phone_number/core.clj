@@ -214,7 +214,21 @@
    number is not the same as the dialing code for the region. If that argument is nil
    then a value stored in the dynamic variable `*default-dialing-region*` will be
    used. If this value is also nil then the function will fall back to checking a
-   number without any dialing region."))
+   number without any dialing region.
+
+   One special case is when validating an info map (the result of calling `info`
+   function). When there will not be dialing region given (or its value will be
+   `nil`) then this function will try to obtain the source region information from an
+   entry stored under the key `:phone-number/dialing-region` (or possibly
+   `:dialing-region` when namespace inference is enabled). It will fetch it only when
+   the key `:phone-number.dialing-region/derived?` is not holding a truthy
+   value. When this fail then it will default to `*default-dialing-region*`.
+
+   This function will NOT make use of `*info-dialing-region-derived*`, hence the
+   prefix `info-` (this variable is to control only the `info` function). If you need
+   a dialing region code to be derived from the region code of a number, please parse
+   a number and supply the result of the `region` function to `valid?` as its last
+   argument."))
 
 ;;
 ;; Protocol helpers
@@ -248,15 +262,17 @@
   regional-formats-simple
   (map (comp keyword name) format/regional))
 
-(defn- ^clojure.lang.Keyword fetch-region
-  ([^clojure.lang.Keyword        region-code
-    ^clojure.lang.IPersistentMap info-map
-    ^clojure.lang.Keyword        k
-    default]
-   (if (some? region-code) region-code
-       (when-some [region-code (inf-get info-map k default)]
-         (if (region/valid-arg? region-code *inferred-namespaces*) region-code
-             (when-not (region/valid? region-code *inferred-namespaces*) region-code))))))
+(defn- fetch-from-info-map
+  [^clojure.lang.Fn             fn-valid-arg?
+   ^clojure.lang.Fn             fn-valid?
+   plain-value
+   ^clojure.lang.IPersistentMap info-map
+   ^clojure.lang.Keyword        k
+   default]
+  (if (some? plain-value) plain-value
+      (when-some [map-value (inf-get info-map k default)]
+        (if (fn-valid-arg? map-value *inferred-namespaces*) map-value
+            (when-not (fn-valid? map-value *inferred-namespaces*) map-value)))))
 
 (defn- ^clojure.lang.Keyword prep-dialing-region
   ([^clojure.lang.Keyword        region-code]
@@ -265,45 +281,46 @@
     ^phone_number.core.Phoneable phone-number]
    (if region-code region-code
        (if (and (map? phone-number)
-                (inf-contains? phone-number ::PN/dialing-region)
-                (not (inf-get  phone-number ::dialing-region/derived?   false))
-                (not (inf-get  phone-number ::dialing-region/defaulted? false)))
-         (inf-get phone-number ::PN/dialing-region *default-dialing-region*)
+                (not (inf-get phone-number ::dialing-region/derived? false)))
+         (fetch-from-info-map region/valid-arg?
+                              region/valid?
+                              region-code
+                              phone-number
+                              ::PN/dialing-region
+                              *default-dialing-region*)
          *default-dialing-region*))))
 
 (declare region)
 (declare format)
 (declare native?)
 
+(defn- first-nil?
+  {:added "8.12.16-1" :tag Boolean}
+  [e _]
+  (nil? e))
+
 (defn- phoneable-map-apply
   "Tries to apply the given function to a phone number obtained from a map using known
   keys."
   {:added "8.12.4-0"}
+  ([] nil)
+  ([^clojure.lang.IFn            f]
+   (phoneable-map-apply f {} nil false))
   ([^clojure.lang.IFn            f
     ^clojure.lang.IPersistentMap m]
-   (phoneable-map-apply f m nil))
+   (phoneable-map-apply f m nil false))
+  ([^clojure.lang.IFn            f
+    ^clojure.lang.IPersistentMap m
+    ^clojure.lang.Keyword        region-code]
+   (phoneable-map-apply f m region-code false))
   ([^clojure.lang.IFn            f
     ^clojure.lang.IPersistentMap m
     ^clojure.lang.Keyword        region-code
-    & more]
-   ;; prepare dialing region (try from a map with default to passed)
-   ;; only when the 4th argument is present and it's nil or false
-   ;; dialing region that is derived or default is not applied
-   ;; remember to clean-up non-compliant values not accepted as arguments (line :unknown)
-   (let [dialing-region (first more)
-         more (if dialing-region
-                more
-                (if (false? dialing-region)
-                  (rest more)
-                  (when (some? (seq more))
-                    (if (or (inf-get m ::dialing-region/derived?   false)
-                            (inf-get m ::dialing-region/defaulted? false))
-                      more
-                      (cons (inf-get m ::PN/dialing-region) (rest more))))))
-         region-code  (fetch-region region-code m ::PN/region nil)
-         number-obj   (inf-get m ::PN/number)
-         number-obj   (when (native? number-obj) number-obj)
-         region-code  (if (some? region-code) region-code (region number-obj nil))]
+    ^clojure.lang.Keyword        dialing-region]
+   (let [more        (when-not (false? dialing-region) (cons (prep-dialing-region dialing-region m) nil))
+         region-code (fetch-from-info-map region/valid-arg? region/valid? region-code m ::PN/region nil)
+         number-obj  (fetch-from-info-map native? first-nil? nil m ::PN/number nil)
+         region-code (if (some? region-code) region-code (region number-obj nil))]
      ;; try phone number object
      (if (some? number-obj)
        (apply f number-obj region-code more)
@@ -327,21 +344,24 @@
                    ;; try phone number formats without any region code information
                    ;; obtain region from:
                    ;; - calling code number (:phone-number/calling-code)
-                   ;; - different key (:phone-number/region or :region)
-                   ;; - region code passed as an argument (region-code)
+                   ;; - region code passed as an argument (region-code) or taken from a map before
                    ;;
                    ;; [remember to validate dirty return values from info function]
                    ;;
-                   (let [c (inf-get m ::PN/calling-code)
-                         c (if (calling-code/valid-arg? c) c (when-not (calling-code/valid? c) c))
-                         r (when (nil? c) (fetch-region nil m ::PN/region region-code))]
-                     (if (or (some? c) (some? r))
+                   (let [c (fetch-from-info-map calling-code/valid-arg?
+                                                calling-code/valid?
+                                                nil
+                                                m
+                                                ::PN/calling-code
+                                                nil)
+                         r (when (nil? c) region-code)]
+                     (if (and (nil? c) (nil? r))
+                       (apply f nil nil more)
                        (if-some [t (some m format/regional)]
                          (if (some? c) (apply f (str "+" c t) region-code more) (apply f t r more))
                          (if-some [t (when *inferred-namespaces* (some m regional-formats-simple))]
                            (if (some? c) (apply f (str "+" c t) region-code more) (apply f t r more))
-                           (if (some? c) (apply f nil nil more) (apply f region-code r more))))
-                       (apply f nil nil more)))))))))))))
+                           (if (some? c) (apply f nil nil more) (apply f region-code r more))))))))))))))))
 
 ;;
 ;; Protocol implementation
@@ -503,9 +523,9 @@
          (phoneable-map-apply raw-input phone-number region-code))))
   (valid?
     ([phone-number]
-     (phoneable-map-apply valid? phone-number nil))
+     (phoneable-map-apply valid? phone-number nil nil))
     ([phone-number ^clojure.lang.Keyword region-code]
-     (phoneable-map-apply valid? phone-number region-code))
+     (phoneable-map-apply valid? phone-number region-code nil))
     ([phone-number
       ^clojure.lang.Keyword region-code
       ^clojure.lang.Keyword dialing-region]
@@ -587,8 +607,10 @@
 (defn native?
   "Returns true if the given argument is an instance of PhoneNumber class."
   {:added "8.12.4-0" :tag Boolean}
-  [phone-number]
-  (instance? Phonenumber$PhoneNumber phone-number))
+  ([phone-number _]
+   (instance? Phonenumber$PhoneNumber phone-number))
+  ([phone-number]
+   (instance? Phonenumber$PhoneNumber phone-number)))
 
 (def ^{:added "8.12.4-0" :tag Boolean
        :arglists '([^phone_number.core.Phoneable phone-number]
@@ -2126,7 +2148,7 @@
 (def ^{:added "8.12.4-0" :tag clojure.lang.PersistentVector :private true}
   region-net-code-mix
   "Vector of supported global network codes mixed with region codes."
-  (into region/all-arg-vec net-code/all-vec))
+  (into region/all-arg-vec net-code/all-arg-vec))
 
 (defn- region-or-code-sample
   "Random sampler of region codes mixed with global network calling codes."
