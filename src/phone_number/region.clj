@@ -41,7 +41,7 @@
        :tag clojure.lang.PersistentHashMap}
   all-arg
   "Mapping of supported regions (keywords) to region values (strings)."
-  (dissoc all :unknown))
+  (dissoc all ::unknown))
 
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentHashMap}
