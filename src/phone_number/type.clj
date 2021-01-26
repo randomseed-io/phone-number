@@ -135,6 +135,6 @@
 (defn generate-arg-sample-val
   "Generates random number type (PhoneNumberType value) suitable to be used as value of
   an argument."
-  {:added "8.12.4-0" :tag PhoneNumberUtil$PhoneNumberType}
+  {:added "8.12.16-1" :tag PhoneNumberUtil$PhoneNumberType}
   ([] (rand-nth by-val-arg-vec))
   ([^java.util.Random rng] (util/get-rand-nth by-val-arg-vec rng)))

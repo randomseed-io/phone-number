@@ -47,7 +47,7 @@
        :tag Integer}
   default-val 0)
 
-(def ^{:added "8.12.4-0"
+(def ^{:added "8.12.16-1"
        :tag clojure.lang.PersistentHashSet}
   all-arg
   "Set of supported calling codes to be passed as arguments."
@@ -59,7 +59,7 @@
   "Vector of all supported calling codes."
   (vec all))
 
-(def ^{:added "8.12.4-0"
+(def ^{:added "8.12.16-1"
        :tag clojure.lang.PersistentVector}
   all-arg-vec
   "Vector of all supported calling codes to be used as arguments."
@@ -71,7 +71,7 @@
   "Vector of all supported calling codes."
   all-vec)
 
-(def ^{:added "8.12.4-0"
+(def ^{:added "8.12.16-1"
        :tag clojure.lang.PersistentVector}
   by-val-arg-vec
   "Vector of all supported calling codes."
@@ -87,7 +87,7 @@
 (defn valid-arg?
   "Returns true if the given region-specification is a valid region code to be used as
   an argument, false otherwise."
-  {:added "8.12.4-0" :tag Boolean}
+  {:added "8.12.16-1" :tag Boolean}
   [^Integer calling-code]
   (contains? all-arg calling-code))
 
@@ -108,6 +108,6 @@
 
 (defn generate-sample-arg
   "Generates a random country calling code to be used as an argument."
-  {:added "8.12.4-0" :tag Integer}
+  {:added "8.12.16-1" :tag Integer}
   ([] (rand-nth all-vec))
   ([^java.util.Random rng] (util/get-rand-nth all-arg-vec rng)))
