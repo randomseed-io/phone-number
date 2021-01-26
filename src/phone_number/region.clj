@@ -18,7 +18,7 @@
 (def ^{:added "8.12.4-0"
        :const true
        :tag clojure.lang.Keyword}
-  unknown :unknown)
+  unknown ::unknown)
 
 (def ^{:added "8.12.4-0"
        :const true
