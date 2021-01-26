@@ -1299,7 +1299,7 @@
 (defn short-sms-service?
   "Takes a short phone number (expressed as a string, a number, a map or a
   `PhoneNumber` object), optional region code (or nil) and a dialing region
-  code (uses `*default-dialing-code*` if not given). Returns true if SMS is
+  code (uses `*default-dialing-region*` if not given). Returns true if SMS is
   supported, false otherwise.
 
   If the `default-dialing-region*` dynamic variable is set then it will be used as
