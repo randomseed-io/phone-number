@@ -263,14 +263,13 @@
    (if (nil? region-code) *default-dialing-region* region-code))
   ([^clojure.lang.Keyword        region-code
     ^phone_number.core.Phoneable phone-number]
-   (if region-code
-     region-code
-     (if (and (map? phone-number)
-              (inf-contains? phone-number ::PN/dialing-region)
-              (not (inf-get  phone-number ::dialing-region/derived?   false))
-              (not (inf-get  phone-number ::dialing-region/defaulted? false)))
-       (inf-get phone-number ::PN/dialing-region *default-dialing-region*)
-       *default-dialing-region*))))
+   (if region-code region-code
+       (if (and (map? phone-number)
+                (inf-contains? phone-number ::PN/dialing-region)
+                (not (inf-get  phone-number ::dialing-region/derived?   false))
+                (not (inf-get  phone-number ::dialing-region/defaulted? false)))
+         (inf-get phone-number ::PN/dialing-region *default-dialing-region*)
+         *default-dialing-region*))))
 
 (declare region)
 (declare format)
