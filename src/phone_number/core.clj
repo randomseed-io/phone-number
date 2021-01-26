@@ -248,6 +248,16 @@
   regional-formats-simple
   (map (comp keyword name) format/regional))
 
+(defn- ^clojure.lang.Keyword fetch-region
+  ([^clojure.lang.Keyword        region-code
+    ^clojure.lang.IPersistentMap info-map
+    ^clojure.lang.Keyword        k
+    default]
+   (if (some? region-code) region-code
+       (when-some [region-code (inf-get info-map k default)]
+         (if (region/valid-arg? region-code *inferred-namespaces*) region-code
+             (when-not (region/valid? region-code *inferred-namespaces*) region-code))))))
+
 (defn- ^clojure.lang.Keyword prep-dialing-region
   ([^clojure.lang.Keyword        region-code]
    (if (nil? region-code) *default-dialing-region* region-code))
@@ -291,8 +301,7 @@
                             (inf-get m ::dialing-region/defaulted? false))
                       more
                       (cons (inf-get m ::PN/dialing-region) (rest more))))))
-         region-code  (if (some? region-code) region-code (inf-get m ::PN/region))
-         region-code  (when (region/valid-arg? region-code *inferred-namespaces*) region-code)
+         region-code  (fetch-region region-code m ::PN/region nil)
          number-obj   (inf-get m ::PN/number)
          number-obj   (when (native? number-obj) number-obj)
          region-code  (if (some? region-code) region-code (region number-obj nil))]
@@ -325,9 +334,8 @@
                    ;; [remember to validate dirty return values from info function]
                    ;;
                    (let [c (inf-get m ::PN/calling-code)
-                         c (when (calling-code/valid-arg? c) c)
-                         r (when (nil? c) (inf-get m ::PN/region region-code))
-                         r (when (region/valid-arg? r *inferred-namespaces*) r)]
+                         c (if (calling-code/valid-arg? c) c (when-not (calling-code/valid? c) c))
+                         r (when (nil? c) (fetch-region nil m ::PN/region region-code))]
                      (if (or (some? c) (some? r))
                        (if-some [t (some m format/regional)]
                          (if (some? c) (apply f (str "+" c t) region-code more) (apply f t r more))
