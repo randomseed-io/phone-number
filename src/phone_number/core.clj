@@ -780,6 +780,23 @@
      (.getCountryCode
       (number-noraw phone-number region-code)))))
 
+(defn calling-code-prefix
+  "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
+  object) and returns its calling code prefix (including a plus symbol) as a string.
+
+  If the second argument is present then it should be a valid region code (a keyword)
+  to be used when the given phone number does not contain region information."
+  {:added "8.12.16-1" :tag String}
+  ([^phone_number.core.Phoneable    phone-number]
+   (calling-code-prefix phone-number nil))
+  ([^phone_number.core.Phoneable    phone-number
+    ^clojure.lang.Keyword           region-code]
+   (when-some-input phone-number
+     (when-some [c (.getCountryCode
+                    (number-noraw phone-number region-code))]
+       (when (country-code/valid? c)
+         (str "+" c))))))
+
 (defn region
   "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
   object) and returns its region code as a string or nil if the region happens to be
