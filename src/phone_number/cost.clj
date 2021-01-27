@@ -21,6 +21,16 @@
       :premium   ShortNumberInfo$ShortNumberCost/PREMIUM_RATE
       :unknown   ShortNumberInfo$ShortNumberCost/UNKNOWN_COST})
 
+(def ^{:added "8.12.16-1"
+       :const true
+       :tag clojure.lang.Keyword}
+  unknown ::unknown)
+
+(def ^{:added "8.12.16-1"
+       :const true
+       :tag String}
+  unknown-val (all unknown))
+
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentHashMap}
   all-arg
