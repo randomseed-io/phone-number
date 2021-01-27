@@ -745,7 +745,8 @@
 
 (defn type
   "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
-  object) and returns its type as a keyword.
+  object) and returns its type as a keyword. For unknown types and number without types
+  it returns `:phone-number.type/unknown`.
 
   If the second argument is present then it should be a valid region code (a keyword)
   to be used when the given phone number does not contain region information."
@@ -759,7 +760,7 @@
       (.getNumberType
        (util/instance)
        (number-noraw phone-number region-code))
-      ::type/unknown))))
+      type/unknown))))
 
 ;;
 ;; Country and region
