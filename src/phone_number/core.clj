@@ -82,12 +82,11 @@
   processing phone numbers and codes."
   #{nil 0 false "" () {}
     :zero :nil :null
-    :none :unknown      :etc/unknown
-    ::type/unknown      ::type/none
-    ::region/unknown    ::region/none
+    :none :unknown       :etc/unknown
+    type/unknown        ::type/none
     ::format/unknown    ::format/none
     ::tz-format/unknown ::tz-format/none
-    ::match/none
+    match/none
     "Etc/Unknown" "unknown" "none" "nil" "0" "ZZ"})
 
 (def ^{:added "8.12.4-1" :tag clojure.lang.PersistentHashSet :const true}
@@ -800,8 +799,8 @@
 
 (defn region
   "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
-  object) and returns its region code as a string or nil if the region happens to be
-  empty.
+  object) and returns its region code as a string or `nil` if the number is not
+  regional or not given.
 
   If the second argument is present then it should be a valid region code (a keyword)
   to be used when the given phone number does not contain region information."
@@ -1221,7 +1220,8 @@
          (region/parse dialing-region *inferred-namespaces*))
         (.getExpectedCost
          (util/short)
-         (number-noraw phone-number region-code)))))))
+         (number-noraw phone-number region-code)))
+      cost/unknown))))
 
 (defn short-emergency?
   "Takes a short (like an emergency) phone number (expressed as a string!) and returns
@@ -1650,7 +1650,7 @@
          (util/instance)
          (number-noraw phone-number-a region-code-a)
          (number-noraw phone-number-b region-code-b))
-        ::match/none))))
+        match/none))))
   ([^phone_number.core.Phoneable phone-number-a
     ^clojure.lang.Keyword        region-code-a
     ^phone_number.core.Phoneable phone-number-b]
@@ -2049,10 +2049,10 @@
       rcode))))
 
 (defn example-non-geo
-  "For the given calling code (given as a positive, natural number) returns the example
-  phone number that is valid (being a `PhoneNumber` kind of object). This is not a
-  random number generator; it will always generate the same example number for the
-  same arguments."
+  "For the given network global calling code (given as a positive, natural number)
+  returns the example phone number that is valid (being a `PhoneNumber` kind of
+  object). This is not a random number generator; it will always generate the same
+  example number for the same arguments."
   {:added "8.12.4-0" :tag Phonenumber$PhoneNumber}
   ([^Integer calling-code _]
    (example-non-geo calling-code))
