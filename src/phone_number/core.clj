@@ -704,7 +704,7 @@
      (when-some-input phone-number
        (not-empty
         (when-some [p (number-noraw phone-number region-code)]
-          (if (= :raw f)
+          (if (= format/raw-val f)
             (raw-input p)
             (.format (util/instance) p f))))))))
 
