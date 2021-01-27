@@ -9,6 +9,7 @@
   (:require [phone-number.util         :as         util]
             [phone-number.country-code :as country-code]
             [phone-number.net-code     :as     net-code])
+
   (:import  [com.google.i18n.phonenumbers
              PhoneNumberUtil
              NumberParseException]))
@@ -18,16 +19,6 @@
 ;;
 
 (def ^{:added "8.12.4-0"
-       :const true
-       :tag Integer}
-  unknown 0)
-
-(def ^{:added "8.12.4-0"
-       :const true
-       :tag Integer}
-  unknown-val unknown)
-
-(def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentHashSet}
   all
   "Set of supported calling codes."
@@ -35,23 +26,21 @@
 
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentHashSet}
-  by-val all)
-
-(def ^{:added "8.12.4-0"
-       :const true
-       :tag Integer}
-  default 0)
-
-(def ^{:added "8.12.4-0"
-       :const true
-       :tag Integer}
-  default-val 0)
+  by-val
+  "Set of supported calling codes (values)."
+  all)
 
 (def ^{:added "8.12.16-1"
        :tag clojure.lang.PersistentHashSet}
   all-arg
   "Set of supported calling codes to be passed as arguments."
-  (disj all unknown))
+  (clojure.set/union country-code/all-arg net-code/all-arg))
+
+(def ^{:added "8.12.16-1"
+       :tag clojure.lang.PersistentHashSet}
+  by-val-arg
+  "Set of supported calling codes (values) to be passed as arguments."
+  all-arg)
 
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentVector}
