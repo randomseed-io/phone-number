@@ -103,7 +103,7 @@
            (contains? all (util/ns-infer "phone-number.locale" locale-specification use-infer))
            (try (contains? by-val (l/locale locale-specification)) (catch Throwable e false)))))))
 
-(defn stricly-valid-arg?
+(defn strictly-valid-arg?
   "Returns `true` if the given locale specification is valid and supported, `false`
   otherwise. For `nil` it returns `false` and for keywords it only checks if they are
   in the locale map (`phone-number.locale/all`). If the key is not there, it returns
