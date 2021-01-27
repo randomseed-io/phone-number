@@ -336,32 +336,29 @@
              ;; retry with simplified format key
              (if-some [t (when (some? region-code) (when *inferred-namespaces* (some m regional-formats-simple)))]
                (apply f t region-code more)
-               ;; try phone number formats containing region code information
+               ;; try phone number formats containing country/calling code prefix
                (if-some [t (some m format/global)]
                  (apply f t region-code more)
                  (if-some [t (when *inferred-namespaces* (some m global-formats-simple))]
                    (apply f t nil more)
                    ;; try phone number formats without any region code information
-                   ;; obtain region from:
-                   ;; - calling code number (:phone-number/calling-code)
-                   ;; - region code passed as an argument (region-code) or taken from a map before
-                   ;;
-                   ;; [remember to validate dirty return values from info function]
-                   ;;
-                   (let [c (fetch-from-info-map calling-code/valid-arg?
-                                                calling-code/valid?
-                                                nil
-                                                m
-                                                ::PN/calling-code
-                                                nil)
-                         r (when (nil? c) region-code)]
-                     (if (and (nil? c) (nil? r))
-                       (apply f nil nil more)
-                       (if-some [t (some m format/regional)]
-                         (if (some? c) (apply f (str "+" c t) region-code more) (apply f t r more))
-                         (if-some [t (when *inferred-namespaces* (some m regional-formats-simple))]
-                           (if (some? c) (apply f (str "+" c t) region-code more) (apply f t r more))
-                           (if (some? c) (apply f nil nil more) (apply f region-code r more))))))))))))))))
+                   ;; obtain region from calling code number (:phone-number/calling-code)
+                   ;; fallback to region we already have (shouldn't be needed)
+                   (let [ccode (fetch-from-info-map calling-code/valid-arg?
+                                                    calling-code/valid?
+                                                    nil
+                                                    m
+                                                    ::PN/calling-code
+                                                    nil)]
+                     (if-some [t (some m format/regional)]
+                       (if (some? ccode)
+                         (apply f (str "+" ccode t) region-code more)
+                         (apply f t region-code more))
+                       (if-some [t (when *inferred-namespaces* (some m regional-formats-simple))]
+                         (if (some? ccode)
+                           (apply f (str "+" ccode t) region-code more)
+                           (apply f t region-code more))
+                         (apply f nil nil more))))))))))))))
 
 ;;
 ;; Protocol implementation
