@@ -16,32 +16,20 @@
 ;;
 
 (def ^{:added "8.12.4-0"
-       :const true
-       :tag clojure.lang.Keyword}
-  unknown ::unknown)
-
-(def ^{:added "8.12.4-0"
-       :const true
-       :tag String}
-  unknown-val "ZZ")
-
-(def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentHashMap}
   all
   "Mapping of supported regions (keywords) to region values (strings)."
   (let [tns (str (ns-name *ns*))]
-    (assoc
-     (into #::{}
-           (map
-            (juxt #(keyword tns (clojure.string/lower-case %)) identity)
-            (.getSupportedRegions (util/instance))))
-     unknown unknown-val)))
+    (into #::{}
+          (map
+           (juxt #(keyword tns (clojure.string/lower-case %)) identity)
+           (.getSupportedRegions (util/instance))))))
 
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentHashMap}
   all-arg
   "Mapping of supported regions (keywords) to region values (strings)."
-  (dissoc all ::unknown))
+  all)
 
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentHashMap}
