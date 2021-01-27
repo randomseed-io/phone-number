@@ -27,9 +27,19 @@
 
 #_(alter-var-root #'*default-dialing-region* (constantly :us))
 
-(defmacro with-dfl-dialing-reg
+(defmacro with-dfl-dialing-reg-us
   [& body]
   `(binding [*default-dialing-region* :us]
+     ~@body))
+
+(defmacro with-dfl-dialing-reg-gb
+  [& body]
+  `(binding [*default-dialing-region* :gb]
+     ~@body))
+
+(defmacro without-dfl-dialing-reg
+  [& body]
+  `(binding [*default-dialing-region* nil]
      ~@body))
 
 (def text            "This is my number +448081570 001 Bye! 1a2b3c OK")
@@ -106,31 +116,69 @@
              (info (info "+48112" :pl))                                     => (info "+48112" :pl)
              (info (info "112" :pl :en :pl))                                => (info "112" :pl :en :pl)))
 
+(def valid-map-e164
+  {:phone-number.format/e164 "+448081570001"
+   :phone-number/calling-code 44
+   :phone-number/geographical? true
+   :phone-number/possible? true
+   :phone-number/type :phone-number.type/toll-free
+   :phone-number/valid? true
+   :phone-number.short/possible? true
+   :phone-number.short/valid? false})
+
 (facts "about `valid?`"
        (fact "when it validates correct numbers"
-             (valid? "+448081570001")                                        => true
-             (valid? "+448081570001" nil)                                    => true
-             (with-dfl-dialing-reg (valid? "+448081570001" nil nil))         => false
-             (valid? "+448081570001" nil :gb)                                => true
-             (valid? "+448081570001" nil :pl)                                => false)
+             (valid? "+448081570001")                                         => true
+             (valid? "+448081570001" nil)                                     => true
+             (with-dfl-dialing-reg-us (valid? "+448081570001" nil nil))       => false
+             (valid? "+448081570001" nil :gb)                                 => true
+             (valid? "+448081570001" nil :pl)                                 => false)
        (fact "when it uses dialing region when source is a map (and up to 1 argument more)"
-             (valid? {:phone-number.format/e164 "+448081570001"})            => true
-             (valid? {:phone-number.format/e164 "+448081570001"} nil)        => true
-             (valid? {:phone-number.format/e164 "+448081570001"
-                      :phone-number/dialing-region :gb
-                      :phone-number.dialing-region/derived? true})           => true)
+             (with-dfl-dialing-reg-gb (valid? valid-map-e164))                => true
+             (with-dfl-dialing-reg-gb (valid? valid-map-e164 nil))            => true
+             (with-dfl-dialing-reg-gb (valid?
+                                       (merge
+                                        valid-map-e164
+                                        {:phone-number/dialing-region :gb
+                                         :phone-number.dialing-region/derived? true}))) => true
+             (without-dfl-dialing-reg (valid? valid-map-e164))                => true
+             (without-dfl-dialing-reg (valid? valid-map-e164 nil))            => true
+             (without-dfl-dialing-reg (valid?
+                                       (merge
+                                        valid-map-e164
+                                        {:phone-number/dialing-region :gb
+                                         :phone-number.dialing-region/derived? true}))) => true)
        (fact "when it uses dialing region when source is a map (and 2 more arguments)"
-             (with-dfl-dialing-reg
-               (valid? {:phone-number.format/e164 "+448081570001"} nil nil)) => false
+             (with-dfl-dialing-reg-gb
+               (valid? {:phone-number.format/e164 "+448081570001"} nil nil)) => true
              (valid? {:phone-number.format/e164 "+448081570001"} nil :pl)    => false
              (valid? {:phone-number.format/e164 "+448081570001"} nil :gb)    => true
-             (with-dfl-dialing-reg
+             (with-dfl-dialing-reg-gb
                (valid? {:phone-number.format/e164 "+448081570001"
                         :phone-number/dialing-region :gb} nil nil))          => true
-             (with-dfl-dialing-reg
+             (with-dfl-dialing-reg-gb
                (valid? {:phone-number.format/e164 "+448081570001"
                         :phone-number/dialing-region :gb
-                        :phone-number.dialing-region/derived? true} nil nil)) => false))
+                        :phone-number.dialing-region/derived? true} nil nil)) => true
+             (without-dfl-dialing-reg
+              (valid? {:phone-number.format/e164 "+448081570001"} nil nil))   => true
+             (valid? {:phone-number.format/e164 "+448081570001"} nil :pl)     => false
+             (valid? {:phone-number.format/e164 "+448081570001"} nil :gb)     => true
+             (without-dfl-dialing-reg
+              (valid? {:phone-number.format/e164 "+448081570001"
+                       :phone-number/dialing-region :gb} nil nil))            => true
+             (without-dfl-dialing-reg
+              (valid? {:phone-number.format/e164 "+448081570001"
+                       :phone-number/dialing-region :gb
+                       :phone-number.dialing-region/derived? true} nil nil))  => true
+             (without-dfl-dialing-reg
+              (valid? {:phone-number.format/e164 "+448081570001"
+                       :phone-number/dialing-region :us
+                       :phone-number.dialing-region/derived? true} nil nil))  => true
+             (without-dfl-dialing-reg
+              (valid? {:phone-number.format/e164 "+448081570001"
+                       :phone-number/dialing-region :us
+                       :phone-number.dialing-region/derived? false} nil nil))  => false))
 
 (facts "about `find-numbers`"
        (fact "when it finds single number in text"
