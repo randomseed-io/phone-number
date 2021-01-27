@@ -8,23 +8,24 @@
 
   (:refer-clojure :exclude [format type])
 
-  (:require [phone-number                 :as             PN]
-            [phone-number.util            :as           util]
-            [phone-number.type            :as           type]
-            [phone-number.match           :as          match]
-            [phone-number.format          :as         format]
-            [phone-number.tz-format       :as      tz-format]
-            [phone-number.leniency        :as       leniency]
-            [phone-number.locale          :as         locale]
-            [phone-number.region          :as         region]
-            [phone-number.cost            :as           cost]
-            [phone-number.net-code        :as       net-code]
-            [phone-number.country-code    :as   country-code]
-            [phone-number.calling-code    :as   calling-code]
-            [phone-number.short           :as          short]
-            [phone-number.sample          :as         sample]
-            [phone-number.dialing-region  :as dialing-region]
-            [lazy-map.core                :refer        :all])
+  (:require   [clojure.set]
+              [phone-number                 :as             PN]
+              [phone-number.util            :as           util]
+              [phone-number.type            :as           type]
+              [phone-number.match           :as          match]
+              [phone-number.format          :as         format]
+              [phone-number.tz-format       :as      tz-format]
+              [phone-number.leniency        :as       leniency]
+              [phone-number.locale          :as         locale]
+              [phone-number.region          :as         region]
+              [phone-number.cost            :as           cost]
+              [phone-number.net-code        :as       net-code]
+              [phone-number.country-code    :as   country-code]
+              [phone-number.calling-code    :as   calling-code]
+              [phone-number.short           :as          short]
+              [phone-number.sample          :as         sample]
+              [phone-number.dialing-region  :as dialing-region]
+              [lazy-map.core                :refer        :all])
 
   (:import  [com.google.i18n.phonenumbers
              Phonenumber$PhoneNumber]))
@@ -251,7 +252,7 @@
    ^clojure.lang.Keyword k]
   (if *inferred-namespaces*
     (util/inferred-contains? coll k)
-    (and (contains? coll k))))
+    (contains? coll k)))
 
 (def ^{:added "8.12.4-1" :tag clojure.lang.LazySeq :private true}
   global-formats-simple

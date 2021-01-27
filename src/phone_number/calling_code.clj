@@ -6,7 +6,8 @@
 
     phone-number.calling-code
 
-  (:require [phone-number.util         :as         util]
+  (:require [clojure.set]
+            [phone-number.util         :as         util]
             [phone-number.country-code :as country-code]
             [phone-number.net-code     :as     net-code])
 

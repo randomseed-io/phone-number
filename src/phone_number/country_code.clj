@@ -6,7 +6,8 @@
 
     phone-number.country-code
 
-  (:require [phone-number.util :as util])
+  (:require [clojure.set]
+            [phone-number.util :as util])
 
   (:import  [com.google.i18n.phonenumbers
              PhoneNumberUtil

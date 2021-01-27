@@ -7,7 +7,10 @@
     phone-number.tz-format
 
   (:refer-clojure :exclude [get])
-  (:require [phone-number.util :as util])
+
+  (:require [clojure.set]
+            [phone-number.util :as util])
+
   (:import  [java.time.format TextStyle]))
 
 ;; Time Zone Formats

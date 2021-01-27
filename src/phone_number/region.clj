@@ -6,7 +6,10 @@
 
     phone-number.region
 
-  (:require [phone-number.util :as util])
+  (:require [clojure.set]
+            [clojure.string]
+            [phone-number.util :as util])
+
   (:import  [com.google.i18n.phonenumbers
              PhoneNumberUtil
              NumberParseException]))

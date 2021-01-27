@@ -6,7 +6,8 @@
 
     phone-number.locale
 
-  (:require [phone-number.util         :as util]
+  (:require [clojure.set]
+            [phone-number.util         :as util]
             [trptr.java-wrapper.locale :as    l])
 
   (:import [com.google.i18n.phonenumbers
@@ -52,6 +53,13 @@
   "Map of Locale values to locales (keywords) suitable to be passed as method
   arguments."
   by-val)
+
+
+(def ^{:added "8.12.4-3"
+       :tag clojure.lang.PersistentHashSet}
+  available
+  "Set of available locale (keywords)."
+  (set (keys all)))
 
 (def ^{:added "8.12.4-3"
        :tag clojure.lang.PersistentVector}

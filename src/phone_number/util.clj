@@ -7,7 +7,9 @@
     phone-number.util
 
   (:refer-clojure :exclude [short])
+
   (:require [trptr.java-wrapper.locale :as l])
+
   (:import [com.google.i18n.phonenumbers
             PhoneNumberUtil
             ShortNumberInfo
@@ -162,7 +164,7 @@
 
 (defn get-rand-int
   "Like rand-int but optionally uses random number generator."
-  {:added "8.12.4-0" :tag 'int}
+  {:added "8.12.4-0"} ; was: :tag 'int
   ([^long n]
    (rand-int n))
   ([^long n
@@ -175,7 +177,7 @@
   "For 0 or 1 it returns its argument. For other positive numbers it returns a random
   natural number from 1 to this number (inclusive) in 50% cases. In other 50% cases
   it returns its argument."
-  {:added "8.12.4-0" :tag 'long}
+  {:added "8.12.4-0"} ; was: :tag 'long
   ([^long x
     ^long iteration
     ^Boolean shrink-now]
@@ -189,7 +191,7 @@
     ^Boolean shrink-now
     ^java.util.Random rng]
    (if (nil? rng)
-     (random-digits-len x iteration)
+     (random-digits-len x iteration shrink-now)
      (if (zero? x) x
          (if-not shrink-now x
                  (if (zero? iteration) 1
@@ -234,19 +236,23 @@
 (defn char-ranges->set
   "Returns a set of characters defined as a collection of collections with start and
   stop character, e.g.: [\\A \\Z][\\0 \\9]"
-  {:added "8.12.4-1" :tag clojure.lang.IPersistentSet}
+  {:added "8.12.4-1" :tag clojure.lang.PersistentHashSet}
   [& ranges]
   (set (mapcat #(map char (range (byte (first %)) (inc (byte (second %))))) ranges)))
 
-(def ^{:added "8.12.4-1" :deprecated "8.12.4-3" :tag clojure.lang.IPersistentSet}
-  available-locales
-  "DEPRECATED: Please use `phone-number.locale/by-val-vec`."
+(def ^{:added "8.12.16-1" :tag clojure.lang.PersistentHashSet :private true}
+  all-locales
   l/available-locales)
 
-(def ^{:added "8.12.4-1" :deprecated "8.12.4-3" :tag clojure.lang.IPersistentVector}
+(def ^{:added "8.12.4-1" :deprecated "8.12.4-3" :tag clojure.lang.PersistentHashSet}
+  available-locales
+  "DEPRECATED: Please use `phone-number.locale/by-val-vec`."
+  all-locales)
+
+(def ^{:added "8.12.4-1" :deprecated "8.12.4-3" :tag clojure.lang.PersistentVector}
   available-locales-vec
   "DEPRECATED: Please use `phone-number.locale/by-val-vec`."
-  (vec available-locales))
+  (vec all-locales))
 
 (defn valid-locale?
   "DEPRECATED: Please use `phone-number.locale/valid?`."
@@ -254,5 +260,5 @@
   [^java.util.Locale locale-specification]
   (if (nil? locale-specification) true
       (try
-        (contains? available-locales (l/locale locale-specification))
+        (contains? all-locales (l/locale locale-specification))
         (catch Throwable e false))))
