@@ -809,12 +809,12 @@
    (region phone-number nil))
   ([^phone_number.core.Phoneable  phone-number
     ^clojure.lang.Keyword         region-code]
-   (region/by-val
-    (not-empty
-     (when-some-input phone-number
-       (.getRegionCodeForNumber
-        (util/instance)
-        (number-noraw phone-number region-code)))))))
+   (when-some-input phone-number
+     (when-some [r (not-empty
+                    (.getRegionCodeForNumber
+                     (util/instance)
+                     (number-noraw phone-number region-code)))]
+       (region/by-val r)))))
 
 ;;
 ;; Numeric representation
