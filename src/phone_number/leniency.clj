@@ -27,6 +27,18 @@
   all)
 
 (def ^{:added "8.12.4-3"
+       :tag clojure.lang.PersistentArrayMap}
+  by-val
+  "Map of Leniency values to leniencies (keywords)."
+  (clojure.set/map-invert all))
+
+(def ^{:added "8.12.16-1"
+       :tag clojure.lang.PersistentArrayMap}
+  by-val-arg
+  "Map of Leniency values to leniencies (keywords) to be used as method arguments."
+  (clojure.set/map-invert all-arg))
+
+(def ^{:added "8.12.4-3"
        :tag clojure.lang.PersistentVector}
   all-vec
   "Vector of leniencies (keywords)."
@@ -39,18 +51,6 @@
   (vec (keys all-arg)))
 
 (def ^{:added "8.12.4-3"
-       :tag clojure.lang.PersistentArrayMap}
-  by-val
-  "Map of Leniency values to leniencies (keywords)."
-  (clojure.set/map-invert all))
-
-(def ^{:added "8.12.16-1"
-       :tag clojure.lang.PersistentArrayMap}
-  by-val-arg
-  "Map of Leniency values to leniencies (keywords) to be used as arguments."
-  (clojure.set/map-invert all-arg))
-
-(def ^{:added "8.12.4-3"
        :tag clojure.lang.PersistentVector}
   by-val-vec
   "Vector of leniencies (Leniency values)."
@@ -59,7 +59,7 @@
 (def ^{:added "8.12.16-1"
        :tag clojure.lang.PersistentVector}
   by-val-arg-vec
-  "Vector of leniencies (Leniency values) to be used as arguments."
+  "Vector of leniencies (Leniency values) to be used as method arguments."
   (vec (keys by-val-arg)))
 
 (def ^{:added "8.12.4-3"
