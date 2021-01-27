@@ -44,6 +44,17 @@
                               "--stc-asserts"]
                   :jvm-opts  ["-Xmx512m"]}
 
+           :eastwood {
+                      :main-opts ["-m" "eastwood.lint" {:source-paths ["src"]}]
+                      :extra-deps {org.clojure/test.check               {:mvn/version "1.1.0"}
+                                   midje/midje                          {:mvn/version "1.9.9"}
+                                   orchestra/orchestra                  {:mvn/version "2021.01.01-1"}
+                                   expound/expound                      {:mvn/version "0.8.7"}
+                                   org.clojure/tools.namespace          {:mvn/version "1.1.0"}
+                                   org.clojure/tools.deps.alpha         {:mvn/version "0.9.857"}
+                                   org.clojure/spec.alpha               {:mvn/version "0.2.194"}
+                                   jonase/eastwood                      {:mvn/version "0.3.13"}}}
+
            :docs {
                   :extra-paths ["aliases/codox"]
                   :extra-deps {org.clojure/tools.deps.alpha         {:mvn/version "0.9.857"}

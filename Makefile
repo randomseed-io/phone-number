@@ -5,6 +5,9 @@ VERSION = "8.12.16-0"
 
 default:		docs
 
+lint:
+			bin/lint
+
 docs:
 			bin/docs
 
