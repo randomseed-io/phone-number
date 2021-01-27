@@ -58,7 +58,7 @@
        :tag clojure.lang.PersistentVector}
   by-val-vec
   "Vector of all supported calling codes."
-  all-vec)
+  (vec by-val))
 
 (def ^{:added "8.12.16-1"
        :tag clojure.lang.PersistentVector}
@@ -90,13 +90,25 @@
    calling-code))
 
 (defn generate-sample
-  "Generates a random country calling code."
+  "Generates a random calling code."
   {:added "8.12.4-0" :tag Integer}
   ([] (rand-nth all-vec))
   ([^java.util.Random rng] (util/get-rand-nth all-vec rng)))
 
-(defn generate-sample-arg
-  "Generates a random country calling code to be used as an argument."
+(defn generate-sample-val
+  "Generates a random calling code."
   {:added "8.12.16-1" :tag Integer}
-  ([] (rand-nth all-vec))
+  ([] (rand-nth by-val-vec))
+  ([^java.util.Random rng] (util/get-rand-nth by-val-vec rng)))
+
+(defn generate-arg-sample
+  "Generates random calling code."
+  {:added "8.12.16-1" :tag Integer}
+  ([] (rand-nth all-arg-vec))
   ([^java.util.Random rng] (util/get-rand-nth all-arg-vec rng)))
+
+(defn generate-arg-sample-val
+  "Generates random calling code."
+  {:added "8.12.16-1" :tag Integer}
+  ([] (rand-nth by-val-arg-vec))
+  ([^java.util.Random rng] (util/get-rand-nth by-val-arg-vec rng)))
