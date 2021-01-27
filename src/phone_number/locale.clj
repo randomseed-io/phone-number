@@ -34,11 +34,11 @@
    ::default
    default-val))
 
-(def ^{:added "8.12.4-3"
-       :tag clojure.lang.PersistentVector}
-  all-vec
-  "Vector of locales (keywords)."
-  (vec (keys all)))
+(def ^{:added "8.12.16-1"
+       :tag clojure.lang.PersistentArrayMap}
+  all-arg
+  "Map of locales (keywords) to Locale values suitable to be passed as arguments."
+  all)
 
 (def ^{:added "8.12.4-3"
        :tag clojure.lang.PersistentArrayMap}
@@ -46,13 +46,38 @@
   "Map of Locale values to locales (keywords)."
   (clojure.set/map-invert all))
 
+(def ^{:added "8.12.16-1"
+       :tag clojure.lang.PersistentArrayMap}
+  by-val-arg
+  "Map of Locale values to locales (keywords) suitable to be passed as method
+  arguments."
+  by-val)
+
+(def ^{:added "8.12.4-3"
+       :tag clojure.lang.PersistentVector}
+  all-vec
+  "Vector of locales (keywords)."
+  (vec (keys all)))
+
+(def ^{:added "8.12.16-1"
+       :tag clojure.lang.PersistentVector}
+  all-arg-vec
+  "Vector of locales (keywords) suitable to be used as arguments."
+  all-vec)
+
 (def ^{:added "8.12.4-3"
        :tag clojure.lang.PersistentVector}
   by-val-vec
   "Vector of locales (Locale values)."
   (vec (keys by-val)))
 
-(defn valid?
+(def ^{:added "8.12.16-1"
+       :tag clojure.lang.PersistentVector}
+  by-val-arg-vec
+  "Vector of locales (Locale values) suitable to be used as method arguments."
+  by-val-vec)
+
+(defn valid-arg?
   "Returns `true` if the given locale specification is valid and supported, `false`
   otherwise. For `nil` it returns `true` assuming it will be a default, system
   locale. If `strict` flag is set then for nil value it returns `false` and for
@@ -60,7 +85,7 @@
   map (`phone-number.locale/all`)."
   {:added "8.12.4-3" :tag Boolean}
   ([^java.util.Locale locale-specification]
-   (valid? locale-specification true false))
+   (valid-arg? locale-specification true false))
   ([^java.util.Locale locale-specification
     ^Boolean          use-infer]
    (if (nil? locale-specification) true
@@ -72,13 +97,13 @@
     ^Boolean          use-infer
     ^Boolean          strict]
    (if-not strict
-     (valid? locale-specification use-infer)
+     (valid-arg? locale-specification use-infer)
      (if (nil? locale-specification) false
          (if (keyword? locale-specification)
            (contains? all (util/ns-infer "phone-number.locale" locale-specification use-infer))
            (try (contains? by-val (l/locale locale-specification)) (catch Throwable e false)))))))
 
-(defn stricly-valid?
+(defn stricly-valid-arg?
   "Returns `true` if the given locale specification is valid and supported, `false`
   otherwise. For `nil` it returns `false` and for keywords it only checks if they are
   in the locale map (`phone-number.locale/all`). If the key is not there, it returns
@@ -86,10 +111,36 @@
   not to infer)."
   {:added "8.12.4-3" :tag Boolean}
   ([^java.util.Locale locale-specification]
-   (valid? locale-specification false true))
+   (valid-arg? locale-specification false true))
   ([^java.util.Locale locale-specification
     ^Boolean          use-infer]
-   (valid? locale-specification use-infer true)))
+   (valid-arg? locale-specification use-infer true)))
+
+(def ^{:added "8.12.16-1" :tag Boolean
+       :arglists '([^java.util.Locale locale-specification]
+                   [^java.util.Locale locale-specification
+                    ^Boolean          use-infer]
+                   [^java.util.Locale locale-specification
+                    ^Boolean          use-infer
+                    ^Boolean          strict])}
+  valid?
+  "Returns `true` if the given locale specification is valid and supported, `false`
+  otherwise. For `nil` it returns `true` assuming it will be a default, system
+  locale. If `strict` flag is set then for nil value it returns `false` and for
+  keywords it only checks if they are in the locale map (`phone-number.locale/all`)."
+  valid-arg?)
+
+(def ^{:added "8.12.16-1" :tag Boolean
+       :arglists '([^java.util.Locale locale-specification]
+                   [^java.util.Locale locale-specification
+                    ^Boolean          use-infer])}
+  strictly-valid?
+  "Returns `true` if the given locale specification is valid and supported, `false`
+  otherwise. For `nil` it returns `false` and for keywords it only checks if they are
+  in the locale map (`phone-number.locale/all`). If the key is not there, it returns
+  `false`. Namespace inference is supported using the second argument (the default is
+  not to infer)."
+  strictly-valid-arg?)
 
 (defn parse
   "Parses locale. If it is a `java.util.Locale` object it returns it. If it's not
@@ -106,7 +157,7 @@
     ^Boolean          use-infer]
    (if (instance? java.util.Locale locale-specification) locale-specification
        (if-not (keyword? locale-specification) (l/locale locale-specification)
-               (if-some [lready (all (util/ns-infer "phone-number.locale" locale-specification use-infer))]
+               (if-some [lready (all-arg (util/ns-infer "phone-number.locale" locale-specification use-infer))]
                  lready
                  (l/locale locale-specification))))))
 
