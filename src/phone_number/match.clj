@@ -7,6 +7,7 @@
     phone-number.match
 
   (:require [lazy-map.core :refer :all])
+
   (:import [com.google.i18n.phonenumbers
             PhoneNumberUtil
             PhoneNumberUtil$MatchType
@@ -22,11 +23,33 @@
       :nsn        PhoneNumberUtil$MatchType/NSN_MATCH
       :none       PhoneNumberUtil$MatchType/NO_MATCH})
 
+(def ^{:added "8.12.16-1"
+       :const true
+       :tag clojure.lang.Keyword}
+  none ::none)
+
+(def ^{:added "8.12.16-1"
+       :const true
+       :tag String}
+  none-val (all ::none))
+
+(def ^{:added "8.12.16-1"
+       :tag clojure.lang.PersistentArrayMap}
+  all-arg
+  "Map of phone number matches (keywords) to MatchType values to be used as arguments."
+  all)
+
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentArrayMap}
   by-val
   "Map of MatchType values to phone number matches (keywords)."
   (clojure.set/map-invert all))
+
+(def ^{:added "8.12.16-1"
+       :tag clojure.lang.PersistentArrayMap}
+  by-val-arg
+  "Map of MatchType values to phone number matches (keywords) to be used as arguments."
+  by-val)
 
 (defn mapper
   "Generates a map from PhoneNumberMatch object."
