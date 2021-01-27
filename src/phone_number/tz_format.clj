@@ -34,20 +34,20 @@
   default-val (all default))
 
 (def ^{:added "8.12.16-1"
-       :tag clojure.lang.PersistentMap}
+       :tag clojure.lang.PersistentArrayMap}
   by-val
   "Map of time zone formats to TextStyle objects."
   (clojure.set/map-invert all))
 
 (def ^{:added "8.12.16-1"
-       :tag clojure.lang.PersistentMap}
+       :tag clojure.lang.PersistentArrayMap}
   all-arg
   "Map of TextStyle objects to time zone formats (keywords) for time zone
   formatting (to be used as arguments)."
   all)
 
 (def ^{:added "8.12.16-1"
-       :tag clojure.lang.PersistentMap}
+       :tag clojure.lang.PersistentArrayMap}
   by-val-arg
   "Map of time zone formats as TextStyle objects mapped to keywords (values accepted by
   Libphonenumber methods)."
