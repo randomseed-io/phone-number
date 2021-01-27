@@ -13,7 +13,7 @@
             ShortNumberInfo$ShortNumberCost]))
 
 (def ^{:added "8.12.4-0"
-       :tag clojure.lang.PersistentHashMap}
+       :tag clojure.lang.PersistentArrayMap}
   all
   "Map of phone number cost (keywords) to ShortNumberCost values."
   #::{:toll-free ShortNumberInfo$ShortNumberCost/TOLL_FREE
@@ -32,19 +32,6 @@
   unknown-val (all unknown))
 
 (def ^{:added "8.12.4-0"
-       :tag clojure.lang.PersistentHashMap}
-  all-arg
-  "Map of ShortNumberCost values to phone number costs (keywords) suitable to be passed
-  as arguments."
-  (dissoc all ::unknown))
-
-(def ^{:added "8.12.4-0"
-       :tag clojure.lang.PersistentHashMap}
-  by-val
-  "Map of ShortNumberCost values to phone number costs (keywords)."
-  (clojure.set/map-invert all))
-
-(def ^{:added "8.12.4-0"
        :const true
        :tag clojure.lang.Keyword}
   default ::standard)
@@ -52,6 +39,26 @@
 (def ^{:added "8.12.4-0"
        :tag ShortNumberInfo$ShortNumberCost}
   default-val (all default))
+
+(def ^{:added "8.12.4-0"
+       :tag clojure.lang.PersistentArrayMap}
+  all-arg
+  "Map of ShortNumberCost values to phone number costs (keywords) suitable to be passed
+  as arguments."
+  (dissoc all ::unknown))
+
+(def ^{:added "8.12.4-0"
+       :tag clojure.lang.PersistentArrayMap}
+  by-val
+  "Map of ShortNumberCost values to phone number costs (keywords)."
+  (clojure.set/map-invert all))
+
+(def ^{:added "8.12.16-1"
+       :tag clojure.lang.PersistentArrayMap}
+  by-val-arg
+  "Map of ShortNumberCost values to phone number costs (keywords) suitable to be passed
+  as method argument."
+  (clojure.set/map-invert all-arg))
 
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentVector}
@@ -70,6 +77,12 @@
   by-val-vec
   "Vector of costs (ShortNumberCost values)."
   (vec (keys by-val)))
+
+(def ^{:added "8.12.16-1"
+       :tag ShortNumberInfo$ShortNumberCost}
+  by-val-arg-vec
+  "Vector of costs (ShortNumberCost values)."
+  (vec (keys by-val-arg)))
 
 (defn valid?
   "Returns true if the given cost is valid, false otherwise."
