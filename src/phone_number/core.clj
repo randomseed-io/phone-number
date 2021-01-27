@@ -777,8 +777,9 @@
   ([^phone_number.core.Phoneable    phone-number
     ^clojure.lang.Keyword           region-code]
    (when-some-input phone-number
-     (.getCountryCode
-      (number-noraw phone-number region-code)))))
+     (when-some [c (.getCountryCode
+                    (number-noraw phone-number region-code))]
+       (when (calling-code/valid? c) c)))))
 
 (defn calling-code-prefix
   "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
@@ -834,7 +835,7 @@
    (when-some [phone-obj (number-noraw phone-number region-code)]
      (when-some [as-string (format phone-obj nil ::format/e164)]
        (let [ccode (calling-code phone-obj nil)
-             digits (if (or (nil? ccode) (<= ccode 0)) 1 (unchecked-inc (util/count-digits ccode)))]
+             digits (if (some? ccode) (unchecked-inc (util/count-digits ccode)) 1)]
          (when-some [regional-number (not-empty (subs as-string digits))]
            (Long/valueOf regional-number)))))))
 
@@ -1819,10 +1820,9 @@
     ^clojure.lang.Keyword        region-code]
    (util/try-parse-or-false
     (when-some-input phone-number
-      (not
-       (contains? none
-                  (.getCountryCode
-                   (number-noraw phone-number region-code))))))))
+      (calling-code/valid?
+       (.getCountryCode
+        (number-noraw phone-number region-code)))))))
 
 (defn has-location?
   "For the given phone number returns true if the approximate geographic location is
