@@ -106,11 +106,9 @@
   ([^clojure.lang.Keyword k
     ^Boolean use-infer]
    (when (some? k)
-     (if (keyword? k)
-       (let [k (util/ns-infer "phone-number.region" k use-infer)]
-         (assert (valid-arg? k) (str "Region code " k " is not valid"))
-         (all k))
-       (do (assert (contains? by-val-arg k) (str "Region " k " is not valid")) k)))))
+     (let [k (util/ns-infer "phone-number.region" k use-infer)]
+       (assert (valid-arg? k) (str "Region code " k " is not valid"))
+       (all k)))))
 
 (defn generate-sample
   "Generates random region code."
