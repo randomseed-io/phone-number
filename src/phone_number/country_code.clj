@@ -28,8 +28,10 @@
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentHashSet}
   all
-  "Set of supported country calling codes."
-  (set (.getSupportedCallingCodes (util/instance))))
+  "Set of supported country codes."
+  (clojure.set/difference
+   (set (.getSupportedCallingCodes              (util/instance)))
+   (set (.getSupportedGlobalNetworkCallingCodes (util/instance)))))
 
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentHashSet}
