@@ -39,13 +39,21 @@
 (alias 'arg   (create-ns 'phone-number.arg))   ;; for internal arg specs
 (alias 'args  (create-ns 'phone-number.args))  ;; for internal args specs
 (alias 'prop  (create-ns 'phone-number.prop))  ;; for additional properties
-(alias 'input (create-ns 'phone-number.input)) ;; in for public input specs
+
+(alias 'input                (create-ns 'phone-number.input))           ;; in for public input specs
+(alias 'input-short          (create-ns 'phone-number.input.short))     ;; in for public input specs
+(alias 'input-tz-format      (create-ns 'phone-number.input.tz-format)) ;; in for public input specs
+(alias 'input-format         (create-ns 'phone-number.input.format))
+(alias 'input-dialing-region (create-ns 'phone-number.input.dialing-region))
+(alias 'input-region         (create-ns 'phone-number.input.region))
+(alias 'input-country-code   (create-ns 'phone-number.input.country-code))
+(alias 'input-calling-code   (create-ns 'phone-number.input.calling-code))
 
 ;;
 ;; Phone number region specs
 ;;
 
-(s/def ::pn/region ; generic spec (includes defaults and unknowns)
+(s/def ::pn/region                    ; generic spec (includes defaults and unknowns)
   (s/with-gen
     #(region/valid? % phone/*inferred-namespaces*)
     #(gen/elements region/all-vec)))
@@ -80,8 +88,7 @@
     #(type/valid-arg? % phone/*inferred-namespaces*)
     #(gen/elements type/all-arg-vec)))
 
-(s/def ::input/type
-  ::arg/type)
+(s/def ::input/type ::arg/type)
 
 ;;
 ;; Phone number format specs
@@ -106,6 +113,10 @@
 (s/def ::arg/format-global    ::pn/format-global)
 (s/def ::arg/format-regional  ::pn/format-regional)
 
+(s/def ::input/format          ::arg/format)
+(s/def ::input/format-global   ::arg/format-global)
+(s/def ::input/format-regional ::arg/format-regional)
+
 (defn random-format
   [n]
   (phone/format n nil (gen/generate (s/gen ::pn/format))))
@@ -127,7 +138,12 @@
     #(tz-format/valid? % phone/*inferred-namespaces*)
     #(gen/elements tz-format/all-vec)))
 
-(s/def ::arg/tz-format ::pn/tz-format)
+(s/def ::arg/tz-format
+  (s/with-gen
+    #(tz-format/valid-arg? % phone/*inferred-namespaces*)
+    #(gen/elements tz-format/all-arg-vec)))
+
+(s/def ::input/tz-format ::arg/tz-format)
 
 ;;
 ;; Phone number leniency specs
@@ -138,7 +154,12 @@
     #(leniency/valid? % phone/*inferred-namespaces*)
     #(gen/elements leniency/all-vec)))
 
-(s/def ::arg/leniency ::pn/leniency)
+(s/def ::arg/leniency
+  (s/with-gen
+    #(leniency/valid-arg? % phone/*inferred-namespaces*)
+    #(gen/elements leniency/all-arg-vec)))
+
+(s/def ::input/leniency ::arg/leniency)
 
 ;;
 ;; Network calling code specs
@@ -149,7 +170,12 @@
     net-code/valid?
     #(gen/elements net-code/all-vec)))
 
-(s/def ::arg/net-code ::pn/net-code)
+(s/def ::arg/net-code
+  (s/with-gen
+    net-code/valid-arg?
+    #(gen/elements net-code/all-arg-vec)))
+
+(s/def ::input/net-code ::arg/net-code)
 
 ;;
 ;; Country calling code specs
@@ -160,7 +186,12 @@
     country-code/valid?
     #(gen/elements country-code/all-vec)))
 
-(s/def ::arg/country-code ::pn/country-code)
+(s/def ::arg/country-code
+  (s/with-gen
+    country-code/valid-arg?
+    #(gen/elements country-code/all-arg-vec)))
+
+(s/def ::input/country-code ::arg/country-code)
 
 ;;
 ;; Calling code specs
@@ -171,7 +202,12 @@
     calling-code/valid?
     #(gen/elements calling-code/all-vec)))
 
-(s/def ::arg/calling-code ::pn/calling-code)
+(s/def ::arg/calling-code
+  (s/with-gen
+    calling-code/valid-arg?
+    #(gen/elements calling-code/all-arg-vec)))
+
+(s/def ::input/calling-code ::arg/calling-code)
 
 ;;
 ;; Short phone number cost specs
@@ -186,6 +222,8 @@
   (s/with-gen
     #(cost/valid-arg? % phone/*inferred-namespaces*)
     #(gen/elements cost/all-arg-vec)))
+
+(s/def ::input/cost ::arg/cost)
 
 ;;
 ;; Phone number specs
@@ -224,6 +262,9 @@
            ::pn/has-calling-code)
     (phone-gen {:predicate phone/has-calling-code? :preserve-raw false})))
 
+(s/def ::input/noraw-has-region       ::pn/noraw-has-region)
+(s/def ::input/noraw-has-calling-code ::pn/noraw-has-calling-code)
+
 ;;
 ;; Native form of a phone number
 ;;
@@ -255,6 +296,18 @@
     (phone-gen {:predicate       phone/invalid?
                 :retries         100
                 :early-shrinking true})))
+
+(s/def ::arg/native            ::pn/native)
+(s/def ::arg/native-noraw      ::pn/native-noraw)
+(s/def ::arg/native-with-raw   ::pn/native-with-raw)
+(s/def ::arg/native-valid      ::pn/native-with-raw)
+(s/def ::arg/native-invalid    ::pn/native-with-raw)
+
+(s/def ::input/native          ::arg/native)
+(s/def ::input/native-noraw    ::arg/native-noraw)
+(s/def ::input/native-with-raw ::arg/native-with-raw)
+(s/def ::input/native-valid    ::arg/native-with-raw)
+(s/def ::input/native-invalid  ::arg/native-with-raw)
 
 ;;
 ;; String form of a phone number
@@ -315,12 +368,26 @@
       random-format
       (s/gen ::pn/native-invalid))))
 
+(s/def ::arg/string            ::pn/string)
+(s/def ::arg/string-global     ::pn/string-global)
+(s/def ::arg/string-regional   ::pn/string-regional)
+(s/def ::arg/string-valid      ::pn/string-valid)
+(s/def ::arg/string-invalid    ::pn/string-invalid)
+
+(s/def ::input/string          ::arg/string)
+(s/def ::input/string-global   ::arg/string-global)
+(s/def ::input/string-regional ::arg/string-regional)
+(s/def ::input/string-valid    ::arg/string-valid)
+(s/def ::input/string-invalid  ::arg/string-invalid)
+
 (s/def ::pn/numeric
   (s/with-gen
     (s/and pos-int? phone/valid-input?)
     #(gen/fmap
       phone/numeric
       (s/gen ::pn/native))))
+
+(s/def ::input/numeric ::pn/numeric)
 
 (defmacro phone-spec
   "Template macro for constructing specs with generators for the given predicate. It
@@ -335,6 +402,12 @@
 (s/def ::pn/has-time-zone    (phone-spec phone/has-time-zone?))
 (s/def ::pn/has-known-type   (phone-spec phone/has-known-type?))
 
+(s/def ::input/has-region       ::pn/has-region)
+(s/def ::input/has-calling-code ::pn/has-calling-code)
+(s/def ::input/has-location     ::pn/has-location)
+(s/def ::input/has-time-zone    ::pn/has-time-zone)
+(s/def ::input/has-known-type   ::pn/has-known-type)
+
 (s/def ::pn/mobile           (phone-spec phone/is-mobile?       {:type ::type/mobile      }))
 (s/def ::pn/fixed-line       (phone-spec phone/is-fixed-line?   {:type ::type/fixed-line  }))
 (s/def ::pn/toll-free        (phone-spec phone/is-toll-free?    {:type ::type/toll-free   }))
@@ -346,17 +419,37 @@
 (s/def ::pn/uan              (phone-spec phone/is-uan?          {:type ::type/uan         }))
 (s/def ::pn/voicemail        (phone-spec phone/is-voicemail?    {:type ::type/voicemail   }))
 
+(s/def ::input/mobile       ::pn/mobile)
+(s/def ::input/fixed-line   ::pn/fixed-line)
+(s/def ::input/toll-free    ::pn/toll-free)
+(s/def ::input/premium-rate ::pn/premium-rate)
+(s/def ::input/shared-cost  ::pn/shared-cost)
+(s/def ::input/voip         ::pn/voip)
+(s/def ::input/personal     ::pn/personal)
+(s/def ::input/pager        ::pn/pager)
+(s/def ::input/uan          ::pn/uan)
+(s/def ::input/voicemail    ::pn/voicemail)
+
 (s/def ::pn/fixed-line-or-mobile (phone-spec phone/is-fixed-line-or-mobile?))
 
 (s/def ::pn/uncertain-fixed-line-or-mobile (phone-spec phone/is-uncertain-fixed-line-or-mobile?
                                                        {:type ::type/fixed-line-or-mobile
                                                         :early-shrinking true}))
 
+(s/def ::input/fixed-line-or-mobile           ::pn/fixed-line-or-mobile)
+(s/def ::input/uncertain-fixed-line-or-mobile ::pn/uncertain-fixed-line-or-mobile)
+
 (s/def ::pn/possible         (phone-spec phone/possible?            {:early-shrinking true}))
 (s/def ::pn/impossible       (phone-spec phone/impossible?          {:early-shrinking true}))
 (s/def ::pn/unknown          (phone-spec phone/is-unknown?          {:early-shrinking true}))
 (s/def ::pn/maybe-mobile     (phone-spec phone/is-maybe-mobile?     {:early-shrinking true}))
 (s/def ::pn/maybe-fixed-line (phone-spec phone/is-maybe-fixed-line? {:early-shrinking true}))
+
+(s/def ::input/possible         ::pn/possible)
+(s/def ::input/impossible       ::pn/impossible)
+(s/def ::input/unknown          ::pn/unknown)
+(s/def ::input/maybe-mobile     ::pn/maybe-mobile)
+(s/def ::input/maybe-fixed-line ::pn/maybe-fixed-line)
 
 ;;
 ;; Short number specs
@@ -369,6 +462,13 @@
 (s/def ::short/possible         phone/short-possible?)
 (s/def ::short/carrier-specific phone/short-carrier-specific?)
 
+(s/def ::input/short                  ::pn/short)
+(s/def ::input/maybe-short            ::pn/maybe-short)
+(s/def ::input-short/valid            ::short/valid)
+(s/def ::input-short/invalid          ::short/invalid)
+(s/def ::input-short/possible         ::short/possible)
+(s/def ::input-short/carrier-specific ::short/carrier-specific)
+
 ;;
 ;; Info map spec and props
 ;;
@@ -376,6 +476,7 @@
 (s/def ::prop/format string?)
 
 (s/def ::tz-format/timezones (s/coll-of string? :distinct true :min-count 1))
+(s/def ::input-tz-format/timezones ::tz-format/timezones)
 
 (s/def ::pn/valid?                     boolean?)
 (s/def ::pn/possible?                  boolean?)
@@ -406,6 +507,36 @@
 (s/def ::tz-format/short               ::tz-format/timezones)
 (s/def ::tz-format/narrow              ::tz-format/timezones)
 (s/def ::tz-format/id                  ::tz-format/timezones)
+
+(s/def ::input/valid?                        boolean?)
+(s/def ::input/possible?                     boolean?)
+(s/def ::input-short/valid?                  boolean?)
+(s/def ::input-short/possible?               boolean?)
+(s/def ::input-short/emergency?              (s/nilable boolean?))
+(s/def ::input-short/to-emergency?           (s/nilable boolean?))
+(s/def ::input-short/sms-service?            boolean?)
+(s/def ::input-short/carrier-specific?       boolean?)
+(s/def ::input/valid-for-region?             boolean?)
+(s/def ::input/geographical?                 boolean?)
+(s/def ::input-dialing-region/derived?       boolean?)
+(s/def ::input-dialing-region/defaulted?     boolean?)
+(s/def ::input-dialing-region/valid-for?     boolean?)
+(s/def ::input/dialing-region-default        (s/nilable ::arg/region))
+(s/def ::input/location                      (s/nilable string?))
+(s/def ::input/carrier                       (s/nilable string?))
+(s/def ::input/dialing-region                (s/nilable ::input/region))
+(s/def ::input-format/e164                   string?)
+(s/def ::input-format/international          string?)
+(s/def ::input-format/national               string?)
+(s/def ::input-format/rfc3966                string?)
+(s/def ::input-format/raw-input              string?)
+(s/def ::input-tz-format/full-global         ::tz-format/timezones)
+(s/def ::input-tz-format/input-short-global  ::tz-format/timezones)
+(s/def ::input-tz-format/narrow-global       ::tz-format/timezones)
+(s/def ::input-tz-format/full                ::tz-format/timezones)
+(s/def ::input-tz-format/input-short         ::tz-format/timezones)
+(s/def ::input-tz-format/narrow              ::tz-format/timezones)
+(s/def ::input-tz-format/id                  ::tz-format/timezones)
 
 (def short-info-keys
   (s/keys :req [::short/valid?
@@ -480,15 +611,19 @@
       phone/short-info
       (s/gen ::pn/native))))
 
-(s/def ::arg/map                ::pn/info) ;; TODO
+(s/def ::arg/map                ::pn/info)
 (s/def ::arg/map-regional       ::pn/info)
 (s/def ::arg/map-global         ::pn/info)
 
+(s/def ::input/map              ::arg/map)
+(s/def ::input/map-regional     ::arg/map-regional)
+(s/def ::input/map-global       ::arg/map-global)
+
 (s/def ::arg/number-global
   (s/with-gen
-    (s/alt :native ::pn/native
+    (s/alt :native ::arg/native
            :map    ::arg/map-global
-           :string ::pn/string-global
+           :string ::arg/string-global
            :nil    nil?)
     #(gen/fmap
       (juxt (gen/generate (gen/elements [random-format-global
@@ -508,6 +643,9 @@
                                          phone/numeric])))
       (s/gen ::pn/has-region))))
 
+(s/def ::input/number-global   ::arg/number-global)
+(s/def ::input/number-regional ::arg/number-regional)
+
 (s/def ::arg/locale
   (s/with-gen
     #(locale/valid? % phone/*inferred-namespaces*)
@@ -518,12 +656,16 @@
                                    (constantly nil)]))
       (gen/elements locale/by-val-vec))))
 
+(s/def ::input/locale ::arg/locale)
+
 ;; Please note that a standalone regional number will be invalid
 ;; This is just for abstract testing or raw input specific.
 
 (s/def ::arg/number
   (s/or :regional ::arg/number-regional
         :global   ::arg/number-global))
+
+(s/def ::input/number ::arg/number)
 
 ;;
 ;; Argument tuples which validity can be checked only when tested together
