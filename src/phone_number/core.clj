@@ -557,22 +557,19 @@
     ([phone-number] phone-number)
     ([phone-number
       ^clojure.lang.Keyword region-code]
-     (assert false ("Unable to create phone number from "
-                    (clojure.core/type phone-number)
-                    " type object"))))
+     (assert false (str "Unable to create phone number from instance of a "
+                        (clojure.core/type phone-number) ": " phone-number))))
   (number
     ([phone-number] phone-number)
     ([phone-number
       ^clojure.lang.Keyword region-code]
-     (assert false ("Unable to create phone number from "
-                    (clojure.core/type phone-number)
-                    " type object"))))
+     (assert false (str "Unable to create phone number from instance of a "
+                        (clojure.core/type phone-number) ": " phone-number))))
   (raw-input
     ([phone-number] phone-number)
     ([phone-number ^clojure.lang.Keyword region-code]
-     (assert false ("Unable to create phone number from "
-                    (clojure.core/type phone-number)
-                    " type object"))))
+     (assert false (str "Unable to create phone number from instance of a "
+                        (clojure.core/type phone-number) ": " phone-number))))
   (valid?
     ([phone-number] false)
     ([phone-number
