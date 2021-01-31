@@ -1,5 +1,44 @@
 # History of phone-number releases
 
+## 8.12.16-1 (2021-01-31)
+
+- Improvements:
+  * Added some missing validators and databases for argument processing
+  * Samplers corrected to use -arg versions of databases
+  * Added support for pseudo-region `:phone-number.region/world` for non-geographic numbers
+  * Created `phone-number.db` with cross-databases:
+    * Regions to types
+    * Types to regions
+    * Regions to calling codes
+    * Calling codes to regions
+    * Calling codes to types
+    * Types to calling codes
+  * New functions in core:
+    * `phone-number.core/calling-code-prefix`
+    * `phone-number.core/regions-for-calling-code`
+    * `phone-number.core/region-for-calling-code`
+    * `phone-number.core/calling-codes-for-region`
+  * Improved main phone numbers generator  
+    (random regions and calling codes are picked up from valid sets for randomly
+    generated types)
+  * Specs divided into 3 groups:
+    * Input data specs
+    * Generic specs (outputs, common data structures)
+    * Internal specs (arguments, properties)
+  * Removed legacy support for accepting region codes as enum type values
+  * Shuffling functions from `phone-number.util` are now short-circuiting on `nil` values
+  * Assertion errors reporting improved
+  * Development process now uses Eastwood linter
+
+- Bug fixes:
+
+  * Function for building phone numbers from maps now properly handles invalid data
+  * Removed unneeded `:phone-number.region/unknown`
+  * Removed global network calling codes from `phone-number.country-code/all` and
+    related
+  * Documentation corrected in some places
+
+
 ## 8.12.16-0 (2021-01-23)
 
 - Improvements:

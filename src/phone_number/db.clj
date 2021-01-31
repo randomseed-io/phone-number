@@ -50,37 +50,37 @@
 
 (def ^{:added "8.12.16-1" :tag clojure.lang.PersistentHashSet}
   formats
-  "A set of all possible phone number formats as a sequence of keywords."
+  "A set of all possible phone number formats as a set of keywords."
   (set (keys format/all)))
 
 (def ^{:added "8.12.16-1" :tag clojure.lang.PersistentHashSet}
   leniencies
-  "A set of all possible phone number leniencies as a sequence of keywords."
+  "A set of all possible phone number leniencies as a set of keywords."
   (set (keys leniency/all)))
 
 (def ^{:added "8.12.16-1" :tag clojure.lang.PersistentHashSet}
   locales
-  "A set of all possible phone number locales as a sequence of keywords."
+  "A set of all possible phone number locales as a set of keywords."
   (set (keys locale/all)))
 
 (def ^{:added "8.12.16-1" :tag clojure.lang.PersistentHashSet}
   types
-  "A set of all possible phone number types as a sequence of keywords."
+  "A set of all possible phone number types as a set of keywords."
   (set type/all-vec))
 
 (def ^{:added "8.12.16-1" :tag clojure.lang.PersistentHashSet}
   match-types
-  "A set of all possible phone number match types as a sequence of keywords."
+  "A set of all possible phone number match types as a set of keywords."
   (set (keys match/all)))
 
 (def ^{:added "8.12.16-1" :tag clojure.lang.PersistentHashSet}
   tz-formats
-  "A set of all possible time zone formats as a sequence of keywords."
+  "A set of all possible time zone formats as a set of keywords."
   (set (keys tz-format/all)))
 
 (def ^{:added "8.12.16-1" :tag clojure.lang.PersistentHashSet}
   costs
-  "A set of all possible phone number cost classes as a sequence of keywords."
+  "A set of all possible phone number cost classes as a set of keywords."
   (set cost/all-vec))
 
 ;;
@@ -110,43 +110,43 @@
 
 (def ^{:added "8.12.16-1" :tag clojure.lang.PersistentHashSet}
   formats-args
-  "A set of all possible phone number formats as a sequence of keywords (suitable to be
+  "A set of all possible phone number formats as a set of keywords (suitable to be
   used as arguments)."
   (set (keys format/all-arg)))
 
 (def ^{:added "8.12.16-1" :tag clojure.lang.PersistentHashSet}
   leniencies-args
-  "A set of all possible phone number leniencies as a sequence of keywords (suitable to
+  "A set of all possible phone number leniencies as a set of keywords (suitable to
   be used as arguments)."
   (set (keys leniency/all-arg)))
 
 (def ^{:added "8.12.16-1" :tag clojure.lang.PersistentHashSet}
   locales-args
-  "A set of all possible phone number locales as a sequence of keywords (suitable to be
+  "A set of all possible phone number locales as a set of keywords (suitable to be
   used as arguments)."
   (set (keys locale/all-arg)))
 
 (def ^{:added "8.12.16-1" :tag clojure.lang.PersistentHashSet}
   types-args
-  "A set of all possible phone number types as a sequence of keywords (suitable to be
+  "A set of all possible phone number types as a set of keywords (suitable to be
   used as arguments)."
   (set type/all-arg-vec))
 
 (def ^{:added "8.12.16-1" :tag clojure.lang.PersistentHashSet}
   match-types-args
-  "A set of all possible phone number match types as a sequence of keywords (suitable
+  "A set of all possible phone number match types as a set of keywords (suitable
   to be used as arguments)."
   (set (keys match/all-arg)))
 
 (def ^{:added "8.12.16-1" :tag clojure.lang.PersistentHashSet}
   tz-formats-args
-  "A set of all possible time zone formats as a sequence of keywords (suitable to be
+  "A set of all possible time zone formats as a set of keywords (suitable to be
   used as arguments)."
   (set (keys tz-format/all-arg)))
 
 (def ^{:added "8.12.16-1" :tag clojure.lang.PersistentHashSet}
   costs-args
-  "A set of all possible phone number cost classes as a sequence of keywords (suitable
+  "A set of all possible phone number cost classes as a set of keywords (suitable
   to be used as arguments)."
   (set cost/all-arg-vec))
 

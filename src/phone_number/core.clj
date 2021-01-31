@@ -132,37 +132,37 @@
 
 (def ^{:added "8.12.4-0" :tag clojure.lang.PersistentHashSet}
   formats
-  "A set of all possible phone number formats as a sequence of keywords."
+  "A set of all possible phone number formats as a set of keywords."
   db/formats)
 
 (def ^{:added "8.12.4-3" :tag clojure.lang.PersistentHashSet}
   leniencies
-  "A set of all possible phone number leniencies as a sequence of keywords."
+  "A set of all possible phone number leniencies as a set of keywords."
   db/leniencies)
 
 (def ^{:added "8.12.4-3" :tag clojure.lang.PersistentHashSet}
   locales
-  "A set of all possible phone number locales as a sequence of keywords."
+  "A set of all possible phone number locales as a set of keywords."
   db/locales)
 
 (def ^{:added "8.12.4-0" :tag clojure.lang.PersistentHashSet}
   types
-  "A set of all possible phone number types as a sequence of keywords."
+  "A set of all possible phone number types as a set of keywords."
   db/types)
 
 (def ^{:added "8.12.4-0" :tag clojure.lang.PersistentHashSet}
   match-types
-  "A set of all possible phone number match types as a sequence of keywords."
+  "A set of all possible phone number match types as a set of keywords."
   db/match-types)
 
 (def ^{:added "8.12.4-0" :tag clojure.lang.PersistentHashSet}
   tz-formats
-  "A set of all possible time zone formats as a sequence of keywords."
+  "A set of all possible time zone formats as a set of keywords."
   db/tz-formats)
 
 (def ^{:added "8.12.4-0" :tag clojure.lang.PersistentHashSet}
   costs
-  "A set of all possible phone number cost classes as a sequence of keywords."
+  "A set of all possible phone number cost classes as a set of keywords."
   db/costs)
 
 ;;
