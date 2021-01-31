@@ -2301,7 +2301,7 @@
     ^Long                 random-seed
     ^Boolean              early-shrinking
     ^Boolean              preserve-raw]
-   (type/parse number-type *inferred-namespaces*) ;; assert check
+   (type/parse number-type *inferred-namespaces*) ; assert check
    (let [early-shrinking  (if (nil? early-shrinking) false (or (and early-shrinking true) false))
          random-seed      (long (if (nil? random-seed) (rand Long/MAX_VALUE) random-seed))
          rng              (java.util.Random. random-seed)
