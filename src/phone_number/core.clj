@@ -10,6 +10,7 @@
 
   (:require   [clojure.set]
               [phone-number                 :as             PN]
+              [phone-number.db              :as             db]
               [phone-number.util            :as           util]
               [phone-number.type            :as           type]
               [phone-number.match           :as          match]
@@ -2314,9 +2315,12 @@
             template-tries (unchecked-add-int 8 (unchecked-multiply-int
                                                  (if (nil? region-code) (count region-net-code-mix) 1)
                                                  (if (nil? number-type) (count types) 1)))]
-       (let [number-type' (if (some? number-type) number-type (type/generate-arg-sample rng))
-             region-code' (if (some? region-code) region-code (region-or-code-sample rng))
+       (let [region-code' (if (some? region-code) region-code (region-or-code-sample rng))
              non-geo-mode (number? region-code')
+             number-type' (if (some? number-type) number-type
+                              (if non-geo-mode
+                                (db/generate-type-arg-for-calling-code region-code rng)
+                                (db/generate-type-arg-for-region       region-code rng)))
              example-fn   (if non-geo-mode example-non-geo example)
              combo        [number-type' region-code']
              tried?       (contains? tried-combos combo)
