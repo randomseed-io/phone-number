@@ -24,16 +24,23 @@ certain properties of phone numbers. These include:
 
 ## Specs
 
-Clojure Spec is used in phone-number library to validate data and generate
+Clojure Spec is used in the phone-number library to validate data and generate
 property-based tests. Most of the defined specs have generators attached.
 
-There are two groups of specs: first are specs that are used **internally** to test
-the library for corner cases and make sure that new features or other changes won't
-break anything, second are **generic** specs, created for easy data validation in
-programs that are already using specs.
+There are 3 groups of specs:
 
-This page describes the generic specs. To use them just require `phone-number.spec`,
-`clojure.spec.alpha` and optionally `clojure.spec.gen.alpha`:
+* **Input specs**, created for easy data validation.  
+  (ns-prefix: `phone-number.input`)
+
+* **Generic specs** used to describe the output data.  
+  (ns-prefix: `phone-number`)
+
+* Specs that are used **internally** to test the library for corner cases
+  and make sure that new features or other changes won't break anything.  
+  (ns-prefixes: `phone-number.arg`, `phone-number.args`, `phone-number.props`)
+
+This page lists the input and some of the generic specs. To use them just require
+`phone-number.spec`, `clojure.spec.alpha` and optionally `clojure.spec.gen.alpha`:
 
 ``` clojure
 (require [phone-number.spec       :as spec]
@@ -43,61 +50,61 @@ This page describes the generic specs. To use them just require `phone-number.sp
 
 | Spec Name                         | Data description                                      |
 |-----------------------------------|-------------------------------------------------------|
-|`:phone-number/region`             | region code                                           |
-|`:phone-number/type`               | phone number type                                     |
-|`:phone-number/leniency`           | phone number leniency                                 |
-|`:phone-number/format`             | phone number format                                   |
-|`:phone-number/format-global`      | phone number format<br>(with calling code prefix)     |
-|`:phone-number/format-regional`    | phone number format<br>(without calling code prefix)  |
-|`:phone-number/tz-format`          | time zone format                                      |
-|`:phone-number/net-code`           | global network calling code                           |
-|`:phone-number/country-code`       | country calling code                                  |
-|`:phone-number/calling-code`       | calling code (either global or country)               |
-|`:phone-number/cost`               | cost class of short numbers                           |
-|`:phone-number/native`             | phone number in native format<br>(`PhoneNumber` object)|
-|`:phone-number/native-valid`       | native phone number which is valid                    |
-|`:phone-number/string`             | phone number as a string                              |
-|`:phone-number/string-global`      | phone number as a string which includes calling code  |
-|`:phone-number/string-regional`    | phone number as a string without calling code         |
-|`:phone-number/string-valid`       | valid phone number as a string                        |
-|`:phone-number/string-invalid`     | invalid phone number as a string                      |
-|`:phone-number/numeric`            | phone number as natural number without calling code   |
-|`:phone-number/info`               | phone number as a map                                 |
-|`:phone-number/info-valid`         | valid phone number as a map                           |
-|`:phone-number/info-invalid`       | invalid phone number as a map                         |
-|`:phone-number/possible`           | possible phone number                                 |
-|`:phone-number/impossible`         | impossible phone number                               |
-|`:phone-number/unknown`            | phone number of unknown type                          |
-|`:phone-number/has-region`         | phone number with region code information             |
-|`:phone-number/has-calling-code`   | phone number with calling code                        |
-|`:phone-number/has-location`       | phone number having geographical location             |
-|`:phone-number/has-time-zone`      | phone number having time zone information             |
-|`:phone-number/has-known-type`     | phone number of known type                            |
-|`:phone-number/mobile`             | mobile phone number                                   |
-|`:phone-number/fixed-line`         | fixed-line phone number                               |
-|`:phone-number/toll-free`          | toll-free phone number                                |
-|`:phone-number/premium-rate`       | premium-rate phone number                             |
-|`:phone-number/shared-cost`        | shared-cost phone number                              |
-|`:phone-number/voip`               | VoIP phone number                                     |
-|`:phone-number/personal `          | personal phone number                                 |
-|`:phone-number/pager`              | pager number                                          |
-|`:phone-number/uan`                | UAN number                                            |
-|`:phone-number/voicemail`          | voicemail number                                      |
-|`:phone-number/fixed-line-or-mobile`| fixed-line or mobile number (incl. uncertain)        |
-|`:phone-number/uncertain-fixed-line-or-mobile` | uncertain number (fixed line or mobile)   |
-|`:phone-number/maybe-mobile`       | uncertain number (fixed line or mobile) or mobile     |
-|`:phone-number/maybe-fixed-line`   | uncertain number (fixed line or mobile) or fixed-line |
-|`:phone-number/short`              | valid short number                                    |
-|`:phone-number/maybe-short`        | possible short number                                 |
-|`:phone-number.short/valid`        | valid short number                                    |
-|`:phone-number.short/invalid`      | invalid short number                                  |
-|`:phone-number.short/possible`     | possible short number                                 |
-|`:phone-number.short/carrier-specific`| carrier-specific short number                      |
-|`:phone-number.short/info`         | short number properties as a map                      |
-|`:phone-number.arg/number`         | phone number (with calling code or without)           |
+|`:phone-number.input/region`             | region code                                           |
+|`:phone-number.input/type`               | phone number type                                     |
+|`:phone-number.input/leniency`           | phone number leniency                                 |
+|`:phone-number.input/format`             | phone number format                                   |
+|`:phone-number.input/format-global`      | phone number format<br>(with calling code prefix)     |
+|`:phone-number.input/format-regional`    | phone number format<br>(without calling code prefix)  |
+|`:phone-number.input/tz-format`          | time zone format                                      |
+|`:phone-number.input/net-code`           | global network calling code                           |
+|`:phone-number.input/country-code`       | country calling code                                  |
+|`:phone-number.input/calling-code`       | calling code (either global or country)               |
+|`:phone-number.input/cost`               | cost class of short numbers                           |
+|`:phone-number.input/native`             | phone number in native format<br>(`PhoneNumber` object)|
+|`:phone-number.input/native-valid`       | native phone number which is valid                    |
+|`:phone-number.input/string`             | phone number as a string                              |
+|`:phone-number.input/string-global`      | phone number as a string with a calling code          |
+|`:phone-number.input/string-regional`    | phone number as a string without a calling code       |
+|`:phone-number.input/string-valid`       | valid phone number as a string                        |
+|`:phone-number.input/string-invalid`     | invalid phone number as a string                      |
+|`:phone-number.input/numeric`            | phone number as natural number without calling code   |
+|`:phone-number/info`                     | phone number as a map                                 |
+|`:phone-number/info-valid`               | valid phone number as a map                           |
+|`:phone-number/info-invalid`             | invalid phone number as a map                         |
+|`:phone-number.input/possible`           | possible phone number                                 |
+|`:phone-number.input/impossible`         | impossible phone number                               |
+|`:phone-number.input/unknown`            | phone number of unknown type                          |
+|`:phone-number.input/has-region`         | phone number with region code information             |
+|`:phone-number.input/has-calling-code`   | phone number with calling code                        |
+|`:phone-number.input/has-location`       | phone number having geographical location             |
+|`:phone-number.input/has-time-zone`      | phone number having time zone information             |
+|`:phone-number.input/has-known-type`     | phone number of known type                            |
+|`:phone-number.input/mobile`             | mobile phone number                                   |
+|`:phone-number.input/fixed-line`         | fixed-line phone number                               |
+|`:phone-number.input/toll-free`          | toll-free phone number                                |
+|`:phone-number.input/premium-rate`       | premium-rate phone number                             |
+|`:phone-number.input/shared-cost`        | shared-cost phone number                              |
+|`:phone-number.input/voip`               | VoIP phone number                                     |
+|`:phone-number.input/personal `          | personal phone number                                 |
+|`:phone-number.input/pager`              | pager number                                          |
+|`:phone-number.input/uan`                | UAN number                                            |
+|`:phone-number.input/voicemail`          | voicemail number                                      |
+|`:phone-number.input/fixed-line-or-mobile`| fixed-line or mobile number (incl. uncertain)        |
+|`:phone-number.input/uncertain-fixed-line-or-mobile` | uncertain number (fixed line or mobile)   |
+|`:phone-number.input/maybe-mobile`       | uncertain number (fixed line or mobile) or mobile     |
+|`:phone-number.input/maybe-fixed-line`   | uncertain number (fixed line or mobile) or fixed-line |
+|`:phone-number.input/short`              | valid short number                                    |
+|`:phone-number.input/maybe-short`        | possible short number                                 |
+|`:phone-number.input.short/valid`        | valid short number                                    |
+|`:phone-number.input.short/invalid`      | invalid short number                                  |
+|`:phone-number.input.short/possible`     | possible short number                                 |
+|`:phone-number.input.short/carrier-specific`| carrier-specific short number                      |
+|`:phone-number.input.short/info`         | short number properties as a map                      |
+|`:phone-number.input/number`             | phone number (with calling code or without)           |
 
 Phone-number also contains specs for functions, however they are intended for testing
-and it is **NOT RECOMMENDED** to enable **instrumentation** in production.
+and it is **NOT RECOMMENDED** to enable the **instrumentation** in production.
 
 Please note that if you intend to use phone-number's specs in a program (not in
 phone-number's REPL) you should add proper dependencies since production profile of
@@ -106,7 +113,7 @@ phone-number does not depend on spec nor test library. Example, minimal `deps.ed
 ``` clojure
 {:paths ["src" "resources"]
 
- :deps {io.randomseed/phone-number {:mvn/version "8.12.16-0"}}
+ :deps {io.randomseed/phone-number {:mvn/version "8.12.16-1"}}
 
  :aliases {
            :dev {
