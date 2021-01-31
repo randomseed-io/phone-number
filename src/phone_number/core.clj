@@ -1630,7 +1630,10 @@
              ::dialing-region/derived?    dialing-derived
              ::dialing-region/defaulted?  dialing-default}
             (all-formats-into phone-obj nil)
-            (short-info-core  phone-obj region-code dialing-region phone-number)
+            (short-info-core  phone-obj
+                              (when (region/valid-arg?    region-code) region-code)
+                              (when (region/valid-arg? dialing-region) dialing-region)
+                              phone-number)
             info-remove-nils)))))
 
 ;;
