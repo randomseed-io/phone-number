@@ -135,6 +135,34 @@
     (fn [^clojure.lang.IPersistentMap mp k v] (assoc mp k (f k)))
     dst m)))
 
+(defn fmap-v
+  "For each key and value of the given map m calls a function passed as the first
+  argument (passing successive values during calls to it) and generates a map with
+  values updated by the results returned by the function. When the third argument is
+  given it should be a map on which operations are performed instead of using the
+  original map. This may be helpful when we want to avoid merging the results with
+  another map."
+  {:added "8.12.16-1" :tag clojure.lang.IPersistentMap}
+  ([^clojure.lang.IFn f
+    ^clojure.lang.IPersistentMap m]
+   (fmap-v f m m))
+  ([^clojure.lang.IFn f
+    ^clojure.lang.IPersistentMap m
+    ^clojure.lang.IPersistentMap dst]
+   (reduce-kv
+    (fn [^clojure.lang.IPersistentMap mp k v] (assoc mp k (f v)))
+    dst m)))
+
+(defn map-of-sets-invert
+  "Like `clojure.set/map-invert` but for map of sets (as values) to preserve all
+  possible values (as keys of newly created map)."
+  {:added "8.12.16-1" :tag clojure.lang.IPersistentMap}
+  [^clojure.lang.IPersistentMap m]
+  (reduce (fn [^clojure.lang.IPersistentMap am [k v]]
+            (assoc am k (conj (am k (hash-set)) v)))
+          (hash-map)
+          (for [[k st] m v st] [v k])))
+
 (defn remove-empty-vals
   "Removes empty values from a map."
   {:added "8.12.4-0" :tag clojure.lang.IPersistentMap}
