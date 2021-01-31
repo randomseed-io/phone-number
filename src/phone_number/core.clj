@@ -1852,6 +1852,41 @@
     (not (contains? none (time-zones phone-number region-code))))))
 
 ;;
+;; Getting regions assigned to calling codes and vice versa.
+;;
+
+(defn regions-for-calling-code
+  "Returns a set of region codes (keywords) assigned to the given calling code (integer
+  number). Please be aware that for non-geographical calling codes (like global
+  network calling codes) it will return a set containing
+  `:phone-number.region/:world` which cannot be later used as a valid region argument
+  in most of the functions."
+  {:added "8.12.16-1" :tag clojure.lang.PersistentHashSet}
+  [^Integer calling-code]
+  (db/calling-code-to-regions
+   (calling-code/parse calling-code)))
+
+(defn region-for-calling-code
+  "Returns a primary region code (keyword) assigned to the given calling code (integer
+  number). Please be aware that for non-geographical calling codes (like global
+  network calling codes) it will return a set containing
+  `:phone-number.region/:world` which cannot be later used as a valid region argument
+  in most of the functions."
+  {:added "8.12.16-1" :tag clojure.lang.Keyword}
+  [^Integer calling-code]
+  (db/calling-code-to-region
+   (calling-code/parse calling-code)))
+
+(defn calling-codes-for-region
+  "Returns a set of all calling codes (integer numbers) associated with the given
+  region code (keyword) which may also be `:phone-number.region/world`
+  pseudo-region."
+  {:added "8.12.16-1" :tag clojure.lang.PersistentHashSet}
+  [^clojure.lang.Keyword region-code]
+  (db/region-to-calling-codes
+   (region/normalize region-code *inferred-namespaces*)))
+
+;;
 ;; Finding numbers
 ;;
 
