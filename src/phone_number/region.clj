@@ -124,6 +124,31 @@
        (assert (valid-arg? k) (str "Region code " k " is not valid"))
        (all k)))))
 
+(defn normalize-arg
+  "Parses a region code and returns its normalized version that can be used as an
+  argument."
+  {:added "8.12.16-1" :tag String}
+  ([^clojure.lang.Keyword k]
+   (normalize-arg k true))
+  ([^clojure.lang.Keyword k
+    ^Boolean use-infer]
+   (when (some? k)
+     (let [k (util/ns-infer "phone-number.region" k use-infer)]
+       (assert (valid-arg? k) (str "Region code " k " is not valid"))
+       k))))
+
+(defn normalize
+  "Parses a region code and returns its normalized version."
+  {:added "8.12.16-1" :tag String}
+  ([^clojure.lang.Keyword k]
+   (normalize k true))
+  ([^clojure.lang.Keyword k
+    ^Boolean use-infer]
+   (when (some? k)
+     (let [k (util/ns-infer "phone-number.region" k use-infer)]
+       (assert (valid? k) (str "Region code " k " is not valid"))
+       k))))
+
 (defn generate-sample
   "Generates random region code."
   {:added "8.12.4-0" :tag clojure.lang.Keyword}
