@@ -18,10 +18,21 @@
 ;; Supported Regions
 ;;
 
+(def ^{:added "8.12.16-1"
+       :const true
+       :tag clojure.lang.Keyword}
+  non-geo ::world)
+
+(def ^{:added "8.12.16-1"
+       :const true
+       :tag String}
+  non-geo-val "001")
+
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentHashMap}
-  all
-  "Mapping of supported regions (keywords) to region values (strings)."
+  all-arg
+  "Mapping of supported regions (keywords) to region values (strings) suitable to be
+  used as arguments."
   (let [tns (str (ns-name *ns*))]
     (into #::{}
           (map
@@ -30,9 +41,9 @@
 
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentHashMap}
-  all-arg
+  all
   "Mapping of supported regions (keywords) to region values (strings)."
-  all)
+  (assoc all-arg non-geo non-geo-val))
 
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentHashMap}
@@ -81,7 +92,7 @@
   (vec (keys by-val-arg)))
 
 (defn valid?
-  "Returns true if the given region-specification is a valid region code, false
+  "Returns `true` if the given region-specification is a valid region code, `false`
   otherwise. In its binary form it uses namespace inference."
   {:added "8.12.4-0" :tag Boolean}
   ([^clojure.lang.Keyword region-specification]
@@ -91,7 +102,7 @@
    (contains? all (util/ns-infer "phone-number.region" region-specification use-infer))))
 
 (defn valid-arg?
-  "Returns true if the given region-specification is a valid region code, false
+  "Returns `true` if the given region-specification is a valid region code, `false`
   otherwise. In its binary form it uses namespace inference."
   {:added "8.12.4-0" :tag Boolean}
   ([^clojure.lang.Keyword region-specification]
