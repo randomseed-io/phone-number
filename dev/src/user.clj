@@ -11,6 +11,10 @@
    [phone-number.core            :as            phone]
    [phone-number.util            :as             util]
    [phone-number.spec            :as             spec]
+   [phone-number.db              :as               db]
+   [phone-number.region          :as           region]
+   [phone-number.type            :as             type]
+
    [puget.printer                :refer      [cprint]]
    [midje.repl                   :refer          :all]
    [kaocha.repl                  :refer          :all]
