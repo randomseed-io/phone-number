@@ -56,6 +56,19 @@
   `(try ~@body
         (catch NullPointerException  e# nil)))
 
+(defmacro when-not-empty
+  "Evaluates body when the given value is a non-empty collection."
+  {:added "8.12.16-1"}
+  [val & body]
+  `(when (seq ~val)
+     ~@body))
+
+(defn with-not-empty
+  "Returns the collection if it's not empty. Otherwise returns `nil`."
+  {:added "8.12.16-1"}
+  [obj]
+  (when (seq obj) obj))
+
 (defn count-digits
   {:added "8.12.4-1" :tag 'long}
   [^long n]
