@@ -696,8 +696,8 @@
    (if (nil? region-code-or-format-spec)
      (format phone-number nil format/default)
      (if (format/valid? region-code-or-format-spec *inferred-namespaces*)
-       (format phone-number nil region-code-or-format-spec)               ;; region code
-       (format phone-number region-code-or-format-spec format/default)))) ;; format spec
+       (format phone-number nil region-code-or-format-spec)               ; region code
+       (format phone-number region-code-or-format-spec format/default)))) ; format spec
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
     ^clojure.lang.Keyword        format-specification]
@@ -883,8 +883,8 @@
    (if (nil? region-code-or-locale-spec)
      (location phone-number nil nil)
      (if (region/valid? region-code-or-locale-spec *inferred-namespaces*)
-       (location phone-number region-code-or-locale-spec nil)     ;; region code
-       (location phone-number nil region-code-or-locale-spec))))  ;; locale spec
+       (location phone-number region-code-or-locale-spec nil)     ; region code
+       (location phone-number nil region-code-or-locale-spec))))  ; locale spec
   ([^phone_number.core.Phoneable    phone-number
     ^clojure.lang.Keyword           region-code
     ^clojure.lang.Keyword  locale-specification]
@@ -954,8 +954,8 @@
    (if (nil? region-code-or-locale-spec)
      (carrier phone-number nil nil)
      (if (region/valid? region-code-or-locale-spec *inferred-namespaces*)
-       (carrier phone-number region-code-or-locale-spec nil)    ;; region code
-       (carrier phone-number nil region-code-or-locale-spec)))) ;; locale spec
+       (carrier phone-number region-code-or-locale-spec nil)    ; region code
+       (carrier phone-number nil region-code-or-locale-spec)))) ; locale spec
   ([^phone_number.core.Phoneable   phone-number
     ^clojure.lang.Keyword          region-code
     ^clojure.lang.Keyword locale-specification]
@@ -1023,16 +1023,16 @@
    (if (nil? region-code-or-format-spec)
      (time-zones phone-number nil nil nil)
      (if (tz-format/valid? region-code-or-format-spec *inferred-namespaces*)
-       (time-zones phone-number nil nil region-code-or-format-spec)    ;; format spec
-       (time-zones phone-number region-code-or-format-spec nil nil)))) ;; region code
+       (time-zones phone-number nil nil region-code-or-format-spec)    ; format spec
+       (time-zones phone-number region-code-or-format-spec nil nil)))) ; region code
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
     ^clojure.lang.Keyword        format-spec-or-locale-spec]
    (if (nil? format-spec-or-locale-spec)
      (time-zones phone-number region-code nil nil)
      (if (tz-format/valid? format-spec-or-locale-spec *inferred-namespaces*)
-       (time-zones phone-number region-code nil format-spec-or-locale-spec)    ;; format spec
-       (time-zones phone-number region-code format-spec-or-locale-spec nil)))) ;; region code
+       (time-zones phone-number region-code nil format-spec-or-locale-spec)    ; format spec
+       (time-zones phone-number region-code format-spec-or-locale-spec nil)))) ; region code
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
     ^clojure.lang.Keyword        locale-specification
@@ -1084,8 +1084,8 @@
    (if (nil? region-code-or-locale-spec)
      (time-zones-all-formats phone-number nil nil)
      (if (region/valid? region-code-or-locale-spec *inferred-namespaces*)
-       (time-zones-all-formats phone-number region-code-or-locale-spec nil)    ;; region-code
-       (time-zones-all-formats phone-number nil region-code-or-locale-spec)))) ;; locale spec
+       (time-zones-all-formats phone-number region-code-or-locale-spec nil)    ; region-code
+       (time-zones-all-formats phone-number nil region-code-or-locale-spec)))) ; locale spec
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
     ^clojure.lang.Keyword        locale-specification]
@@ -1404,7 +1404,7 @@
               phone-string   (if (and (nil? phone-string) (string? phone-number)) phone-number phone-string)
               phone-string   (if (valid-input? phone-string) phone-string nil)
               phone-number   (if (nil? phone-string) (raw-input phone-number region-code) phone-string)
-              phone-number   (if (nil? phone-number) (format phone-obj nil ::format/national) phone-number) ;; fallback
+              phone-number   (if (nil? phone-number) (format phone-obj nil ::format/national) phone-number) ; fallback
               dialing-region (util/ns-infer "phone-number.region" dialing-region *inferred-namespaces*)
               add-dialing-fn (if (some? dst) identity
                                  #(assoc
@@ -1589,16 +1589,16 @@
    (if (nil? region-code-or-locale-spec)
      (info phone-number nil nil false)
      (if (region/valid? region-code-or-locale-spec *inferred-namespaces*)
-       (info phone-number region-code-or-locale-spec nil false)               ;; region code
-       (info phone-number nil region-code-or-locale-spec false))))            ;; locale spec
+       (info phone-number region-code-or-locale-spec nil false)               ; region code
+       (info phone-number nil region-code-or-locale-spec false))))            ; locale spec
   ([^phone_number.core.Phoneable   phone-number
     ^clojure.lang.Keyword          region-code
     ^clojure.lang.Keyword          locale-spec-or-dialing-region]
    (if (nil? locale-spec-or-dialing-region)
      (info phone-number region-code nil false)
      (if (region/valid? locale-spec-or-dialing-region false)
-       (info phone-number region-code nil locale-spec-or-dialing-region)       ;; dialing region code
-       (info phone-number region-code locale-spec-or-dialing-region false))))  ;; locale spec (favored)
+       (info phone-number region-code nil locale-spec-or-dialing-region)       ; dialing region code
+       (info phone-number region-code locale-spec-or-dialing-region false))))  ; locale spec (favored)
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code
     ^clojure.lang.Keyword        locale-specification
@@ -1982,8 +1982,8 @@
    (if (nil? region-code-or-leniency)
      (find-numbers text nil nil nil nil false)
      (if (leniency/valid? region-code-or-leniency *inferred-namespaces*)
-       (find-numbers text nil region-code-or-leniency nil nil false)     ;; region code
-       (find-numbers text region-code-or-leniency nil nil nil false))))  ;; leniency
+       (find-numbers text nil region-code-or-leniency nil nil false)     ; region code
+       (find-numbers text region-code-or-leniency nil nil nil false))))  ; leniency
   ([^String               text
     ^clojure.lang.Keyword region-code-or-leniency
     ^clojure.lang.Keyword leniency-or-max-tries-or-locale-spec]
@@ -1991,13 +1991,13 @@
      (find-numbers text region-code-or-leniency)
      (if (region/valid? region-code-or-leniency *inferred-namespaces*)
        (if (leniency/valid? leniency-or-max-tries-or-locale-spec *inferred-namespaces*)
-         (find-numbers text region-code-or-leniency leniency-or-max-tries-or-locale-spec nil nil false)         ;; region code, leniency
+         (find-numbers text region-code-or-leniency leniency-or-max-tries-or-locale-spec nil nil false)         ; region code, leniency
          (if (number? leniency-or-max-tries-or-locale-spec)
-           (find-numbers text region-code-or-leniency nil leniency-or-max-tries-or-locale-spec nil false)       ;; region code, max-tries
-           (find-numbers text region-code-or-leniency nil nil leniency-or-max-tries-or-locale-spec false)))     ;; region code, locale spec
+           (find-numbers text region-code-or-leniency nil leniency-or-max-tries-or-locale-spec nil false)       ; region code, max-tries
+           (find-numbers text region-code-or-leniency nil nil leniency-or-max-tries-or-locale-spec false)))     ; region code, locale spec
        (if (number? leniency-or-max-tries-or-locale-spec)
-         (find-numbers text nil region-code-or-leniency leniency-or-max-tries-or-locale-spec nil false)         ;; leniency, max-tries
-         (find-numbers text nil region-code-or-leniency nil leniency-or-max-tries-or-locale-spec false))))) ;; leniency, locale spec
+         (find-numbers text nil region-code-or-leniency leniency-or-max-tries-or-locale-spec nil false)         ; leniency, max-tries
+         (find-numbers text nil region-code-or-leniency nil leniency-or-max-tries-or-locale-spec false)))))     ; leniency, locale spec
   ([^String               text
     ^clojure.lang.Keyword region-code
     ^clojure.lang.Keyword leniency-or-locale-spec
@@ -2005,8 +2005,8 @@
    (if (and                                    ; backward compatibility
         (number? max-tries-or-dialing-region)
         (leniency/valid? leniency-or-locale-spec *inferred-namespaces*))
-     (find-numbers text region-code leniency-or-locale-spec max-tries-or-dialing-region nil false)               ;; max-tries, leniency
-     (find-numbers text region-code nil  nil leniency-or-locale-spec max-tries-or-dialing-region)))              ;; locale spec, dialing region code
+     (find-numbers text region-code leniency-or-locale-spec max-tries-or-dialing-region nil false)               ; max-tries, leniency
+     (find-numbers text region-code nil  nil leniency-or-locale-spec max-tries-or-dialing-region)))              ; locale spec, dialing region code
   ([^String               text
     ^clojure.lang.Keyword region-code
     ^clojure.lang.Keyword leniency
@@ -2015,8 +2015,8 @@
    (if (nil? locale-specification-or-dialing-region)
      (find-numbers text region-code leniency max-tries nil false)
      (if (region/valid? locale-specification-or-dialing-region false)
-       (find-numbers text region-code leniency max-tries nil locale-specification-or-dialing-region)             ;; dialing region code
-       (find-numbers text region-code leniency max-tries locale-specification-or-dialing-region false))))        ;; locale specification
+       (find-numbers text region-code leniency max-tries nil locale-specification-or-dialing-region)             ; dialing region code
+       (find-numbers text region-code leniency max-tries locale-specification-or-dialing-region false))))        ; locale specification
   ([^String               text
     ^clojure.lang.Keyword region-code
     ^clojure.lang.Keyword leniency
