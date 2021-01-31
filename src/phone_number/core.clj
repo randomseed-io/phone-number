@@ -113,57 +113,57 @@
 (def ^{:added "8.12.4-0" :tag clojure.lang.PersistentHashSet}
   regions
   "A set of all possible phone number region codes."
-  (set region/all-vec))
+  db/regions)
 
 (def ^{:added "8.12.4-0" :tag clojure.lang.PersistentHashSet}
   net-codes
   "A set of all possible global network calling codes."
-  net-code/all)
+  db/net-codes)
 
 (def ^{:added "8.12.4-0" :tag clojure.lang.PersistentHashSet}
   country-codes
   "A set of all possible country calling codes."
-  country-code/all)
+  db/country-codes)
 
 (def ^{:added "8.12.4-0" :tag clojure.lang.PersistentHashSet}
   calling-codes
   "A set of all possible country calling codes."
-  calling-code/all)
+  db/calling-codes)
 
 (def ^{:added "8.12.4-0" :tag clojure.lang.PersistentHashSet}
   formats
   "A set of all possible phone number formats as a sequence of keywords."
-  (set (keys format/all)))
+  db/formats)
 
 (def ^{:added "8.12.4-3" :tag clojure.lang.PersistentHashSet}
   leniencies
   "A set of all possible phone number leniencies as a sequence of keywords."
-  (set (keys leniency/all)))
+  db/leniencies)
 
 (def ^{:added "8.12.4-3" :tag clojure.lang.PersistentHashSet}
   locales
   "A set of all possible phone number locales as a sequence of keywords."
-  (set (keys locale/all)))
+  db/locales)
 
 (def ^{:added "8.12.4-0" :tag clojure.lang.PersistentHashSet}
   types
   "A set of all possible phone number types as a sequence of keywords."
-  (set type/all-vec))
+  db/types)
 
 (def ^{:added "8.12.4-0" :tag clojure.lang.PersistentHashSet}
   match-types
   "A set of all possible phone number match types as a sequence of keywords."
-  (set (keys match/all)))
+  db/match-types)
 
 (def ^{:added "8.12.4-0" :tag clojure.lang.PersistentHashSet}
   tz-formats
   "A set of all possible time zone formats as a sequence of keywords."
-  (set (keys tz-format/all)))
+  db/tz-formats)
 
 (def ^{:added "8.12.4-0" :tag clojure.lang.PersistentHashSet}
   costs
   "A set of all possible phone number cost classes as a sequence of keywords."
-  (set cost/all-vec))
+  db/costs)
 
 ;;
 ;; Protocol
