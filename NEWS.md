@@ -1,5 +1,12 @@
 # History of phone-number releases
 
+## 8.12.21-0 (2021-04-19)
+
+- Improvements:
+
+  * Libphonenumber version bump.
+  * Removed reflection warnings.
+
 ## 8.12.16-1 (2021-01-31)
 
 - Improvements:
@@ -37,7 +44,6 @@
   * Removed global network calling codes from `phone-number.country-code/all` and
     related
   * Documentation corrected in some places
-
 
 ## 8.12.16-0 (2021-01-23)
 
