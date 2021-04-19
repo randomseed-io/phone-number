@@ -30,7 +30,8 @@
 
   (:import  [com.google.i18n.phonenumbers
              Phonenumber$PhoneNumber
-             NumberParseException]))
+             NumberParseException]
+            [java.util UUID Random Locale]))
 
 ;;
 ;; Namespaces for easy use of keywords
@@ -245,7 +246,7 @@
                         (:retries         options 150)
                         (:min-digits      options 3)
                         (:locale          options)
-                        (:random-seed     options (.getMostSignificantBits random-uuid))
+                        (:random-seed     options (.getMostSignificantBits ^UUID random-uuid))
                         (:early-shrinking options false)
                         (:preserve-raw    options true))))
      (gen/uuid))))
@@ -651,8 +652,8 @@
     #(locale/valid? % phone/*inferred-namespaces*)
     #(gen/fmap
       (gen/generate (gen/elements [identity
-                                   (fn [l] (.getLanguage l))
-                                   (comp keyword (fn [l] (.getLanguage l)))
+                                   (fn [^Locale l] (.getLanguage ^Locale l))
+                                   (comp keyword (fn [^Locale l] (.getLanguage ^Locale l)))
                                    (constantly nil)]))
       (gen/elements locale/by-val-vec))))
 

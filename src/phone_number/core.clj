@@ -29,7 +29,8 @@
               [lazy-map.core                :refer        :all])
 
   (:import  [com.google.i18n.phonenumbers
-             Phonenumber$PhoneNumber]))
+             Phonenumber$PhoneNumber
+             PhoneNumberUtil]))
 
 ;;
 ;; Settings
@@ -394,7 +395,7 @@
        (util/try-parse-or-false
         (when (some? obj)
           (.isValidNumberForRegion
-           (util/instance)
+           ^PhoneNumberUtil (util/instance)
            obj
            (region/parse dialing-region *inferred-namespaces*))))
        (valid? obj dialing-region))))
@@ -414,7 +415,7 @@
              "Phone number string should begin with at least 3 digits")
      (when (some? phone-number)
        (.parse
-        (util/instance)
+        ^PhoneNumberUtil (util/instance)
         phone-number
         (region/parse region-code *inferred-namespaces*)))))
   (number
@@ -426,7 +427,7 @@
              "Phone number string should begin with at least 3 digits")
      (when (some? phone-number)
        (.parseAndKeepRawInput
-        (util/instance)
+        ^PhoneNumberUtil (util/instance)
         phone-number
         (region/parse region-code *inferred-namespaces*)))))
   (raw-input
@@ -441,7 +442,7 @@
      (util/try-parse-or-false
       (when (valid-input? obj)
         (.isValidNumber
-         (util/instance)
+         ^PhoneNumberUtil (util/instance)
          (number-noraw obj region-code)))))
     ([obj
       ^clojure.lang.Keyword region-code
@@ -450,7 +451,7 @@
        (util/try-parse-or-false
         (when (some? obj)
           (.isValidNumberForRegion
-           (util/instance)
+           ^PhoneNumberUtil (util/instance)
            (number-noraw obj region-code)
            (region/parse dialing-region *inferred-namespaces*))))
        (valid? obj region-code))))
@@ -839,7 +840,7 @@
        (let [ccode (calling-code phone-obj nil)
              digits (if (some? ccode) (unchecked-inc (util/count-digits ccode)) 1)]
          (when-some [regional-number (not-empty (subs as-string digits))]
-           (Long/valueOf regional-number)))))))
+           (Long/valueOf ^String regional-number)))))))
 
 ;;
 ;; Location
@@ -2152,7 +2153,7 @@
    (let [number-fn (if preserve-raw number-g number-g-noraw)]
      (when-some [template (number-fn phone-number region-code)]
        (let [min-digits     (if (nil? min-digits) 3 min-digits)
-             calling-code   (.getCountryCode template)
+             calling-code   (.getCountryCode ^Phonenumber$PhoneNumber template)
              prefix         (subs (.format (util/instance) template (format/all ::format/e164))
                                   (unchecked-inc (util/count-digits calling-code)))
              calling-code   (str "+" calling-code)

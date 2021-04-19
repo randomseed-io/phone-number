@@ -9,12 +9,14 @@
 
   (:require [phone-number.core             :as phone]
             [clojure.test.check.rose-tree  :as  rose]
-            [clojure.test.check.generators :as  gens]))
+            [clojure.test.check.generators :as  gens])
+
+  (:import [java.util Random]))
 
 (def phone-number
   (gens/no-shrink
    (clojure.test.check.generators/->Generator
-    (fn [rng _]
+    (fn [^Random rng _]
       (rose/make-rose
-       (phone/generate nil nil phone/valid? nil nil (.nextLong rng))
+       (phone/generate nil nil phone/valid? nil nil (.nextLong ^Random rng))
        [])))))
