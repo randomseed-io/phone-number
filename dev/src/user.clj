@@ -48,6 +48,11 @@
     (binding [phone/*default-dialing-region* :phone-number.region/us]
       (load-facts :print-facts))))
 
+(alter-var-root #'*warn-on-reflection*
+                (constantly true)
+                (when (thread-bound? #'*warn-on-reflection*)
+                  (set! *warn-on-reflection* true)))
+
 (comment 
   (refresh-all)
   (cst/with-instrument-disabled (test-all))
