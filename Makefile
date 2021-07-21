@@ -1,5 +1,5 @@
 APPNAME = "phone-number"
-VERSION = "8.12.21-0"
+VERSION = "8.12.28-0"
 
 .PHONY: 		watch default docs deploy test test-clj sig jar pom clean tag
 
