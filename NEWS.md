@@ -1,6 +1,6 @@
 # History of phone-number releases
 
-## 8.12.28-0 (2021-07-21)
+## 8.12.28-0, 8.12.28-1 (2021-07-21)
 
 - Improvements:
 
@@ -8,7 +8,8 @@
 
 - Bug fixes:
 
-  * Removed development dependency (orchestra) from spec.clj.
+  * Removed development dependencies (orchestra) from spec.clj.
+  * Moved development file generator.clj to dev/src.
 
 ## 8.12.21-0 (2021-04-19)
 
