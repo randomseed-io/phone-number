@@ -25,7 +25,6 @@
             [phone-number.sample          :as         sample]
             [phone-number.dialing-region  :as dialing-region]
             [clojure.spec.alpha           :as              s]
-            [orchestra.spec.test          :as             st]
             [clojure.spec.gen.alpha       :as            gen])
 
   (:import  [com.google.i18n.phonenumbers
