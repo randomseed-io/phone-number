@@ -9,7 +9,7 @@
   [_]
   (pack/library
    {:basis (b/create-basis)
-    :path  "utils.jar"
+    :path  "phone-number.jar"
     :lib   'io.randomseed/phone-number
     :pom   (java.io.ByteArrayInputStream.
             (.getBytes
