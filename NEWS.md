@@ -1,5 +1,18 @@
 # History of phone-number releases
 
+## 8.12.52-0
+
+- Improvements:
+
+  * Improved building and documentation generating code.
+  * Separated nREPL from REPL (development mode).
+  * Syntactical cleanups.
+  * Libphonenumber dependency updated to match version 8.12.52.
+  * Geocoder dependency updated to match version 2.188.
+  * Prefixmapper dependency updated to match version 2.188.
+  * Carrier dependency updated to match version 1.178.
+  * Development dependencies updated to match their newest versions.
+
 ## 8.12.28-0, 8.12.28-1 (2021-07-21)
 
 - Improvements:

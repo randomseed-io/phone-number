@@ -1,6 +1,8 @@
 # Validation and inspection of phone numbers
 
 [![Phone-number on Clojars](https://img.shields.io/clojars/v/io.randomseed/phone-number.svg)](https://clojars.org/io.randomseed/phone-number)
+[![Phone-number on cljdoc](https://cljdoc.org/badge/io.randomseed/phone-number)](https://cljdoc.org/d/io.randomseed/phone-number/CURRENT)
+[![CircleCI](https://circleci.com/gh/randomseed-io/phone-number.svg?style=svg)](https://circleci.com/gh/randomseed-io/phone-number)
 
 Clojure library which uses Google's Libphonenumber to validate, inspect and generate phone numbers.
 
@@ -216,22 +218,22 @@ To use phone-number in your project, add the following to dependencies section o
 `project.clj` or `build.boot`:
 
 ```clojure
-[io.randomseed/phone-number "8.12.28-1"]
+[io.randomseed/phone-number "8.12.52-0"]
 ```
 
 For `deps.edn` add the following as an element of a map under `:deps` or
 `:extra-deps` key:
 
 ```clojure
-io.randomseed/phone-number {:mvn/version "8.12.28-1"}
+io.randomseed/phone-number {:mvn/version "8.12.52-0"}
 ```
 
 Additionally, if you want to utilize specs and generators provided by the
 phone-number you can use (in your development profile):
 
 ```clojure
-org.clojure/spec.alpha {:mvn/version "0.2.176"}
-org.clojure/test.check {:mvn/version "0.10.0-alpha4"}
+org.clojure/spec.alpha {:mvn/version "0.2.194"}
+org.clojure/test.check {:mvn/version "1.1.1"}
 ```
 
 You can also download JAR from [Clojars](https://clojars.org/io.randomseed/phone-number).
