@@ -9,7 +9,7 @@ lint:
 			bin/lint
 
 docs:
-			bin/docs
+			bin/docs "$(VERSION)"
 
 push-docs:
 			git subtree push --prefix=docs docs master

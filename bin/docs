@@ -2,4 +2,4 @@
 
 echo "[phone-number] Building docs, please wait..."
 
-clojure -A:docs
+clojure -M:docs "${1}"

@@ -11,6 +11,7 @@
 
 (defn- get-options [deps & more]
   (let [key     (or (first more) :codox)
+        version (or (second more) "0.0.0")
         codox   (key deps)
         userdir (System/getProperty "user.dir")]
     (merge {:source-paths (:paths deps ["src"])
@@ -20,18 +21,19 @@
            {:name        (str/capitalize (:name codox (:name deps)))
             :license     (:license     codox (:license deps))
             :package     (:package     codox (:license deps))
-            :version     (:version     codox (:version deps))
-            :description (:description codox (:description deps))})))
+            :description (:description codox (:description deps))
+            :version     (or version (:version codox (:version deps)))})))
 
 (defn codox
   "Generate API documentation from source code."
-  [key]
-  (let [deps    (read-deps)
-        options (get-options deps key)]
+  [key version]
+  (let [version (when version (str version))
+        deps    (read-deps)
+        options (get-options deps key version)]
     (codox.main/generate-docs options)
     (shutdown-agents)
     (println "Generated HTML docs in" (:output-path options))))
 
 (defn -main
   [& args]
-  (codox :codox))
+  (codox :codox (first args)))
