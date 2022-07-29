@@ -1,17 +1,3 @@
-(ns infra
-  (:require
-   [nrepl.server]
-   [cider.nrepl]))
+(ns infra)
 
-(defn start-nrepl
-  []
-  (let [server
-        (nrepl.server/start-server
-          :handler
-          (apply nrepl.server/default-handler
-                 (-> (map #'cider.nrepl/resolve-or-fail cider.nrepl/cider-middleware)
-                     #_(conj #'refactor.nrepl/wrap-refactor))))]
-    (spit ".nrepl-port" (:port server))
-    server))
-
-(defonce nrepl (start-nrepl))
+;; (defonce nrepl (start-nrepl))
