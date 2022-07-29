@@ -272,9 +272,9 @@
    ^clojure.lang.Keyword        k
    default]
   (if (some? plain-value) plain-value
-      (when-some [map-value (inf-get info-map k default)]
+      (if-some [map-value (inf-get info-map k default)]
         (if (fn-valid-arg? map-value *inferred-namespaces*) map-value
-            (when-not (fn-valid? map-value *inferred-namespaces*) map-value)))))
+            (if-not (fn-valid? map-value *inferred-namespaces*) map-value)))))
 
 (defn- ^clojure.lang.Keyword prep-dialing-region
   ([^clojure.lang.Keyword        region-code]
@@ -319,7 +319,7 @@
     ^clojure.lang.IPersistentMap m
     ^clojure.lang.Keyword        region-code
     ^clojure.lang.Keyword        dialing-region]
-   (let [more        (when-not (false? dialing-region) (cons (prep-dialing-region dialing-region m) nil))
+   (let [more        (if-not (false? dialing-region) (cons (prep-dialing-region dialing-region m) nil))
          region-code (fetch-from-info-map region/valid-arg? region/valid? region-code m ::PN/region nil)
          number-obj  (fetch-from-info-map native? first-nil? nil m ::PN/number nil)
          region-code (if (some? region-code) region-code (region number-obj nil))]
@@ -333,15 +333,15 @@
          (if-some [t (inf-get m ::format/raw-input)]
            (apply f t region-code more)
            ;; try phone number formats without region code + region code we already have
-           (if-some [t (when (some? region-code) (some m format/regional))]
+           (if-some [t (if (some? region-code) (some m format/regional))]
              (apply f t region-code more)
              ;; retry with simplified format key
-             (if-some [t (when (some? region-code) (when *inferred-namespaces* (some m regional-formats-simple)))]
+             (if-some [t (if (some? region-code) (if *inferred-namespaces* (some m regional-formats-simple)))]
                (apply f t region-code more)
                ;; try phone number formats containing country/calling code prefix
                (if-some [t (some m format/global)]
                  (apply f t region-code more)
-                 (if-some [t (when *inferred-namespaces* (some m global-formats-simple))]
+                 (if-some [t (if *inferred-namespaces* (some m global-formats-simple))]
                    (apply f t nil more)
                    ;; try phone number formats without any region code information
                    ;; obtain region from calling code number (:phone-number/calling-code)
@@ -356,7 +356,7 @@
                        (if (some? ccode)
                          (apply f (str "+" ccode t) region-code more)
                          (apply f t region-code more))
-                       (if-some [t (when *inferred-namespaces* (some m regional-formats-simple))]
+                       (if-some [t (if *inferred-namespaces* (some m regional-formats-simple))]
                          (if (some? ccode)
                            (apply f (str "+" ccode t) region-code more)
                            (apply f t region-code more))
@@ -384,7 +384,7 @@
   (valid?
     ([obj]
      (util/try-parse-or-false
-      (when (some? obj)
+      (if (some? obj)
         (.isValidNumber (util/instance) obj))))
     ([obj ^clojure.lang.Keyword region-code]
      (valid? obj))
@@ -393,7 +393,7 @@
       ^clojure.lang.Keyword dialing-region]
      (if-some [dialing-region (prep-dialing-region dialing-region)]
        (util/try-parse-or-false
-        (when (some? obj)
+        (if (some? obj)
           (.isValidNumberForRegion
            ^PhoneNumberUtil (util/instance)
            obj
@@ -413,7 +413,7 @@
       ^clojure.lang.Keyword region-code]
      (assert (valid-input? phone-number)
              "Phone number string should begin with at least 3 digits")
-     (when (some? phone-number)
+     (if (some? phone-number)
        (.parse
         ^PhoneNumberUtil (util/instance)
         phone-number
@@ -425,7 +425,7 @@
       ^clojure.lang.Keyword region-code]
      (assert (valid-input? phone-number)
              "Phone number string should begin with at least 3 digits")
-     (when (some? phone-number)
+     (if (some? phone-number)
        (.parseAndKeepRawInput
         ^PhoneNumberUtil (util/instance)
         phone-number
@@ -440,7 +440,7 @@
     ([obj
       ^clojure.lang.Keyword region-code]
      (util/try-parse-or-false
-      (when (valid-input? obj)
+      (if (valid-input? obj)
         (.isValidNumber
          ^PhoneNumberUtil (util/instance)
          (number-noraw obj region-code)))))
@@ -449,7 +449,7 @@
       ^clojure.lang.Keyword dialing-region]
      (if-some [dialing-region (prep-dialing-region dialing-region)]
        (util/try-parse-or-false
-        (when (some? obj)
+        (if (some? obj)
           (.isValidNumberForRegion
            ^PhoneNumberUtil (util/instance)
            (number-noraw obj region-code)
@@ -661,7 +661,7 @@
     ^clojure.lang.Keyword         region-code]
    (util/try-parse-or-false
     (when-some-input phone-number
-      (when-some [r (raw-input phone-number region-code)]
+      (if-some [r (raw-input phone-number region-code)]
         (string? r))))))
 
 ;;
@@ -706,7 +706,7 @@
    (let [f (format/parse format-specification *inferred-namespaces*)]
      (when-some-input phone-number
        (not-empty
-        (when-some [p (number-noraw phone-number region-code)]
+        (if-some [p (number-noraw phone-number region-code)]
           (if (= format/raw-val f)
             (raw-input p)
             (.format (util/instance) p f))))))))
@@ -724,7 +724,7 @@
   ([^phone_number.core.Phoneable   phone-number
     ^clojure.lang.Keyword          region-code]
    (when-some-input phone-number
-     (when-some [p (number phone-number region-code)]
+     (if-some [p (number phone-number region-code)]
        (util/fmap-k #(format p nil %) format/all)))))
 
 (defn- all-formats-into
@@ -780,9 +780,9 @@
   ([^phone_number.core.Phoneable    phone-number
     ^clojure.lang.Keyword           region-code]
    (when-some-input phone-number
-     (when-some [c (.getCountryCode
-                    (number-noraw phone-number region-code))]
-       (when (calling-code/valid? c) c)))))
+     (if-some [c (.getCountryCode
+                 (number-noraw phone-number region-code))]
+       (if (calling-code/valid? c) c)))))
 
 (defn calling-code-prefix
   "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
@@ -796,9 +796,9 @@
   ([^phone_number.core.Phoneable    phone-number
     ^clojure.lang.Keyword           region-code]
    (when-some-input phone-number
-     (when-some [c (.getCountryCode
-                    (number-noraw phone-number region-code))]
-       (when (country-code/valid? c)
+     (if-some [c (.getCountryCode
+                 (number-noraw phone-number region-code))]
+       (if (country-code/valid? c)
          (str "+" c))))))
 
 (defn region
@@ -814,10 +814,10 @@
   ([^phone_number.core.Phoneable  phone-number
     ^clojure.lang.Keyword         region-code]
    (when-some-input phone-number
-     (when-some [r (not-empty
-                    (.getRegionCodeForNumber
-                     (util/instance)
-                     (number-noraw phone-number region-code)))]
+     (if-some [r (not-empty
+                   (.getRegionCodeForNumber
+                   (util/instance)
+                   (number-noraw phone-number region-code)))]
        (region/by-val r)))))
 
 ;;
@@ -835,11 +835,11 @@
    (numeric phone-number nil))
   ([^phone_number.core.Phoneable phone-number
     ^clojure.lang.Keyword        region-code]
-   (when-some [phone-obj (number-noraw phone-number region-code)]
-     (when-some [as-string (format phone-obj nil ::format/e164)]
+   (if-some [phone-obj (number-noraw phone-number region-code)]
+     (if-some [as-string (format phone-obj nil ::format/e164)]
        (let [ccode (calling-code phone-obj nil)
              digits (if (some? ccode) (unchecked-inc (util/count-digits ccode)) 1)]
-         (when-some [regional-number (not-empty (subs as-string digits))]
+         (if-some [regional-number (not-empty (subs as-string digits))]
            (Long/valueOf ^String regional-number)))))))
 
 ;;
@@ -1093,7 +1093,7 @@
     ^clojure.lang.Keyword        locale-specification]
    (when-some-input phone-number
      (let [p (number-noraw phone-number region-code)]
-       (when (some? (time-zones p nil ::tz-format/id))
+       (if (some? (time-zones p nil ::tz-format/id))
          (let [l (locale/parse locale-specification *inferred-namespaces*)]
            (util/fmap-k #(time-zones p nil l %) tz-format/all)))))))
 
@@ -1627,13 +1627,13 @@
              ::tz-format/id               (time-zones    phone-obj nil locale ::tz-format/id)
              ::tz-format/full-standalone  (time-zones    phone-obj nil locale ::tz-format/full-standalone)
              ::tz-format/short-standalone (time-zones    phone-obj nil locale ::tz-format/short-standalone)
-             ::dialing-region/valid-for?  (when (some? dialing-region) (valid? phone-obj nil dialing-region))
+             ::dialing-region/valid-for?  (if (some? dialing-region) (valid? phone-obj nil dialing-region))
              ::dialing-region/derived?    dialing-derived
              ::dialing-region/defaulted?  dialing-default}
             (all-formats-into phone-obj nil)
             (short-info-core  phone-obj
-                              (when (region/valid-arg?    region-code) region-code)
-                              (when (region/valid-arg? dialing-region) dialing-region)
+                              (if (region/valid-arg?    region-code) region-code)
+                              (if (region/valid-arg? dialing-region) dialing-region)
                               phone-number)
             info-remove-nils)))))
 
@@ -2063,7 +2063,7 @@
     ^Long                 max-tries
     ^clojure.lang.Keyword locale-specification
     ^clojure.lang.Keyword dialing-region]
-   (when (some? text)
+   (if (some? text)
      (->> (.findNumbers (util/instance)
                         text
                         (region/parse   region-code *inferred-namespaces*)
@@ -2098,7 +2098,7 @@
   ([^Integer calling-code _]
    (example-non-geo calling-code))
   ([^Integer calling-code]
-   (when (some? calling-code)
+   (if (some? calling-code)
      (util/try-null
       (.getExampleNumberForNonGeoEntity
        (util/instance)
@@ -2181,7 +2181,7 @@
                    random-digits (util/gen-digits random-len rng)
                    regional-part (str prefix random-digits)
                    skip-test     (< (count regional-part) min-digits)
-                   test-number   (when-not skip-test (util/try-parse (number-fn (str calling-code regional-part) nil)))
+                   test-number   (if-not skip-test (util/try-parse (number-fn (str calling-code regional-part) nil)))
                    have-valid    (and (some? test-number) (validator test-number))
                    ;; retest is needed since there are zero-prefixed regional numbers
                    ;; which are not valid input when used without country calling code but with region argument
@@ -2363,7 +2363,7 @@
              example-fn   (if non-geo-mode example-non-geo example)
              combo        [number-type' region-code']
              tried?       (contains? tried-combos combo)
-             template     (when-not tried? (example-fn region-code' number-type'))]
+             template     (if-not tried? (example-fn region-code' number-type'))]
          (if-some [template template]
            ;; template is present for this combo
            (let [number-type'    (if (or (nil? number-type) non-geo-mode) number-type' (type template))
@@ -2393,17 +2393,17 @@
                ;; we can try different combo if the required country code is not set
                ;; other cases where template was ok but sampler returned nothing
                ;; are also covered here
-               (when (and (not (zero? template-tries))
-                          (or (nil? number-type) (nil? region-code)))
+               (if (and (not (zero? template-tries))
+                        (or (nil? number-type) (nil? region-code)))
                  (recur (conj tried-combos combo)
                         region-code number-type
                         (unchecked-dec-int template-tries)))))
            ;; template is not present for this combo
-           (when-not (zero? template-tries)
+           (if-not (zero? template-tries)
              ;; some combinations of type and region are not suited to produce a valid template
              ;; in such cases we have to retry if there is a chance to do that
              ;; (at least a region or a number type are random)
-             (when (or (nil? region-code) (nil? number-type))
+             (if (or (nil? region-code) (nil? number-type))
                (if tried?
                  ;; this combo was already tried, do not increase the counter
                  (recur tried-combos

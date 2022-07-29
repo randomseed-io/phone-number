@@ -67,7 +67,7 @@
   "Returns the collection if it's not empty. Otherwise returns `nil`."
   {:added "8.12.16-1"}
   [obj]
-  (when (seq obj) obj))
+  (if (seq obj) obj))
 
 (defn count-digits
   {:added "8.12.4-1" :tag 'long}
@@ -207,11 +207,11 @@
   "Like rand-int but optionally uses random number generator."
   {:added "8.12.4-0"} ; was: :tag 'int
   ([^long n]
-   (when (some? n)
+   (if (some? n)
      (rand-int n)))
   ([^long n
     ^java.util.Random rng]
-   (when (some? n)
+   (if (some? n)
      (if (nil? rng)
        (get-rand-int n)
        (if (zero? n) (int n) (.nextInt rng n))))))
@@ -224,7 +224,7 @@
   ([^long x
     ^long iteration
     ^Boolean shrink-now]
-   (when (some? x)
+   (if (some? x)
      (if (zero? x) x
          (if-not shrink-now x
                  (if (zero? iteration) 1
@@ -234,7 +234,7 @@
     ^long iteration
     ^Boolean shrink-now
     ^java.util.Random rng]
-   (when (some? x)
+   (if (some? x)
      (if (nil? rng)
        (random-digits-len x iteration shrink-now)
        (if (zero? x) x
@@ -252,7 +252,7 @@
    (apply str (repeatedly num #(rand-int 10))))
   ([^long num
     ^java.util.Random rng]
-   (when (some? num)
+   (if (some? num)
      (if (nil? rng)
        (gen-digits num)
        (apply str (repeatedly num #(.nextInt rng 10)))))))
@@ -277,7 +277,7 @@
    (lazy-iterator-seq coll (.iterator coll)))
   ([^Iterable coll ^java.util.Iterator iter]
    (lazy-seq
-    (when (.hasNext iter)
+    (if (.hasNext iter)
       (cons (.next iter) (lazy-iterator-seq coll iter))))))
 
 (defn char-ranges->set

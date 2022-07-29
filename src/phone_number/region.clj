@@ -119,7 +119,7 @@
    (parse k true))
   ([^clojure.lang.Keyword k
     ^Boolean use-infer]
-   (when (some? k)
+   (if (some? k)
      (let [k (util/ns-infer "phone-number.region" k use-infer)]
        (assert (valid-arg? k) (str "Region code " k " is not valid"))
        (all k)))))
@@ -132,7 +132,7 @@
    (normalize-arg k true))
   ([^clojure.lang.Keyword k
     ^Boolean use-infer]
-   (when (some? k)
+   (if (some? k)
      (let [k (util/ns-infer "phone-number.region" k use-infer)]
        (assert (valid-arg? k) (str "Region code " k " is not valid"))
        k))))
@@ -144,7 +144,7 @@
    (normalize k true))
   ([^clojure.lang.Keyword k
     ^Boolean use-infer]
-   (when (some? k)
+   (if (some? k)
      (let [k (util/ns-infer "phone-number.region" k use-infer)]
        (assert (valid? k) (str "Region code " k " is not valid"))
        k))))

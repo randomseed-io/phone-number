@@ -185,7 +185,7 @@
   integer number)."
   {:added "8.12.16-1" :tag clojure.lang.Keyword :private true}
   [^Integer calling-code]
-  (when (some? calling-code)
+  (if (some? calling-code)
     (region/by-val (.getRegionCodeForCountryCode (util/instance) calling-code))))
 
 (defn region-arg-for-calling-code
@@ -193,7 +193,7 @@
   integer number) that is valid as an argument."
   {:added "8.12.16-1" :tag clojure.lang.Keyword :private true}
   [^Integer calling-code]
-  (when (some? calling-code)
+  (if (some? calling-code)
     (region/by-val-arg (.getRegionCodeForCountryCode (util/instance) calling-code))))
 
 (def ^{:added "8.12.16-1"
