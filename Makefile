@@ -22,11 +22,11 @@ test:
 
 pom: pom.xml
 			clojure -Spom && awk 'NF > 0' pom.xml > pom.new.xml && mv -f pom.new.xml pom.xml
-			mvn versions:set versions:commit -DnewVersion="$(VERSION)"
+			mvn versions:set versions:commit -DnewVersion="$(VERSION)" versions:set-scm-tag -DnewTag="$(VERSION)"
 			rm -f pom.xml.asc
 
 $(APPNAME).jar: pom.xml
-			clojure -Apack -m mach.pack.alpha.skinny --no-libs --project-path $(APPNAME).jar
+			bin/build
 
 jar: $(APPNAME).jar
 
