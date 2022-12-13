@@ -304,5 +304,4 @@ bin/repl
 
 Starts REPL and nREPL server (port number is stored in `.nrepl-port`).
 
-
 [LICENSE]:    https://github.com/randomseed-io/phone-number/blob/master/LICENSE
