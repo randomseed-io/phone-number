@@ -41,7 +41,7 @@
        :tag Boolean}
   *info-removed-nils*
   "Decides whether the results of the info function should contain properties having
-  nil values. They are removed by default due to `true` value of this switch."
+  `nil` values. They are removed by default due to `true` value of this switch."
   true)
 
 (def ^{:added "8.12.4-1"
@@ -177,8 +177,9 @@
   (^{:added "8.12.4-0" :tag Boolean} valid-input?
    [phone-number]
    "Takes a phone number represented as a string, a number, a map or a `PhoneNumber`
-    object and returns true if it is a valid input to be parsed (must be not empty
-    and not nil and have some minimal number of digits). Otherwise it returns false.")
+    object and returns `true` if it is a valid input to be parsed (must be not empty
+    and not `nil` and have some minimal number of digits). Otherwise it returns
+    `false`.")
 
   (^{:added "8.12.4-0" :tag Phonenumber$PhoneNumber} number
    [phone-number] [phone-number region-code]
@@ -197,25 +198,25 @@
 
   (^{:added "8.12.4-0" :tag Phonenumber$PhoneNumber} number-noraw
    [phone-number] [phone-number region-code]
-   "Like number but does not preserve raw input.")
+   "Like `number` but does not preserve raw input.")
 
   (^{:added "8.12.4-0" :tag String} raw-input
    [phone-number] [phone-number region-code]
    "Returns a string used to initialize phone number object with the number
    function. For strings and numbers it short-circuits on the given argument and
-   ignores any given region code. Returns a string representation. For nil values it
-   returns nil.")
+   ignores any given region code. Returns a string representation. For `nil` values
+   it returns `nil`.")
 
   (^{:added "8.12.4-0" :tag Boolean} valid?
    [phone-number] [phone-number region-code] [phone-number region-code dialing-region]
    "Takes a phone number represented as a string, a number, a map or a `PhoneNumber`
-   object and validates it. Returns true or false.
+   object and validates it. Returns `true` or `false`.
 
    When 3 arguments are given the last one should be a source region code for which
    the test is performed. It only makes sense to use it when the calling code for a
    number is not the same as the dialing code for the region. If that argument is nil
    then a value stored in the dynamic variable `*default-dialing-region*` will be
-   used. If this value is also nil then the function will fall back to checking a
+   used. If this value is also `nil` then the function will fall back to checking a
    number without any dialing region.
 
    One special case is when validating an info map (the result of calling `info`
@@ -606,7 +607,7 @@
 ;;
 
 (defn native?
-  "Returns true if the given argument is an instance of PhoneNumber class."
+  "Returns `true` if the given argument is an instance of PhoneNumber class."
   {:added "8.12.4-0" :tag Boolean}
   ([phone-number _]
    (instance? Phonenumber$PhoneNumber phone-number))
@@ -618,14 +619,14 @@
                    [^phone_number.core.Phoneable phone-number
                     ^clojure.lang.Keyword        region-code])}
   invalid?
-  "Returns true if the given phone number (expressed as a string, a number,
+  "Returns `true` if the given phone number (expressed as a string, a number,
   a map or a `PhoneNumber` object) is not valid."
   (complement valid?))
 
 (defn possible?
   "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
-  object) and returns true if it is a possible number as defined by Libphonenumber.
-  Otherwise it returns false.
+  object) and returns `true` if it is a possible number as defined by Libphonenumber.
+  Otherwise it returns `false`.
 
   If the second argument is present then it should be a valid region code (a keyword)
   to be used when the given phone number does not contain region information."
@@ -645,8 +646,8 @@
                    [^phone_number.core.Phoneable phone-number
                     ^clojure.lang.Keyword        region-code])}
   impossible?
-  "Returns true if the given phone number (expressed as a string, a number, a map or a
-  `PhoneNumber` object) is not possible."
+  "Returns `true` if the given phone number (expressed as a string, a number, a map or
+  a `PhoneNumber` object) is not possible."
   (complement possible?))
 
 (defn valid-for-region?
@@ -687,7 +688,7 @@
   will be used without setting the region. If the format specification doesn't look
   like a valid format then it will be assumed it is a region code and format will be
   set to a default."
-  {:added "8.12.4-0" :tag String
+  {:added    "8.12.4-0" :tag String
    :arglists '([^phone_number.core.Phoneable phone-number]
                [^phone_number.core.Phoneable phone-number
                 ^clojure.lang.Keyword        region-code]
@@ -831,7 +832,8 @@
 
 (defn numeric
   "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
-  object) and returns its regional part as an integer, positive number of type Long.
+  object) and returns its regional part as an integer, positive number of type
+  `Long`.
 
   If the second argument is present then it should be a valid region code (a keyword)
   to be used when the given phone number does not contain region information."
@@ -853,17 +855,17 @@
 
 (defn location
   "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
-  object) and returns its possible geographic location as a string or nil if the
+  object) and returns its possible geographic location as a string or `nil` if the
   location happens to be empty.
 
   If the second argument is present then it may be a valid region code (a keyword) to
   be used when the given phone number does not contain region information. It is
-  acceptable to pass nil as a value to tell the function that there is no explicit
+  acceptable to pass `nil` as a value to tell the function that there is no explicit
   region information and it should extract it from a number.
 
   If the third argument is present then it should be a string specifying locale
   information or a `java.util.Locale` object. It will be used during rendering
-  strings describing geographic location and carrier data. When nil is passed then
+  strings describing geographic location and carrier data. When `nil` is passed then
   the default locale settings will be used.
 
   If there are 2 arguments and the second argument is a keyword but IS NOT a
@@ -874,7 +876,7 @@
   expressed using the very same keyword names. Optionally (but a bad habit) you may
   use simple keyword with locale and variant (e.g. `:pl_PL`) that will not match any
   region but match locale object."
-  {:added "8.12.4-0" :tag String
+  {:added    "8.12.4-0" :tag String
    :arglists '([^phone_number.core.Phoneable phone-number]
                [^phone_number.core.Phoneable phone-number
                 ^clojure.lang.Keyword        region-code]
@@ -904,10 +906,10 @@
 
 (defn geographical?
   "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
-  object) and returns true if it is a geographical number as defined by
-  Libphonenumber. Otherwise it returns false. If the second argument is present then
-  it should be a valid region code (a keyword) to be used when the given phone number
-  does not contain region information."
+  object) and returns `true` if it is a geographical number as defined by
+  Libphonenumber. Otherwise it returns `false`. If the second argument is present
+  then it should be a valid region code (a keyword) to be used when the given phone
+  number does not contain region information."
   {:added "8.12.4-0" :tag Boolean}
   ([^phone_number.core.Phoneable   phone-number]
    (geographical? phone-number nil))
@@ -925,17 +927,17 @@
 
 (defn carrier
   "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
-  object) and returns its possible carrier name as a string or nil if the carrier
+  object) and returns its possible carrier name as a string or `nil` if the carrier
   name happens to be empty.
 
   If the second argument is present then it may be a valid region code (a keyword) to
   be used when the given phone number does not contain region information. It is
-  acceptable to pass nil as a value to tell the function that there is no explicit
+  acceptable to pass `nil` as a value to tell the function that there is no explicit
   region information and it should extract it from a number.
 
   If the third argument is present then it should be a string specifying locale
-  information or a `java.util.Locale` object. It will be used during rendering carrier
-  name. When nil is passed then the default locale settings will be used.
+  information or a `java.util.Locale` object. It will be used during rendering
+  carrier name. When `nil` is passed then the default locale settings will be used.
 
   If there are 2 arguments and the second argument is a keyword but IS NOT a
   **fully-qualified, valid locale specification** (`locale-specification-FQ` having
@@ -945,7 +947,7 @@
   expressed using the very same keyword names. Optionally (but a bad habit) you may
   use simple keyword with locale and variant (e.g. `:pl_PL`) that will not match any
   region but match locale object."
-  {:added "8.12.4-0" :tag String
+  {:added    "8.12.4-0" :tag String
    :arglists '([^phone_number.core.Phoneable phone-number]
                [^phone_number.core.Phoneable phone-number
                 ^clojure.lang.Keyword        region-code]
@@ -994,11 +996,11 @@
   "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
   object) and returns all possible time zones which relate to its geographical
   location as a lazy sequence of strings (representing zone identifiers in
-  English). Returns nil if the list would be empty.
+  English). Returns `nil` if the list would be empty.
 
   If the second argument is present then it may be a valid region code (a keyword) to
   be used when the given phone number does not contain region information. It is
-  acceptable to pass nil as a value to tell the function that there is no explicit
+  acceptable to pass `nil` as a value to tell the function that there is no explicit
   region information and it should extract it from a number. It may also be a format
   specifier (also a keyword).
 
@@ -1056,11 +1058,11 @@
   object) and returns a map which keys are all possible time zone formats expressed
   as keywords and values are sequences of the number's time zones formatted
   accordingly. If the given number is nil, invalid or time zone information is
-  unavailable for it this function returns nil.
+  unavailable for it this function returns `nil`.
 
   If the second argument is present then it may be a valid region code (a keyword) to
   be used when the given phone number does not contain region information. It is
-  possible to pass a nil value as this argument to ignore extra processing when
+  possible to pass a `nil` value as this argument to ignore extra processing when
   region can be inferred from the number.
 
   If there are 2 arguments and the second argument is a keyword but IS NOT a
@@ -1074,8 +1076,8 @@
 
   The third argument should be a Locale object or a string describing locale settings
   to be used when rendering locale-dependent time zone information. When there is no
-  third argument or it is nil then default locale settings will be used."
-  {:added "8.12.4-0" :tag clojure.lang.PersistentArrayMap
+  third argument or it is `nil` then default locale settings will be used."
+  {:added    "8.12.4-0" :tag clojure.lang.PersistentArrayMap
    :arglists '([^phone_number.core.Phoneable phone-number]
                [^phone_number.core.Phoneable phone-number
                 ^clojure.lang.Keyword        region-code]
@@ -1108,10 +1110,10 @@
 
 (defn short-possible?
   "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
-  object) and returns true if it is a possible short number (like emergency etc.) as
-  defined by Libphonenumber. Otherwise it returns false. If the second argument is
-  present then it should be a valid region code (a keyword) to be used when the given
-  phone number does not contain region information.
+  object) and returns `true` if it is a possible short number (like emergency etc.)
+  as defined by Libphonenumber. Otherwise it returns `false`. If the second argument
+  is present then it should be a valid region code (a keyword) to be used when the
+  given phone number does not contain region information.
 
   If the `default-dialing-region*` dynamic variable is set then it will be used as
   a default dialing region if it is not passed as an argument.
@@ -1120,10 +1122,10 @@
   that should be a valid region code for the origination of a possible call. That
   hint will be used to restrict the check according to rules. For example 112 may be
   valid in multiple regions but if one calls it from some particular region it might
-  not be reachable. When this argument is missing or its value is nil and the dynamic
-  variable `*default-dialing-region*` is not nil then its value will be used to set
-  the dialing region. If this argument is missing or is nil and there is no default
-  the binary variant of this function is called (without a source region)."
+  not be reachable. When this argument is missing or its value is `nil` and the
+  dynamic variable `*default-dialing-region*` is not `nil` then its value will be used
+  to set the dialing region. If this argument is missing or is `nil` and there is no
+  default the binary variant of this function is called (without a source region)."
   {:added "8.12.4-0" :tag Boolean}
   ([^phone_number.core.Phoneable phone-number]
    (short-possible? phone-number nil nil))
@@ -1147,8 +1149,8 @@
 
 (defn short-valid?
   "Takes a phone number (expressed as a string, a number, a map or a `PhoneNumber`
-  object) and returns true if it is a valid short number (like emergency etc.) as
-  defined by Libphonenumber. Otherwise it returns false. If the second argument is
+  object) and returns `true` if it is a valid short number (like emergency etc.) as
+  defined by Libphonenumber. Otherwise it returns `false`. If the second argument is
   present then it should be a valid region code (a keyword) to be used when the given
   phone number does not contain region information.
 
@@ -1159,10 +1161,11 @@
   that should be a valid region code for the origination of a possible call. That
   hint will be used to restrict the check according to rules. For example 112 may be
   valid in multiple regions but if one calls it from some particular region it might
-  not be reachable. When this argument is missing or its value is nil and the dynamic
-  variable `*default-dialing-region*` is not nil then its value will be used to set
-  the dialing region. If this argument is missing or is nil and there is no default
-  the binary variant of this function is called (without a source region)."
+  not be reachable. When this argument is missing or its value is `nil` and the
+  dynamic variable `*default-dialing-region*` is not `nil` then its value will be
+  used to set the dialing region. If this argument is missing or is `nil` and there
+  is no default the binary variant of this function is called (without a source
+  region)."
   {:added "8.12.4-0" :tag Boolean}
   ([^phone_number.core.Phoneable phone-number]
    (short-valid? phone-number nil nil))
@@ -1190,7 +1193,7 @@
 
   The second, optional argument should be a valid region code (a keyword) to be used
   when the given phone number does not contain region information. It is acceptable
-  to pass nil as a value to tell the function that there is no explicit region
+  to pass `nil` as a value to tell the function that there is no explicit region
   information and it should extract it from a number.
 
   If the `default-dialing-region*` dynamic variable is set then it will be used as
@@ -1200,10 +1203,10 @@
   origination of a possible call. That hint will be used to restrict the check
   according to rules. For example 112 may be valid in multiple regions but if one
   calls it from some particular region it might not be reachable. When this argument
-  is missing or its value is nil and the dynamic variable `*default-dialing-region*`
-  is not nil then its value will be used to set the dialing region. If this argument
-  is missing or is nil and there is no default the binary variant of this function is
-  called (without a source region).
+  is missing or its value is `nil` and the dynamic variable
+  `*default-dialing-region*` is not `nil` then its value will be used to set the
+  dialing region. If this argument is missing or is `nil` and there is no default the
+  binary variant of this function is called (without a source region).
 
   It is important to realize that certain properties of short numbers can only be
   successfully calculated if the unprocessed form of a number (a string or a natural
@@ -1234,7 +1237,7 @@
 
 (defn short-emergency?
   "Takes a short (like an emergency) phone number (expressed as a string!) and returns
-  true if it is exactly the emergency number. The second argument should be a valid
+  `true` if it is exactly the emergency number. The second argument should be a valid
   region code (a keyword).
 
   It is important to realize that certain properties of short numbers can only be
@@ -1260,8 +1263,8 @@
 
 (defn short-to-emergency?
   "Takes a short (like an emergency) phone number (expressed as a string!) and returns
-  true if it can be used to connect to emergency services. The second argument should
-  be a valid region code (a keyword).
+  `true` if it can be used to connect to emergency services. The second argument
+  should be a valid region code (a keyword).
 
   It is important to realize that certain properties of short numbers can only be
   successfully calculated if the unprocessed form of a number (a string or a natural
@@ -1287,7 +1290,7 @@
 (defn short-carrier-specific?
   "Takes a short phone number (expressed as a string, a number, a map or a
   `PhoneNumber` object), optional region code (or nil) and optional dialing region
-  code. Returns true if it is a carrier-specific number.
+  code. Returns `true` if it is a carrier-specific number.
 
   If the `default-dialing-region*` dynamic variable is set then it will be used as
   a default dialing region if it is not passed as an argument.
@@ -1320,8 +1323,8 @@
 (defn short-sms-service?
   "Takes a short phone number (expressed as a string, a number, a map or a
   `PhoneNumber` object), optional region code (or nil) and a dialing region
-  code (uses `*default-dialing-region*` if not given). Returns true if SMS is
-  supported, false otherwise.
+  code (uses `*default-dialing-region*` if not given). Returns `true` if SMS is
+  supported, `false` otherwise.
 
   If the `default-dialing-region*` dynamic variable is set then it will be used as
   a default dialing region if it is not passed as an argument.
@@ -1385,7 +1388,7 @@
 
 (defn- short-info-core
   "Internal short-info logic. Supports additional argument which should be string
-  version of a phone number and a destination map to avoid merging."
+  version of a phone number, and a destination map to avoid merging."
   {:added "8.12.4-1" :tag clojure.lang.PersistentHashMap}
   [^phone_number.core.Phoneable    phone-number
    ^clojure.lang.Keyword           region-code
@@ -1454,19 +1457,19 @@
 
   If the second argument is present then it should be a valid region code (a keyword)
   to be used when the given phone number does not contain region information. It is
-  acceptable to pass nil as a value to tell the function that there is no explicit
+  acceptable to pass `nil` as a value to tell the function that there is no explicit
   region information and it should extract it from a number.
 
   If the third argument is present then it should be a valid region code for the
   origination of a possible call. That hint will be used to restrict the check
   according to rules. For example 112 may be valid in multiple regions but if one
   calls it from some particular region it might not be reachable. When this argument
-  is missing or its value is nil and the dynamic variable `*default-dialing-region*`
-  is not nil then its value will be used to set the dialing region. If the dynamic
-  variable is also nil (which is the default) then the dynamic variable
-  `*info-dialing-region-derived*` is checked to be set to truthy value (not nil and
-  not `false`). If that is true then the dialing region will be derived from a region
-  code of the number.
+  is missing or its value is `nil` and the dynamic variable
+  `*default-dialing-region*` is not `nil` then its value will be used to set the
+  dialing region. If the dynamic variable is also `nil` (which is the default) then
+  the dynamic variable `*info-dialing-region-derived*` is checked to be set to truthy
+  value (not `nil` and not `false`). If that is `true` then the dialing region will
+  be derived from a region code of the number.
 
   It is important to realize that certain properties of short numbers can only be
   successfully calculated if the unprocessed form of a number (a string or a natural
@@ -1527,12 +1530,12 @@
       :phone-number.short/sms-service?
       :phone-number.short/to-emergency?
 
-  Keys with nil values assigned will be removed from the map unless the dynamic
+  Keys with `nil` values assigned will be removed from the map unless the dynamic
   variable `*info-removed-nils*` is bound to false.
 
   If the second argument is present then it may be a valid region code (a keyword) to
   be used when the given phone number does not contain region information. It is
-  acceptable to pass nil as a value to tell the function that there is no explicit
+  acceptable to pass `nil` as a value to tell the function that there is no explicit
   region information and it should extract it from a number.
 
   If the second argument is a locale specification (`locale-specification-FQ`) then
@@ -1544,7 +1547,7 @@
 
   If the third argument is present then it may be a string specifying locale
   information or a Locale object. It will be used during rendering strings describing
-  geographic location, carrier data and full time zone information. When nil is
+  geographic location, carrier data and full time zone information. When `nil` is
   passed then default locale settings will be used.
 
   If the third argument is a dialing region code (`dialing-region-FQ`) then it should
@@ -1554,11 +1557,11 @@
   If there are four arguments then the last one should be a dialing region code
   intended to be used with short numbers (like 112 etc.). It describes originating
   region to help validate the possibility of reaching the destination number. When
-  this argument is missing or its value is nil and the dynamic variable
-  `*default-dialing-region*` is not nil then its value will be used to set the
-  dialing region. If the dynamic variable is also nil (which is the default) then the
-  dynamic variable `*info-dialing-region-derived*` is checked to be set to truthy
-  value (not nil and not `false`). If that is true then the dialing region will be
+  this argument is missing or its value is `nil` and the dynamic variable
+  `*default-dialing-region*` is not `nil` then its value will be used to set the
+  dialing region. If the dynamic variable is also `nil` (which is the default) then
+  the dynamic variable `*info-dialing-region-derived*` is checked to be set to truthy
+  value (not `nil` and not `false`). If that is `true` then the dialing region will be
   derived from a region code of the number.
 
   The `:phone-number/valid?` key holds the return value of `valid?` function call
@@ -1647,7 +1650,7 @@
 ;;
 
 (defn match
-  "Returns matching level of two numbers or nil if there is no match. Optionally each
+  "Returns matching level of two numbers or `nil` if there is no match. Optionally each
   second argument can be a region code (if the given phone number is not a kind of
   PhoneNumber and is not prefixed by any calling code )."
   {:added "8.12.4-0" :tag clojure.lang.Keyword}
@@ -1678,9 +1681,9 @@
           nil)))
 
 (defn match?
-  "Returns true if two numbers match, false otherwise. Optionally each second argument
-  can be a region code (if the given phone number is not a kind of PhoneNumber and is
-  not prefixed by any calling code)."
+  "Returns `true` if two numbers match, `false` otherwise. Optionally each second
+  argument can be a region code (if the given phone number is not a kind of
+  PhoneNumber and is not prefixed by any calling code)."
   {:added "8.12.4-0" :tag Boolean}
   ([^phone_number.core.Phoneable phone-number-a
     ^clojure.lang.Keyword        region-code-a
@@ -1734,9 +1737,9 @@
   (complement short-valid?))
 
 (defn is-fixed-line-or-mobile?
-  "Returns true if the given number is a kind of fixed-line number or a mobile number,
-  false otherwise. Returns true also when there is a chance that a number is either
-  mobile or fixed-line but it cannot be certainly decided."
+  "Returns `true` if the given number is a kind of fixed-line number or a mobile number,
+  `false` otherwise. Returns `true` also when there is a chance that a number is
+  either mobile or fixed-line but it cannot be certainly decided."
   {:added "8.12.4-0" :tag Boolean}
   ([^phone_number.core.Phoneable phone-number]
    (is-fixed-line-or-mobile? phone-number nil))
@@ -1749,10 +1752,10 @@
      (type phone-number region-code)))))
 
 (defn is-uncertain-fixed-line-or-mobile?
-  "Returns true if the given number belongs to a class of numbers that cannot be
-  certainly decided as being mobile or fixed-line, false otherwise. Please note that
-  it will return false for mobile or fixed-line numbers that are certainly classified
-  as such."
+  "Returns `true` if the given number belongs to a class of numbers that cannot be
+  certainly decided as being mobile or fixed-line, `false` otherwise. Please note
+  that it will return `false` for mobile or fixed-line numbers that are certainly
+  classified as such."
   {:added "8.12.4-0" :tag Boolean}
   ([^phone_number.core.Phoneable phone-number]
    (is-uncertain-fixed-line-or-mobile? phone-number nil))
@@ -1763,9 +1766,9 @@
        (type phone-number region-code)))))
 
 (defn is-maybe-mobile?
-  "Returns true if the given number is a kind of a mobile number or a number that
+  "Returns `true` if the given number is a kind of a mobile number or a number that
   belongs to a class where it cannot be fully decided whether it is mobile or
-  fixed-line. Returns false otherwise."
+  fixed-line. Returns `false` otherwise."
   {:added "8.12.4-0" :tag Boolean}
   ([^phone_number.core.Phoneable phone-number]
    (is-maybe-mobile? phone-number nil))
@@ -1778,9 +1781,9 @@
      (type phone-number region-code)))))
 
 (defn is-maybe-fixed-line?
-  "Returns true if the given number is a kind of a fixed-line number or a number that
+  "Returns `true` if the given number is a kind of a fixed-line number or a number that
   belongs to a class where it cannot be fully decided whether it is mobile or
-  fixed-line. Returns false otherwise."
+  fixed-line. Returns `false` otherwise."
   {:added "8.12.4-0" :tag Boolean}
   ([^phone_number.core.Phoneable phone-number]
    (is-maybe-fixed-line? phone-number nil))
@@ -1793,7 +1796,7 @@
      (type phone-number region-code)))))
 
 (defn has-known-type?
-  "Returns true if the given number is of a known type, false otherwise."
+  "Returns `true` if the given number is of a known type, `false` otherwise."
   {:added "8.12.4-0" :tag Boolean}
   ([^phone_number.core.Phoneable phone-number]
    (has-known-type? phone-number nil))
@@ -1807,7 +1810,7 @@
 ;;
 
 (defn has-region?
-  "For the given phone number returns true if the region code is present in it, false
+  "For the given phone number returns `true` if the region code is present in it, false
   otherwise. The region code can be explicit part of a number (as its prefix) or can
   be inferred by making use of the region-code argument."
   {:added "8.12.4-0" :tag Boolean}
@@ -1819,9 +1822,9 @@
     (not (contains? none (region phone-number region-code))))))
 
 (defn has-calling-code?
-  "For the given phone number returns true if the calling code is present in it, false
-  otherwise. The region code can be explicit part of a number (as its prefix) or can
-  be inferred by making use of the region-code argument.
+  "For the given phone number returns `true` if the calling code is present in it,
+  `false` otherwise. The region code can be explicit part of a number (as its prefix)
+  or can be inferred by making use of the region-code argument.
 
   This function will always return `true` if a phone number was successfully parsed."
   {:added "8.12.4-0" :tag Boolean}
@@ -1836,8 +1839,8 @@
         (number-noraw phone-number region-code)))))))
 
 (defn has-location?
-  "For the given phone number returns true if the approximate geographic location is
-  present in it, false otherwise."
+  "For the given phone number returns `true` if the approximate geographic location is
+  present in it, `false` otherwise."
   {:added "8.12.4-0" :tag Boolean}
   ([^phone_number.core.Phoneable phone-number]
    (has-location? phone-number nil))
@@ -1847,8 +1850,8 @@
     (not (contains? none (location phone-number region-code))))))
 
 (defn has-time-zone?
-  "For the given phone number returns true if any time zone information is present in
-  it, false otherwise."
+  "For the given phone number returns `true` if any time zone information is present in
+  it, `false` otherwise."
   {:added "8.12.4-0" :tag Boolean}
   ([^phone_number.core.Phoneable phone-number]
    (has-time-zone? phone-number nil))
@@ -1942,18 +1945,18 @@
   * `:phone-number.leniency/valid` – accepts possible AND valid phone numbers (this
   is default)
 
-  If it's nil then it will be set to a default (`:phone-number.leniency/valid`).
+  If it's `nil` then it will be set to a default (`:phone-number.leniency/valid`).
 
   The `max-tries` argument tells the searching engine to deliver only certain number
   of matches. If it's not given then the maximum value of type `Long` will be used.
 
   The `locale-specification` and `dialing-region` are not used during searching but
   when the map under `:phone-number/info` key is generated. They are passed to the
-  `info` function. Note that setting `dialing-region` explicitly to nil will disable
-  it from being derived from the detected region (yet it will still default to
-  current value of the `phone-number/*default-dialing-region*` if it's set) value. To
-  preserve default behaviour (derivation plus using the default from a dynamic
-  variable) and explicitly pass this argument, use `false`.
+  `info` function. Note that setting `dialing-region` explicitly to `nil` will
+  disable it from being derived from the detected region (yet it will still default
+  to current value of the `phone-number/*default-dialing-region*` if it's set)
+  value. To preserve default behaviour (derivation plus using the default from a
+  dynamic variable) and explicitly pass this argument, use `false`.
 
   All keyword arguments except `locale-specification` (which can also be of other
   type) are namespace inferred if `*inferred-namespace*` dynamic variable is set in
@@ -2233,27 +2236,27 @@
   and type.
 
   When the first argument is present it should be a valid region code and the result
-  will be a number that belongs to that region. It is possible to pass nil as a value
-  (in order to make use of other positional arguments). In such case the region will
-  be picked up randomly.
+  will be a number that belongs to that region. It is possible to pass `nil` as a
+  value (in order to make use of other positional arguments). In such case the region
+  will be picked up randomly.
 
   When the second argument is present it should be a valid number type and the result
-  will be a number that is of that type. It is possible to pass nil as a value
+  will be a number that is of that type. It is possible to pass `nil` as a value
   (in order to make use of other positional arguments). In such case the type will be
   picked up randomly.
 
   When the third argument is present it should be a predicate function used by
   samples generator to look for a number for which the function returns truthy
-  value (not false and not nil). It is possible to pass nil as a value to disable
-  this check.
+  value (not `false` and not `nil`). It is possible to pass `nil` as a value to
+  disable this check.
 
   When the fourth argument is present it should be a maximal number of attempts the
   internal sampler will perform to get the desired sample. By default it will try to
   get the sample that meets the criteria (country code, type and a custom predicate)
   in 1000 attempts but when the supplied predicate makes it too improbable to get the
   desired result the operation may fail and this number should be increased. It is
-  possible to pass nil as a value. In such case the default will be used. It is also
-  possible to pass false as a value. In such case the sampler will continue
+  possible to pass `nil` as a value. In such case the default will be used. It is
+  also possible to pass `false` as a value. In such case the sampler will continue
   indefinitely which poses the risk of freezing the program for complicated or
   impossible conditions.
 
@@ -2281,12 +2284,12 @@
   generator used to produce digits and to choose region and/or phone number type when
   not given. It can be used to create a deterministic sequence of samples.
 
-  The eight, optional argument enables more aggressive shrinking of randomly generated
-  part. If it is set to a truthy value (not nil and not false) then each sampling
-  step that involves generation of random digits will have 50% chances of producing
-  less digits than required (at least 1 digit remaining). The number of digits is
-  chosen randomly. It is advised to enable shrinking when expecting highly improbable
-  phone numbers, for instance with the impossible? predicate.
+  The eight, optional argument enables more aggressive shrinking of randomly
+  generated part. If it is set to a truthy value (not `nil` and not `false`) then
+  each sampling step that involves generation of random digits will have 50% chances
+  of producing less digits than required (at least 1 digit remaining). The number of
+  digits is chosen randomly. It is advised to enable shrinking when expecting highly
+  improbable phone numbers, for instance with the impossible? predicate.
 
   The last, optional argument chooses whether raw input should be preserved within
   the PhoneNumber objects when generating samples. By default it is not preserved."
