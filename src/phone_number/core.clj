@@ -369,6 +369,7 @@
 (extend-protocol Phoneable
 
   Phonenumber$PhoneNumber
+
   (valid-input? [phone-number]
     true)
   (number-noraw
@@ -401,6 +402,7 @@
        (valid? obj dialing-region))))
 
   String
+
   (valid-input?
     [phone-number]
     (and
@@ -426,10 +428,9 @@
      (assert (valid-input? phone-number)
              "Phone number string should begin with at least 3 digits")
      (if (some? phone-number)
-       (.parseAndKeepRawInput
-        ^PhoneNumberUtil (util/instance)
-        phone-number
-        (region/parse region-code *inferred-namespaces*)))))
+       (.parseAndKeepRawInput ^PhoneNumberUtil (util/instance)
+                              phone-number
+                              (region/parse region-code *inferred-namespaces*)))))
   (raw-input
     ([phone-number]
      (not-empty phone-number))
@@ -457,6 +458,7 @@
        (valid? obj region-code))))
 
   Number
+
   (valid-input?
     [phone-number]
     (and (nat-int? phone-number) (> phone-number 9)))
@@ -496,6 +498,7 @@
           (valid? (str phone-number) region-code dialing-region))))
 
   clojure.lang.IPersistentMap
+
   (valid-input?
     [phone-number]
     (or (valid-input? (inf-get phone-number ::format/raw-input))
@@ -531,6 +534,7 @@
      (phoneable-map-apply valid? phone-number region-code dialing-region)))
 
   nil
+
   (valid-input?
     [phone-number] false)
   (number-noraw
@@ -550,6 +554,7 @@
       ^clojure.lang.Keyword dialing-region] false))
 
   Object
+
   (valid-input?
     [phone-number] false)
   (number-noraw
@@ -2342,12 +2347,12 @@
     ^Boolean              early-shrinking
     ^Boolean              preserve-raw]
    (type/parse number-type *inferred-namespaces*) ; assert check
-   (let [early-shrinking  (if (nil? early-shrinking) false (or (and early-shrinking true) false))
-         random-seed      (long (if (nil? random-seed) (rand Long/MAX_VALUE) random-seed))
-         rng              (java.util.Random. random-seed)
-         predicate        (if (nil? predicate) any? predicate)
-         retries          (if (nil? retries) 1000 (if (false? retries) nil retries))
-         lspec            (locale/parse locale-specification *inferred-namespaces*)]
+   (let [early-shrinking (if (nil? early-shrinking) false (or (and early-shrinking true) false))
+         random-seed     (long (if (nil? random-seed) (rand Long/MAX_VALUE) random-seed))
+         rng             (java.util.Random. random-seed)
+         predicate       (if (nil? predicate) any? predicate)
+         retries         (if (nil? retries) 1000 (if (false? retries) nil retries))
+         lspec           (locale/parse locale-specification *inferred-namespaces*)]
      (loop [tried-combos   #{}
             region-code    (util/ns-infer "phone-number.region" region-code *inferred-namespaces*)
             number-type    (util/ns-infer "phone-number.type"   number-type *inferred-namespaces*)
@@ -2373,13 +2378,13 @@
                                      (if non-geo-mode
                                        #(= region-code' (calling-code %))
                                        #(= region-code' (region %))))
-                 result (gen-sample template nil
-                                    retries
-                                    min-digits
-                                    (every-pred predicate valid-type-fn valid-region-fn)
-                                    rng
-                                    (if non-geo-mode true early-shrinking)
-                                    preserve-raw)
+                 result          (gen-sample template nil
+                                             retries
+                                             min-digits
+                                             (every-pred predicate valid-type-fn valid-region-fn)
+                                             rng
+                                             (if non-geo-mode true early-shrinking)
+                                             preserve-raw)
                  phone-number    (::PN/number result)]
              (if (some? phone-number)
                ;; phone number sample is generated
@@ -2413,3 +2418,11 @@
                  (recur (conj tried-combos combo)
                         region-code number-type
                         (unchecked-dec-int template-tries)))))))))))
+
+;;
+;; Printing.
+;;
+
+(defmethod ^{:added "18.13.6-0"} print-method Phonenumber$PhoneNumber
+  [p w]
+  (print-simple (str "#PhoneNumber[" (format p nil ::format/e164) "]") w))
