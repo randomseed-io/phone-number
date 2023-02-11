@@ -1,5 +1,12 @@
 # History of phone-number releases
 
+## 8.13.6-0
+
+- Improvements:
+
+  * Libphonenumber version pump.
+  * Added printing method.
+
 ## 8.13.2-0
 
 - Improvements:
