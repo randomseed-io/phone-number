@@ -1,19 +1,28 @@
 # History of phone-number releases
 
-## 8.13.6-0
+## 8.13.6-1 (2023-02-11)
 
 - Improvements:
 
-  * Libphonenumber version pump.
+  * Added `phone-number.core/number-optraw`.
+  * `phone-number.core/noraw` now creates a copy and strips raw input when
+    a `PhoneNumber` is given.
+  * Inline documentation strings edited.
+
+## 8.13.6-0 (2023-02-11)
+
+- Improvements:
+
+  * Libphonenumber version bump.
   * Added printing method.
 
-## 8.13.2-0
+## 8.13.2-0 (2022-12-13)
 
 - Improvements:
 
   * Libphonenumber version bump.
 
-## 8.12.52-0
+## 8.12.52-0 (2022-07-29)
 
 - Improvements:
 
@@ -34,8 +43,8 @@
 
 - Bug fixes:
 
-  * Removed development dependencies (orchestra) from spec.clj.
-  * Moved development file generator.clj to dev/src.
+  * Removed development dependencies (orchestra) from `spec.clj`.
+  * Moved development file `generator.clj` to `dev/src`.
 
 ## 8.12.21-0 (2021-04-19)
 
