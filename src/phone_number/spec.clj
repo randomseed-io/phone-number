@@ -892,6 +892,10 @@
   :args ::args/number
   :ret  (s/nilable ::pn/native))
 
+(s/fdef phone/number-optraw
+  :args ::args/number
+  :ret  (s/nilable ::pn/native))
+
 (s/fdef phone/raw-input
   :args (s/or :nil         (s/cat :phone-number nil? :region-code (s/? (s/nilable ::arg/region)))
               :arity-2-nr  (s/cat :number ::arg/number-regional :region-code (s/? (s/nilable ::arg/region)))
