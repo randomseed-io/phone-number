@@ -379,6 +379,18 @@
   (valid-input? [phone-number]
     true)
   (number-noraw
+    ([phone-number]
+     (if (.hasRawInput ^Phonenumber$PhoneNumber phone-number)
+       (doto (new Phonenumber$PhoneNumber)
+         (.mergeFrom ^Phonenumber$PhoneNumber phone-number)
+         (.clearRawInput))
+       phone-number))
+    ([phone-number ^clojure.lang.Keyword region-code]
+     (if (.hasRawInput ^Phonenumber$PhoneNumber phone-number)
+       (doto (new Phonenumber$PhoneNumber)
+         (.mergeFrom ^Phonenumber$PhoneNumber phone-number)
+         (.clearRawInput))
+       phone-number)))
   (number
     ([phone-number] phone-number)
     ([phone-number ^clojure.lang.Keyword region-code] phone-number))
