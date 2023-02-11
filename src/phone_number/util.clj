@@ -20,11 +20,30 @@
 
 ;; Singletons
 
-(defn instance          {:tag PhoneNumberUtil,              :added  "8.12.4-0"} [] (PhoneNumberUtil/getInstance))
-(defn short             {:tag ShortNumberInfo,              :added  "8.12.4-0"} [] (ShortNumberInfo/getInstance))
-(defn geo-coder         {:tag PhoneNumberOfflineGeocoder,   :added  "8.12.4-0"} [] (PhoneNumberOfflineGeocoder/getInstance))
-(defn carrier-mapper    {:tag PhoneNumberToCarrierMapper,   :added  "8.12.4-0"} [] (PhoneNumberToCarrierMapper/getInstance))
-(defn time-zones-mapper {:tag PhoneNumberToTimeZonesMapper, :added  "8.12.4-0"} [] (PhoneNumberToTimeZonesMapper/getInstance))
+(defn instance
+  {:tag PhoneNumberUtil, :added "8.12.4-0"}
+  ^PhoneNumberUtil []
+  (PhoneNumberUtil/getInstance))
+
+(defn short
+  {:tag ShortNumberInfo, :added "8.12.4-0"}
+  ^ShortNumberInfo []
+  (ShortNumberInfo/getInstance))
+
+(defn geo-coder
+  {:tag PhoneNumberOfflineGeocoder, :added "8.12.4-0"}
+  ^PhoneNumberOfflineGeocoder []
+  (PhoneNumberOfflineGeocoder/getInstance))
+
+(defn carrier-mapper
+  {:tag PhoneNumberToCarrierMapper, :added "8.12.4-0"}
+  ^PhoneNumberToCarrierMapper []
+  (PhoneNumberToCarrierMapper/getInstance))
+
+(defn time-zones-mapper
+  {:tag PhoneNumberToTimeZonesMapper, :added "8.12.4-0"}
+  ^PhoneNumberToTimeZonesMapper []
+  (PhoneNumberToTimeZonesMapper/getInstance))
 
 ;; Helpers
 
