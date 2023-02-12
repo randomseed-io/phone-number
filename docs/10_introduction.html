@@ -4,10 +4,10 @@
 <p>The phone-number library is an interface to the <a href="https://github.com/google/libphonenumber">Libphonenumber</a> with some extra sugar. It allows to validate, inspect and generate phone numbers.</p>
 <h2><a href="#installation" id="installation"></a>Installation</h2>
 <p>To use phone-number in your project, add the following to dependencies section of <code>project.clj</code> or <code>build.boot</code>:</p>
-<pre><code class="language-clojure">[io.randomseed/phone-number "8.12.52-0"]
+<pre><code class="language-clojure">[io.randomseed/phone-number "8.13.6-1"]
 </code></pre>
 <p>For <code>deps.edn</code> add the following as an element of a map under <code>:deps</code> or <code>:extra-deps</code> key:</p>
-<pre><code class="language-clojure">io.randomseed/phone-number {:mvn/version "8.12.52-0"}
+<pre><code class="language-clojure">io.randomseed/phone-number {:mvn/version "8.13.6-1"}
 </code></pre>
 <p>You can also download JAR from <a href="https://clojars.org/io.randomseed/phone-number">Clojars</a>.</p>
 <p>Additionally you can use (in your development profile) if you want to utilize specs and spec-integrated generators provided by the phone-number:</p>
@@ -52,6 +52,14 @@ org.clojure/test.check {:mvn/version "1.1.0"}
 <pre><code class="language-clojure">{:phone-number.format/international "+44 2920183133"}
 </code></pre>
 <p>Note that in case of natural numbers the additional region information is required (most of the functions will accept it as their second calling argument).</p>
+<h3><a href="#caveats" id="caveats"></a>Caveats</h3>
+<p>If your program processes a lot of phone numbers and your strategy is to keep them in a native format (a result of calling <code>phone-number.core/number</code>) then be aware that by default all <code>PhoneNumber</code> objects created will have raw input stored internally. This will affect <strong>comparison</strong> in a way that the object representing a number <code>+442920183133</code> will <strong>not be equal</strong> to the object representing the same number but with spaces (<code>+44 2920 183 133</code>). This is due to equality test based on, among others, raw input values which are used to generate the hash code of each object.</p>
+<p>To work around that you have 2 choices:</p>
+<ul>
+<li>Use <code>phone-number.core/number-noraw</code> on input data to parse numbers without preserving raw inputs.</li>
+<li>Use <code>phone-number.core/number-noraw</code> on existing objects to create raw-input-free copies.</li>
+</ul>
+<p>Optionally, <code>phone-number.core/number-optraw</code> may be used too, specifically in processing pipelines, in order to preserve raw input only when a created object is initialized with the existing one (an instance of <code>PhoneNumber</code>). In case of other argument types the protocol method behaves like <code>number-noraw</code>.</p>
 <h3><a href="#namespace-inference" id="namespace-inference"></a>Namespace inference</h3>
 <p>In the examples above some regions were set using namespace-qualified keywords and some were not. This is due to namespace inference when it comes to specifying phone number properties that are expressed as keywords.</p>
 <p>When the dynamic variable <a href="phone-number.core.html#var-*inferred-namespaces*"><code>phone-number.core/*inferred-namespaces*</code></a> is set to <code>true</code> (which is the default setting) all functions that require keyword arguments will automatically enrich simple keywords to be namespace-qualified. That affects:</p>
@@ -376,7 +384,7 @@ phone/tz-formats
  :phone-number.sample/samples     12}
 </code></pre>
 <h2><a href="#license" id="license"></a>License</h2>
-<p>Copyright © 2020 Paweł Wilk</p>
+<p>Copyright © 2020–2023 Paweł Wilk</p>
 <p>Phone-number is copyrighted software owned by Paweł Wilk (<a href="mailto:pw@gnu.org">pw@gnu.org</a>). You may redistribute and/or modify this software as long as you comply with the terms of the <a href="https://github.com/randomseed-io/phone-number/blob/master/LICENSE">GNU Lesser General Public License</a> (version 3).</p>
 <p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p>
 <p>THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>

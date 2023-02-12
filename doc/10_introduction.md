@@ -10,14 +10,14 @@ To use phone-number in your project, add the following to dependencies section o
 `project.clj` or `build.boot`:
 
 ```clojure
-[io.randomseed/phone-number "8.12.52-0"]
+[io.randomseed/phone-number "8.13.6-1"]
 ```
 
 For `deps.edn` add the following as an element of a map under `:deps` or
 `:extra-deps` key:
 
 ```clojure
-io.randomseed/phone-number {:mvn/version "8.12.52-0"}
+io.randomseed/phone-number {:mvn/version "8.13.6-1"}
 ```
 
 You can also download JAR from
@@ -86,6 +86,28 @@ functions this library provides include:
 
 Note that in case of natural numbers the additional region information is required
 (most of the functions will accept it as their second calling argument).
+
+### Caveats
+
+If your program processes a lot of phone numbers and your strategy is to keep them in
+a native format (a result of calling `phone-number.core/number`) then be aware that
+by default all `PhoneNumber` objects created will have raw input stored internally.
+This will affect **comparison** in a way that the object representing a number
+`+442920183133` will **not be equal** to the object representing the same number but
+with spaces (`+44 2920 183 133`). This is due to equality test based on, among
+others, raw input values which are used to generate the hash code of each object.
+
+To work around that you have 2 choices:
+
+* Use `phone-number.core/number-noraw` on input data to parse numbers without
+  preserving raw inputs.
+* Use `phone-number.core/number-noraw` on existing objects to create raw-input-free
+  copies.
+
+Optionally, `phone-number.core/number-optraw` may be used too, specifically in
+processing pipelines, in order to preserve raw input only when a created object is
+initialized with the existing one (an instance of `PhoneNumber`). In case of other
+argument types the protocol method behaves like `number-noraw`.
 
 ### Namespace inference
 
@@ -542,7 +564,7 @@ that make use of this function.
 
 ## License
 
-Copyright © 2020 Paweł Wilk
+Copyright © 2020–2023 Paweł Wilk
 
 Phone-number is copyrighted software owned by Paweł Wilk (pw@gnu.org). You may
 redistribute and/or modify this software as long as you comply with the terms of
