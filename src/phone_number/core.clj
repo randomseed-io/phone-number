@@ -9,6 +9,7 @@
   (:refer-clojure :exclude [format type])
 
   (:require   [clojure.set]
+              [clojure.core.memoize         :as           memo]
               [phone-number                 :as             PN]
               [phone-number.db              :as             db]
               [phone-number.util            :as           util]
@@ -94,22 +95,30 @@
 
 (def ^{:added "8.12.4-1" :tag clojure.lang.PersistentHashSet :const true}
   required-first-input-characters
-  "A set of required first characters in a phone number which is a string."
+  "A set of required first characters in a phone number which is a string.
+  Used internally in spec testing."
   (util/char-ranges->set [\0 \9]))
 
-(def ^{:added "8.12.4-1" :tag clojure.lang.PersistentHashSet :const true}
+(def ^{:added      "8.12.4-1" :tag clojure.lang.PersistentHashSet :const true
+       :deprecated "8.13.6-2"}
   allowed-removable-characters
   "A set of removable (like punctuation) characters in a phone number which is a
   string. Used during input validation."
   #{\space\tab\-\—\–\.\,\=\*\~\(\)\[\]\/})
 
-(def ^{:added "8.12.4-1" :tag clojure.lang.PersistentHashSet :const true}
+(def ^{:added      "8.12.4-1" :tag clojure.lang.PersistentHashSet :const true
+       :deprecated "8.13.6-2"}
   allowed-input-characters
   "A set of allowed characters in a phone number which is a string
   (applied to all characters except the first 3 on a string cleaned up from removable
   characters)."
   (clojure.set/union
    (util/char-ranges->set [\0 \9] [\A \Z] [\a \z])))
+
+(def ^{:added "8.13.6-2" :tag java.util.regex.Pattern}
+  re-two-digits
+  "Regular expression pattern matching at least 2 digits in a string."
+  #".*\d.*\d.*")
 
 (def ^{:added "8.12.4-0" :tag clojure.lang.PersistentHashSet}
   regions
@@ -369,6 +378,36 @@
                          (apply f nil nil more))))))))))))))
 
 ;;
+;; Caching
+;;
+
+(defn- mem-parse-core
+  ^Phonenumber$PhoneNumber [phone-number region-code inferred-ns]
+  (assert (valid-input? phone-number)
+          "Phone number string should begin with at least 2 digits")
+  (.parseAndKeepRawInput ^PhoneNumberUtil (util/instance)
+                         phone-number
+                         (region/parse region-code inferred-ns)))
+
+(defn- mem-parse-noraw-core
+  ^Phonenumber$PhoneNumber [phone-number region-code inferred-ns]
+  (assert (valid-input? phone-number)
+          "Phone number string should begin with at least 2 digits")
+  (.parse ^PhoneNumberUtil (util/instance)
+          phone-number
+          (region/parse region-code inferred-ns)))
+
+(def ^{:private  true
+       :arglists '(^Phonenumber$PhoneNumber [phone-number region-code inferred-ns])}
+  mem-parse
+  (memo/fifo mem-parse-core {} :fifo/threshold 2048))
+
+(def ^{:private  true
+       :arglists '(^Phonenumber$PhoneNumber [phone-number region-code inferred-ns])}
+  mem-parse-noraw
+  (memo/fifo mem-parse-noraw-core {} :fifo/threshold 2048))
+
+;;
 ;; Protocol implementation
 ;;
 
@@ -378,6 +417,7 @@
 
   (valid-input? [phone-number]
     true)
+
   (number-noraw
     ([phone-number]
      (if (.hasRawInput ^Phonenumber$PhoneNumber phone-number)
@@ -391,16 +431,20 @@
          (.mergeFrom ^Phonenumber$PhoneNumber phone-number)
          (.clearRawInput))
        phone-number)))
+
   (number
     ([phone-number] phone-number)
     ([phone-number ^clojure.lang.Keyword region-code] phone-number))
+
   (number-optraw
     ([phone-number] phone-number)
     ([phone-number ^clojure.lang.Keyword region-code] phone-number))
+
   (raw-input
     ([phone-number] (not-empty (.getRawInput ^Phonenumber$PhoneNumber phone-number)))
     ([phone-number ^clojure.lang.Keyword region-code]
      (raw-input phone-number)))
+
   (valid?
     ([obj]
      (util/try-parse-or-false
@@ -425,39 +469,33 @@
   (valid-input?
     [phone-number]
     (and
-     (> (count phone-number) 1)
-     (= 2 (count (take 2 (filter required-first-input-characters phone-number))))))
+     (> (.length ^String phone-number) 1)
+     (some? (re-matches re-two-digits phone-number))))
+
   (number-noraw
     ([phone-number]
      (number-noraw phone-number nil))
     ([phone-number
       ^clojure.lang.Keyword region-code]
-     (assert (valid-input? phone-number)
-             "Phone number string should begin with at least 3 digits")
-     (if (some? phone-number)
-       (.parse
-        ^PhoneNumberUtil (util/instance)
-        phone-number
-        (region/parse region-code *inferred-namespaces*)))))
+     (mem-parse-noraw phone-number region-code *inferred-namespaces*)))
+
   (number
     ([phone-number]
      (number phone-number nil))
     ([phone-number
       ^clojure.lang.Keyword region-code]
-     (assert (valid-input? phone-number)
-             "Phone number string should begin with at least 3 digits")
-     (if (some? phone-number)
-       (.parseAndKeepRawInput ^PhoneNumberUtil (util/instance)
-                              phone-number
-                              (region/parse region-code *inferred-namespaces*)))))
+     (mem-parse phone-number region-code *inferred-namespaces*)))
+
   (number-optraw
     ([phone-number] (number-noraw phone-number nil))
     ([phone-number ^clojure.lang.Keyword region-code] (number-noraw phone-number region-code)))
+
   (raw-input
     ([phone-number]
      (not-empty phone-number))
     ([phone-number ^clojure.lang.Keyword region-code]
      (not-empty phone-number)))
+
   (valid?
     ([obj](valid? obj nil))
     ([obj
@@ -467,6 +505,7 @@
         (.isValidNumber
          ^PhoneNumberUtil (util/instance)
          (number-noraw obj region-code)))))
+
     ([obj
       ^clojure.lang.Keyword region-code
       ^clojure.lang.Keyword dialing-region]
@@ -484,6 +523,7 @@
   (valid-input?
     [phone-number]
     (and (nat-int? phone-number) (> phone-number 9)))
+
   (number-noraw
     ([phone-number]
      (assert false "Numeric phone number must have region code argument supplied"))
@@ -493,6 +533,7 @@
              "Numeric phone number should be a positive natural number having at least 2 digits")
      (assert (region/valid? region-code *inferred-namespaces*) "Region code must be valid")
      (number-noraw (str phone-number) region-code)))
+
   (number
     ([phone-number]
      (assert false "Numeric phone number must have some region code argument supplied"))
@@ -502,20 +543,24 @@
              "Numeric phone number should be a positive natural number having at least 2 digits")
      (assert (region/valid? region-code *inferred-namespaces*) "Region code must be valid")
      (number (str phone-number) region-code)))
+
   (number-optraw
     ([phone-number] (number-noraw phone-number nil))
     ([phone-number ^clojure.lang.Keyword region-code] (number-noraw phone-number region-code)))
+
   (raw-input
     ([phone-number]
      (raw-input (str phone-number)))
     ([phone-number ^clojure.lang.Keyword region-code]
      (raw-input (str phone-number) region-code)))
+
   (valid?
     ([phone-number] false)
     ([phone-number
       ^clojure.lang.Keyword region-code]
      (and (valid-input? phone-number)
           (valid? (str phone-number) region-code)))
+
     ([phone-number
       ^clojure.lang.Keyword region-code
       ^clojure.lang.Keyword dialing-region]
@@ -531,19 +576,23 @@
                                  phone-number
                                  nil)
           true false)))
+
   (number-noraw
     ([phone-number]
      (phoneable-map-apply number-noraw phone-number nil))
     ([phone-number ^clojure.lang.Keyword region-code]
      (phoneable-map-apply number-noraw phone-number region-code)))
+
   (number
     ([phone-number]
      (phoneable-map-apply number phone-number nil))
     ([phone-number ^clojure.lang.Keyword region-code]
      (phoneable-map-apply number phone-number region-code)))
+
   (number-optraw
     ([phone-number] (number-noraw phone-number nil))
     ([phone-number ^clojure.lang.Keyword region-code] (number-noraw phone-number region-code)))
+
   (raw-input
     ([phone-number]
      (or (inf-get phone-number ::format/raw-input)
@@ -551,6 +600,7 @@
     ([phone-number ^clojure.lang.Keyword region-code]
      (or (inf-get phone-number ::format/raw-input)
          (phoneable-map-apply raw-input phone-number region-code))))
+
   (valid?
     ([phone-number]
      (phoneable-map-apply valid? phone-number nil nil))
@@ -565,18 +615,23 @@
 
   (valid-input?
     [phone-number] false)
+
   (number-noraw
     ([phone-number] phone-number)
     ([phone-number ^clojure.lang.Keyword region-code] phone-number))
+
   (number
     ([phone-number] phone-number)
     ([phone-number ^clojure.lang.Keyword region-code] phone-number))
+
   (number-optraw
     ([phone-number] phone-number)
     ([phone-number ^clojure.lang.Keyword region-code] phone-number))
+
   (raw-input
     ([phone-number] phone-number)
     ([phone-number ^clojure.lang.Keyword region-code] phone-number))
+
   (valid?
     ([phone-number] false)
     ([phone-number ^clojure.lang.Keyword region-code] false)
@@ -588,27 +643,32 @@
 
   (valid-input?
     [phone-number] false)
+
   (number-noraw
     ([phone-number] phone-number)
     ([phone-number
       ^clojure.lang.Keyword region-code]
      (assert false (str "Unable to create phone number from instance of a "
                         (clojure.core/type phone-number) ": " phone-number))))
+
   (number
     ([phone-number] phone-number)
     ([phone-number
       ^clojure.lang.Keyword region-code]
      (assert false (str "Unable to create phone number from instance of a "
                         (clojure.core/type phone-number) ": " phone-number))))
+
   (number-optraw
     ([phone-number] (number-noraw phone-number nil))
     ([phone-number
       ^clojure.lang.Keyword region-code] (number-noraw phone-number region-code)))
+
   (raw-input
     ([phone-number] phone-number)
     ([phone-number ^clojure.lang.Keyword region-code]
      (assert false (str "Unable to create phone number from instance of a "
                         (clojure.core/type phone-number) ": " phone-number))))
+
   (valid?
     ([phone-number] false)
     ([phone-number
@@ -2166,18 +2226,14 @@
    ^clojure.lang.Keyword        region-code]
   (if (native? phone-number)
     phone-number
-    (.parseAndKeepRawInput
-     (util/instance) phone-number
-     (region/parse region-code *inferred-namespaces*))))
+    (mem-parse phone-number region-code *inferred-namespaces*)))
 
 (defn- number-g-noraw
   [^phone_number.core.Phoneable phone-number
    ^clojure.lang.Keyword        region-code]
   (if (native? phone-number)
     phone-number
-    (.parse
-     (util/instance) phone-number
-     (region/parse region-code *inferred-namespaces*))))
+    (mem-parse-noraw phone-number region-code *inferred-namespaces*)))
 
 (defn- gen-sample
   "Internal phone number samples generator."

@@ -3,6 +3,7 @@
 
  :deps {trptr/java-wrapper                           {:mvn/version "0.2.3"}
         malabarba/lazy-map                           {:mvn/version "1.3"}
+        org.clojure/core.memoize                     {:mvn/version "1.0.257"}
         com.googlecode.libphonenumber/libphonenumber {:mvn/version "8.13.6"}
         com.googlecode.libphonenumber/geocoder       {:mvn/version "2.200"}
         com.googlecode.libphonenumber/carrier        {:mvn/version "1.190"}
