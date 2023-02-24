@@ -10,14 +10,14 @@ To use phone-number in your project, add the following to dependencies section o
 `project.clj` or `build.boot`:
 
 ```clojure
-[io.randomseed/phone-number "8.13.6-1"]
+[io.randomseed/phone-number "8.13.6-2"]
 ```
 
 For `deps.edn` add the following as an element of a map under `:deps` or
 `:extra-deps` key:
 
 ```clojure
-io.randomseed/phone-number {:mvn/version "8.13.6-1"}
+io.randomseed/phone-number {:mvn/version "8.13.6-2"}
 ```
 
 You can also download JAR from
