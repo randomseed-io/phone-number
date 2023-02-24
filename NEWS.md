@@ -1,5 +1,12 @@
 # History of phone-number releases
 
+## 8.13.6-2 (2023-02-24)
+
+- Improvements:
+
+  * Memoization support for parsing phone numbers as strings.
+  * Improved assertion function `phone-number.core/valid-input?`.
+
 ## 8.13.6-1 (2023-02-11)
 
 - Improvements:
