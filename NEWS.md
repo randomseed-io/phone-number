@@ -1,5 +1,11 @@
 # History of phone-number releases
 
+## 8.13.6-3 (2023-02-26)
+
+- Improvements:
+
+  * Speed optimizations (type hints, referential equality).
+
 ## 8.13.6-2 (2023-02-24)
 
 - Improvements:
