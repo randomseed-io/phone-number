@@ -1,5 +1,3 @@
 #!/bin/sh
 
-echo "[phone-number] Building docs, please wait..."
-
-clojure -M:docs "${1}"
+clojure -M:docs "$@"

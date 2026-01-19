@@ -1,51 +1,101 @@
-APPNAME = "phone-number"
-VERSION = "8.13.6-3"
+SHELL       := /bin/sh
+BUILD       := bin/build
+DEPLOY      := bin/deploy
+DOCS        := bin/docs
+UPREADME    := bin/update-readme
 
-.PHONY: 		watch default docs deploy test test-clj sig jar pom clean tag
+VERSION     ?= 8.13.6-3
+GROUP       ?= io.randomseed
+APPNAME     ?= phone-number
+DESCRIPTION ?= Creation, validation and inspection of phone numbers
+URL         ?= https://randomseed.io/software/$(APPNAME)/
+SCM         ?= github.com/randomseed-io/$(APPNAME)
 
-default:		docs
+POMFILE     := pom.xml
+JARNAME     := $(APPNAME)-$(VERSION).jar
+JARFILE     := target/$(APPNAME)-$(VERSION).jar
+DOCPREFIX   := $(GROUP)/$(APPNAME)
+
+.PHONY: default lint doc docs push-docs readers
+.PHONY: test test-full test-clj
+.PHONY: sync-pom pom jar
+.PHONY: deploy sig tag clean
+
+default: docs
 
 lint:
-			bin/lint
+	@bin/lint
 
-docs:
-			bin/docs "$(VERSION)"
+readme:
+	@echo "[readme]   -> README.md"
+	@$(UPREADME) "$(DOCPREFIX)" "$(VERSION)" README.md
+
+docs: readme
+	@echo "[doc]      -> docs/"
+	@echo "# Introduction" > doc/10_introduction.md
+	@tail -n +2 README.md >> doc/10_introduction.md
+	@$(DOCS) "$(VERSION)"
+
+doc: docs
+
+readers:
+	@echo "[readers]  -> docs/"
+	@bin/readers
 
 push-docs:
-			git subtree push --prefix=docs docs master
-
-test-clj:
-			bin/test --no-profiling
+	git subtree push --prefix=docs docs main
 
 test:
-			@$(MAKE) test-clj
+	@rm -rf .cpcache || true
+	@bin/test --no-profiling
 
-pom: pom.xml
-			clojure -Spom && awk 'NF > 0' pom.xml > pom.new.xml && mv -f pom.new.xml pom.xml
-			mvn versions:set versions:commit -DnewVersion="$(VERSION)" versions:set-scm-tag -DnewTag="$(VERSION)"
-			rm -f pom.xml.asc
+test-full:
+	@rm -rf .cpcache || true
+	@bin/test-full
 
-$(APPNAME).jar: pom.xml
-			bin/build
+test-clj: test
 
-jar: $(APPNAME).jar
+sync-pom:
+	@echo "[sync-pom] -> $(POMFILE)"
+	@$(BUILD) sync-pom                  \
+	  :group       "\"$(GROUP)\""       \
+	  :name        "\"$(APPNAME)\""     \
+	  :version     "\"$(VERSION)\""     \
+	  :description "\"$(DESCRIPTION)\"" \
+	  :scm         "\"$(SCM)\""         \
+	  :url         "\"$(URL)\""
 
-sig: pom.xml
-			rm -f pom.xml.asc
-			gpg2 --armor --detach-sig pom.xml
+pom: clean sync-pom
 
-tag: pom.xml
-			git tag -s "$(VERSION)" -m "Release $(VERSION)"
+jar: readers pom
+	@echo "[jar]      -> $(JARNAME)"
+	@rm -rf target/classes .cpcache || true
+	@rm -f $(JARFILE) || true
+	@$(BUILD) jar               \
+	  :group   "\"$(GROUP)\""   \
+	  :name    "\"$(APPNAME)\"" \
+	  :version "\"$(VERSION)\""
 
-deploy:
-			@$(MAKE) clean
-			@$(MAKE) pom
-			@$(MAKE) jar
-			mvn gpg:sign-and-deploy-file -Dfile=$(APPNAME).jar -DrepositoryId=clojars -Durl=https://clojars.org/repo -DpomFile=pom.xml
+sig:
+	@echo "[sig]      -> $(POMFILE).asc"
+	@rm -f "$(POMFILE).asc" || true
+	@gpg2 --armor --detach-sig "$(POMFILE)"
+
+release: test clean readers docs jar
+
+deploy: clean readers pom jar
+	@echo "[deploy]   -> $(GROUP)/$(APPNAME)-$(VERSION)"
+	@test -f "$(JARFILE)" || (echo "Missing $(JARFILE)"; exit 1)
+	@test -f "$(POMFILE)" || (echo "Missing $(POMFILE)"; exit 1)
+	@$(DEPLOY) deploy :pom-file "\"$(POMFILE)\"" :artifact "\"$(JARFILE)\""
+	@test -f "$(APPNAME)-$(VERSION).pom.asc" && mv -f "$(APPNAME)-$(VERSION).pom.asc" "sigs/" || true
+	@test -f "target/$(APPNAME)-$(VERSION).pom.asc" && mv -f "target/$(APPNAME)-$(VERSION).pom.asc" "sigs/" || true
+	@test -f "target/$(APPNAME)-$(VERSION).jar.asc" && mv -f "target/$(APPNAME)-$(VERSION).jar.asc" "sigs/" || true
+
+tag:
+	git tag -s "$(VERSION)" -m "Release $(VERSION)"
 
 clean:
-			rm -f $(APPNAME).jar pom.xml.asc
-
-.PHONY: list
-list:
-		@$(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | egrep -v -e '^[^[:alnum:]]' -e '^$@$$' | xargs
+	@rm -f target/*.jar "$(POMFILE).asc" || true
+	@rm -rf .cpcache target/classes || true
+	@find . -name .DS_Store -print0 | xargs -0 rm -f

@@ -1,5 +1,3 @@
 #!/bin/sh
 
-echo "[phone-number] Running Eastwood lint tool..."
-
 clojure -A:eastwood
