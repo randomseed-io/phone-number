@@ -27,7 +27,7 @@
               [phone-number.short           :as          short]
               [phone-number.sample          :as         sample]
               [phone-number.dialing-region  :as dialing-region]
-              [lazy-map.core                :refer        :all])
+              [io.randomseed.lazy-map       :refer  [lazy-map]])
 
   (:import  [com.google.i18n.phonenumbers
              Phonenumber$PhoneNumber
@@ -2003,10 +2003,10 @@
   The whole map is put under the :phone-number/info key and it is a delay object,
   automatically dereferenced when accessed due to lazy map structure used under the
   hood."
-  {:added "8.12.4-0" :tag lazy_map.core.LazyMap}
+  {:added "8.12.4-0" :tag io.randomseed.lazy_map.LazyMap}
   [^clojure.lang.Keyword  locale-specification
    ^clojure.lang.Keyword  dialing-region
-   ^lazy_map.core.LazyMap m]
+   ^io.randomseed.lazy_map.LazyMap m]
   (when-some [m (match/mapper m)]
     (if (= locale-specification false) m
         (if-some [n (::PN/number m)]
@@ -2388,7 +2388,7 @@
 
   The last, optional argument chooses whether raw input should be preserved within
   the PhoneNumber objects when generating samples. By default it is not preserved."
-  {:added "8.12.4-0" :tag lazy_map.core.LazyMap}
+  {:added "8.12.4-0" :tag io.randomseed.lazy_map.LazyMap}
   ([]
    (generate nil nil nil nil nil nil nil false false))
   ([^clojure.lang.Keyword region-code]

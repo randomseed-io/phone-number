@@ -7,7 +7,7 @@
     phone-number.match
 
   (:require [clojure.set]
-            [lazy-map.core :refer :all])
+            [io.randomseed.lazy-map :refer [lazy-map]])
 
   (:import [com.google.i18n.phonenumbers
             PhoneNumberUtil
@@ -55,7 +55,7 @@
 (defn mapper
   "Generates a map from PhoneNumberMatch object."
   {:added "8.12.4-0"
-   :tag lazy_map.core.LazyMap}
+   :tag io.randomseed.lazy_map.LazyMap}
   [^PhoneNumberMatch m]
   (let [num (.number m)
         num (locking num (if (.hasRawInput num) num (.setRawInput num (.rawString m))))]
