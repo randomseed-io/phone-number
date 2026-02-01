@@ -40,7 +40,7 @@ docs: readme
 doc: docs
 
 push-docs:
-	git subtree push --prefix=docs docs main
+	git subtree push --prefix=docs docs master
 
 test:
 	@rm -rf .cpcache || true
