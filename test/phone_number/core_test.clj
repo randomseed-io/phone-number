@@ -184,6 +184,12 @@
                        :phone-number/dialing-region :us
                        :phone-number.dialing-region/derived? false} nil nil))  => false))
 
+(facts "about `short-cost`"
+       (fact "when number parses but calling code is not recognized"
+             ;; IDD form for MM ("00...") with an unassigned/obsolete calling code.
+             ;; `short-cost` should be total over its args spec: no throw, just `:unknown`.
+             (short-cost "002198" :phone-number.region/mm) => :phone-number.cost/unknown))
+
 (facts "about `find-numbers`"
        (fact "when it finds single number in text"
              (find-number text)                                 => found-number

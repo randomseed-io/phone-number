@@ -1372,16 +1372,18 @@
                           ^clojure.lang.Keyword        region-code
                           ^clojure.lang.Keyword        dialing-region]
    (when-some-input phone-number
-     (cost/by-val
-      (if-some [dialing-region (prep-dialing-region dialing-region phone-number)]
-        (.getExpectedCostForRegion
-         (util/short)
-         (number-optraw phone-number region-code)
-         (region/parse dialing-region *inferred-namespaces*))
-        (.getExpectedCost
-         (util/short)
-         (number-optraw phone-number region-code)))
-      cost/unknown))))
+    (or (util/try-parse
+         (cost/by-val
+          (if-some [dialing-region (prep-dialing-region dialing-region phone-number)]
+            (.getExpectedCostForRegion
+             (util/short)
+             (number-optraw phone-number region-code)
+             (region/parse dialing-region *inferred-namespaces*))
+            (.getExpectedCost
+             (util/short)
+             (number-optraw phone-number region-code)))
+          cost/unknown))
+        cost/unknown))))
 
 (defn short-emergency?
   "Takes a short (like an emergency) phone number (expressed as a string!) and returns
