@@ -2,4 +2,4 @@
 
 echo "[phone-number] Starting development environment, please wait..."
 
-clojure -A:dev:dev-rebel
+clojure -M:dev:dev-rebel

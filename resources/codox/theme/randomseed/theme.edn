@@ -1,8 +1,0 @@
-{:transforms
- [[:head]
-  [:append
-   [:link {:rel "stylesheet", :type "text/css" :href "css/randomseed.css"}]]
-  ]
-
- :resources
- ["css/randomseed.css"]}

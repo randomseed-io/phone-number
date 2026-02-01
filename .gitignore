@@ -26,3 +26,6 @@ gh-pages
 node_modules/
 /cljs-test-runner-out
 pom.xml.versionsBackup
+/cljs-test-runner-out
+.eastwood
+doc/10_introduction.md

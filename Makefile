@@ -4,19 +4,20 @@ DEPLOY      := bin/deploy
 DOCS        := bin/docs
 UPREADME    := bin/update-readme
 
-VERSION     ?= 8.13.6-3
+VERSION     ?= 3.23-0
 GROUP       ?= io.randomseed
 APPNAME     ?= phone-number
-DESCRIPTION ?= Creation, validation and inspection of phone numbers
+DESCRIPTION ?= Creation, inspection and validation of phone numbers for Clojure.
 URL         ?= https://randomseed.io/software/$(APPNAME)/
 SCM         ?= github.com/randomseed-io/$(APPNAME)
+#AOTNS       ?= '[io.randomseed.phone_number]'
 
 POMFILE     := pom.xml
 JARNAME     := $(APPNAME)-$(VERSION).jar
 JARFILE     := target/$(APPNAME)-$(VERSION).jar
 DOCPREFIX   := $(GROUP)/$(APPNAME)
 
-.PHONY: default lint doc docs push-docs readers
+.PHONY: default lint doc docs push-docs readme readers
 .PHONY: test test-full test-clj
 .PHONY: sync-pom pom jar
 .PHONY: deploy sig tag clean
@@ -34,13 +35,9 @@ docs: readme
 	@echo "[doc]      -> docs/"
 	@echo "# Introduction" > doc/10_introduction.md
 	@tail -n +2 README.md >> doc/10_introduction.md
-	@$(DOCS) "$(VERSION)"
+	@$(DOCS) :version '"$(VERSION)"'
 
 doc: docs
-
-readers:
-	@echo "[readers]  -> docs/"
-	@bin/readers
 
 push-docs:
 	git subtree push --prefix=docs docs main
@@ -56,7 +53,7 @@ test-full:
 test-clj: test
 
 sync-pom:
-	@echo "[sync-pom] -> $(POMFILE)"
+	@echo "[pom]      -> $(POMFILE)"
 	@$(BUILD) sync-pom                  \
 	  :group       "\"$(GROUP)\""       \
 	  :name        "\"$(APPNAME)\""     \
@@ -67,23 +64,24 @@ sync-pom:
 
 pom: clean sync-pom
 
-jar: readers pom
+jar: pom
 	@echo "[jar]      -> $(JARNAME)"
 	@rm -rf target/classes .cpcache || true
 	@rm -f $(JARFILE) || true
 	@$(BUILD) jar               \
 	  :group   "\"$(GROUP)\""   \
 	  :name    "\"$(APPNAME)\"" \
-	  :version "\"$(VERSION)\""
+	  :version "\"$(VERSION)\"" \
+	  :aot-ns  $(AOTNS)
 
 sig:
 	@echo "[sig]      -> $(POMFILE).asc"
 	@rm -f "$(POMFILE).asc" || true
 	@gpg2 --armor --detach-sig "$(POMFILE)"
 
-release: test clean readers docs jar
+release: test clean docs jar
 
-deploy: clean readers pom jar
+deploy: clean pom jar
 	@echo "[deploy]   -> $(GROUP)/$(APPNAME)-$(VERSION)"
 	@test -f "$(JARFILE)" || (echo "Missing $(JARFILE)"; exit 1)
 	@test -f "$(POMFILE)" || (echo "Missing $(POMFILE)"; exit 1)

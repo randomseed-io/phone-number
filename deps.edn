@@ -4,100 +4,82 @@
  :deps {trptr/java-wrapper                           {:mvn/version "0.2.3"}
         io.randomseed/lazy-map                       {:mvn/version "1.0.3"}
         org.clojure/core.memoize                     {:mvn/version "1.0.257"}
-        com.googlecode.libphonenumber/libphonenumber {:mvn/version "8.13.6"}
-        com.googlecode.libphonenumber/geocoder       {:mvn/version "2.200"}
-        com.googlecode.libphonenumber/carrier        {:mvn/version "1.190"}
-        com.googlecode.libphonenumber/prefixmapper   {:mvn/version "2.200"}}
+        com.googlecode.libphonenumber/libphonenumber {:mvn/version "9.0.23"}
+        com.googlecode.libphonenumber/geocoder       {:mvn/version "3.23"}
+        com.googlecode.libphonenumber/carrier        {:mvn/version "2.23"}
+        com.googlecode.libphonenumber/prefixmapper   {:mvn/version "3.23"}}
 
- :aliases {:dev       {:extra-deps  {org.clojure/tools.namespace   {:mvn/version "1.1.0"}
-                                     org.clojure/tools.deps.alpha  {:mvn/version "0.9.857"}
-                                     org.clojure/spec.alpha        {:mvn/version "0.2.194"}
-                                     org.clojure/test.check        {:mvn/version "1.1.1"}
-                                     orchestra/orchestra           {:mvn/version "2021.01.01-1"}
-                                     expound/expound               {:mvn/version "0.8.7"}
-                                     io.aviso/pretty               {:mvn/version "1.1.1"}
-                                     midje/midje                   {:mvn/version "1.10.5"}
-                                     lambdaisland/kaocha           {:mvn/version "1.69.1069"}
-                                     lambdaisland/kaocha-midje     {:mvn/version "0.0-5"}
-                                     lambdaisland/kaocha-cloverage {:mvn/version "1.0.75"}
-                                     spyscope/spyscope             {:mvn/version "0.1.6"}
-                                     fipp/fipp                     {:mvn/version "0.6.23"}
-                                     cljfmt/cljfmt                 {:mvn/version "0.6.4"}
-                                     ns-tracker/ns-tracker         {:mvn/version "0.4.0"}
-                                     mvxcvi/puget                  {:mvn/version "1.3.1"}
-                                     org.slf4j/slf4j-simple        {:mvn/version "2.0.0-alpha7"}}
-                       :extra-paths ["dev/src" "test"]
+ :aliases {:dev       {:extra-deps  {org.clojure/tools.namespace    {:mvn/version "1.5.1"}
+                                     org.clojure/tools.deps         {:mvn/version "0.28.1569"}
+                                     org.clojure/spec.alpha         {:mvn/version "0.6.249"}
+                                     org.clojure/test.check         {:mvn/version "1.1.3"}
+                                     orchestra/orchestra            {:mvn/version "2021.01.01-1"}
+                                     expound/expound                {:mvn/version "0.9.0"}
+                                     ns-tracker/ns-tracker          {:mvn/version "1.0.0"}
+                                     io.aviso/pretty                {:mvn/version "1.4.4"}
+                                     fipp/fipp                      {:mvn/version "0.6.29"}
+                                     cljfmt/cljfmt                  {:mvn/version "0.9.2"}
+                                     ch.qos.logback/logback-classic {:mvn/version "1.2.12"}
+                                     lambdaisland/kaocha            {:mvn/version "1.91.1392"}
+                                     lambdaisland/kaocha-cloverage  {:mvn/version "1.1.89"}
+                                     clj-commons/spyscope           {:mvn/version "0.1.48"} }
+                       :extra-paths ["dev/src" "dev/resources" "test/unit"]
                        :jvm-opts    ["-Dclojure.spec.compile-asserts=true"]}
-           :test      {:extra-paths ["test"]
-                       :extra-deps  {org.clojure/test.check        {:mvn/version "1.1.1"}
-                                     io.aviso/pretty               {:mvn/version "1.1.1"}
-                                     midje/midje                   {:mvn/version "1.10.5"}
-                                     orchestra/orchestra           {:mvn/version "2021.01.01-1"}
-                                     expound/expound               {:mvn/version "0.8.7"}
-                                     lambdaisland/kaocha           {:mvn/version "1.69.1069"}
-                                     lambdaisland/kaocha-midje     {:mvn/version "0.0-5"}
-                                     lambdaisland/kaocha-cloverage {:mvn/version "1.0.75"}
-                                     org.slf4j/slf4j-simple        {:mvn/version "2.0.0-alpha7"}}
+           :test      {:extra-paths ["test/unit" "dev/resources"]
+                       :extra-deps  {midje/midje                    {:mvn/version "1.10.10"}
+                                     org.clojure/test.check         {:mvn/version "1.1.3"}
+                                     orchestra/orchestra            {:mvn/version "2021.01.01-1"}
+                                     expound/expound                {:mvn/version "0.9.0"}
+                                     ch.qos.logback/logback-classic {:mvn/version "1.2.12"}
+                                     lambdaisland/kaocha            {:mvn/version "1.91.1392"}
+                                     lambdaisland/kaocha-midje      {:mvn/version "0.0-5"}
+                                     lambdaisland/kaocha-cloverage  {:mvn/version "1.1.89"}}
                        :main-opts   ["-m" "kaocha.runner",
                                      "--config-file"   "tests.edn",
                                      "--stc-num-tests" "100"
                                      "--stc-instrumentation"
                                      "--stc-asserts"]
                        :jvm-opts    ["-Xmx512m"]}
-           :eastwood  {:main-opts  ["-m" "eastwood.lint" {:source-paths ["src"]}]
-                       :extra-deps {org.clojure/test.check       {:mvn/version "1.1.1"}
-                                    io.aviso/pretty              {:mvn/version "1.1.1"}
-                                    midje/midje                  {:mvn/version "1.10.5"}
-                                    orchestra/orchestra          {:mvn/version "2021.01.01-1"}
-                                    expound/expound              {:mvn/version "0.8.7"}
-                                    org.clojure/tools.namespace  {:mvn/version "1.1.0"}
-                                    org.clojure/tools.deps.alpha {:mvn/version "0.9.857"}
-                                    org.clojure/spec.alpha       {:mvn/version "0.2.194"}
-                                    jonase/eastwood              {:mvn/version "0.3.13"}}}
-           :docs      {:extra-paths ["aliases/codox"]
-                       :extra-deps  {org.clojure/tools.deps.alpha {:mvn/version "0.9.857"}
-                                     org.clojure/spec.alpha       {:mvn/version "0.2.194"}
-                                     org.clojure/test.check       {:mvn/version "1.1.1"}
-                                     orchestra/orchestra          {:mvn/version "2021.01.01-1"}
-                                     expound/expound              {:mvn/version "0.8.7"}
-                                     codox/codox                  {:mvn/version "0.10.8"}}
-                       :main-opts   ["-m" "phone-number.codox.main"]}
+           :eastwood  {
+                       :main-opts  ["-m" "eastwood.lint" {:source-paths ["src"]}]
+                       :extra-deps {orchestra/orchestra         {:mvn/version "2021.01.01-1"}
+                                    expound/expound             {:mvn/version "0.9.0"}
+                                    org.clojure/test.check      {:mvn/version "1.1.3"}
+                                    org.clojure/tools.namespace {:mvn/version "1.5.1"}
+                                    org.clojure/tools.deps      {:mvn/version "0.28.1569"}
+                                    org.clojure/spec.alpha      {:mvn/version "0.6.249"}
+                                    jonase/eastwood             {:mvn/version "1.4.3"}}}
+           :docs      {:extra-paths ["aliases/codox" "dev/resources"]
+                       :extra-deps  {orchestra/orchestra    {:mvn/version "2021.01.01-1"}
+                                     expound/expound        {:mvn/version "0.9.0"}
+                                     org.clojure/test.check {:mvn/version "1.1.3"}
+                                     org.clojure/tools.deps {:mvn/version "0.28.1569"}
+                                     org.clojure/spec.alpha {:mvn/version "0.6.249"}
+                                     org.slf4j/slf4j-nop    {:mvn/version "1.7.36"}
+                                     codox/codox            {:mvn/version "0.10.8"}}
+                       :exec-fn     io.randomseed.phone-number.codox.main/-main}
            :build     {:paths       ["."]
                        :extra-paths ["aliases/build"]
-                       :deps        {io.github.juxt/pack.alpha     {:git/sha "9fd4a63ddeec3bedcbc819422de5a40ccb9eb8c9"}
-                                     io.github.clojure/tools.build {:git/tag "v0.7.4" :git/sha "ac442da"}
-                                     org.clojure/data.zip          {:mvn/version "1.0.0"}
-                                     org.clojure/data.xml          {:mvn/version "0.2.0-alpha6"}}
-                       :ns-default  phone-number.build.main
-                       :main-opts   ["-m" "phone-number.build.main"]}
-           :dev-nrepl {:jvm-opts    ["-Dnrepl.load=true"]
+                       :deps        {io.github.clojure/tools.build {:mvn/version "0.10.12"}
+                                     org.clojure/data.zip          {:mvn/version "1.1.1"}
+                                     org.clojure/data.xml          {:mvn/version "0.2.0-alpha10"}}
+                       :ns-default  io.randomseed.phone-number.build.main}
+           :deploy    {:paths       ["."]
+                       :extra-paths ["aliases/deploy"]
+                       :extra-deps  {slipset/deps-deploy {:mvn/version "0.2.2"}}
+                       :ns-default  io.randomseed.phone-number.deploy.main}
+           :dev-nrepl {
+                       :jvm-opts    ["-Dnrepl.load=true"]
                        :extra-paths ["aliases/nrepl"]
-                       :extra-deps  {cider/cider-nrepl         {:mvn/version "0.25.9"}
+                       :extra-deps  {cider/cider-nrepl         {:mvn/version "0.58.0"}
                                      ;;refactor-nrepl                {:mvn/version "2.3.1"}
-                                     cider/piggieback          {:mvn/version "0.5.2"}
-                                     nrepl/nrepl               {:mvn/version "0.8.3"}
-                                     kaocha-nrepl/kaocha-nrepl {:mvn/version "1.0.3"}
-                                     mvxcvi/puget              {:mvn/version "1.3.1"}
-                                     org.clojure/tools.nrepl   {:mvn/version "0.2.13"}}}
-           :cider-clj {:extra-paths ["aliases/nrepl"]
-                       :extra-deps  {cider/cider-nrepl         {:mvn/version "0.25.9"}
-                                     cider/piggieback          {:mvn/version "0.5.2"}
-                                     nrepl/nrepl               {:mvn/version "0.8.3"}
-                                     kaocha-nrepl/kaocha-nrepl {:mvn/version "1.0.3"}
-                                     mvxcvi/puget              {:mvn/version "1.3.1"}
-                                     org.clojure/tools.nrepl   {:mvn/version "0.2.13"}}
-                       :main-opts   ["-m" "nrepl.cmdline" "--middleware" "[cider.nrepl/cider-middleware]"]}
-           :dev-rebel {:extra-paths ["aliases/rebel"]
-                       :extra-deps  {com.bhauman/rebel-readline      {:mvn/version "0.1.4"}
-                                     com.bhauman/rebel-readline-cljs {:mvn/version "0.1.4"}
-                                     io.aviso/pretty                 {:mvn/version "1.1.1"}
-                                     mvxcvi/puget                    {:mvn/version "1.3.1"}}
-                       :main-opts   ["-m" "phone-number.rebel.main"]}}
- :codox   {:name        "phone-number"
-           :description "Generation, validation and inspection of phone numbers"
-           :license     "GNU Lesser General Public License 3.0"
-           :package     io.randomseed/phone-number
-           :output-path "docs"
-           :source-uri  "https://github.com/randomseed-io/phone-number/tree/{version}/{filepath}#L{line}"
-           :metadata    {:doc/format :markdown}
-           :themes      [:default :randomseed]}}
+                                     nrepl/nrepl               {:mvn/version "1.6.0-alpha2"}
+                                     kaocha-nrepl/kaocha-nrepl {:mvn/version "1.0.4"}
+                                     mvxcvi/puget              {:mvn/version "1.3.4"}}}
+           :dev-rebel {
+                       :extra-paths ["aliases/rebel"]
+                       :extra-deps  {com.bhauman/rebel-readline      {:mvn/version "0.1.5"}
+                                     com.bhauman/rebel-readline-cljs {:mvn/version "0.1.5"}
+                                     io.aviso/pretty                 {:mvn/version "1.4.4"}
+                                     mvxcvi/puget                    {:mvn/version "1.3.4"}}
+                       :main-opts   ["-m" "io.randomseed.phone-number.rebel.main"]}}}

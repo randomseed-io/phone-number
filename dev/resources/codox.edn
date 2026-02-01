@@ -2,7 +2,6 @@
  :description  "Creation, validation and inspection of phone numbers"
  :license      "GNU Lesser General Public License 3.0"
  :package      io.randomseed/phone-number
- :version      "8.13.6-3"
  :output-path  "docs"
  :source-uri   "https://github.com/randomseed-io/phone-number/blob/{version}/{filepath}#L{line}"
  :metadata     {:doc/format :markdown}
