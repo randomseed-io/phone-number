@@ -53,6 +53,7 @@
   {:added "8.12.4-0"}
   [& body]
   `(try ~@body
+        (catch clojure.lang.ExceptionInfo e# nil)
         (catch AssertionError        e# nil)
         (catch NumberParseException  e# nil)
         (catch NumberFormatException e# nil)))
@@ -63,6 +64,7 @@
   {:added "8.12.4-0"}
   [& body]
   `(try (or (do ~@body) false)
+        (catch clojure.lang.ExceptionInfo e# false)
         (catch AssertionError        e# false)
         (catch NumberParseException  e# false)
         (catch NumberFormatException e# false)))

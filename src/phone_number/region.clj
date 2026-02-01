@@ -121,7 +121,10 @@
     ^Boolean use-infer]
    (if (some? k)
      (let [k (util/ns-infer "phone-number.region" k use-infer)]
-       (assert (valid-arg? k) (str "Region code " k " is not valid"))
+       (when-not (valid-arg? k)
+         (throw (ex-info (str "Region code " k " is not valid")
+                         {:phone-number/error :phone-number.region/invalid
+                          :phone-number/region k})))
        (all k)))))
 
 (defn normalize-arg
@@ -134,7 +137,10 @@
     ^Boolean use-infer]
    (if (some? k)
      (let [k (util/ns-infer "phone-number.region" k use-infer)]
-       (assert (valid-arg? k) (str "Region code " k " is not valid"))
+       (when-not (valid-arg? k)
+         (throw (ex-info (str "Region code " k " is not valid")
+                         {:phone-number/error :phone-number.region/invalid
+                          :phone-number/region k})))
        k))))
 
 (defn normalize
@@ -146,7 +152,10 @@
     ^Boolean use-infer]
    (if (some? k)
      (let [k (util/ns-infer "phone-number.region" k use-infer)]
-       (assert (valid? k) (str "Region code " k " is not valid"))
+       (when-not (valid? k)
+         (throw (ex-info (str "Region code " k " is not valid")
+                         {:phone-number/error :phone-number.region/invalid
+                          :phone-number/region k})))
        k))))
 
 (defn generate-sample

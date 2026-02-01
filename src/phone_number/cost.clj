@@ -114,7 +114,10 @@
    (if (nil? k)
      default-val
      (let [k (util/ns-infer "phone-number.cost" k use-infer)]
-       (assert (valid-arg? k) (str "Cost class " k " is not valid"))
+       (when-not (valid-arg? k)
+         (throw (ex-info (str "Cost class " k " is not valid")
+                         {:phone-number/error :phone-number.cost/invalid
+                          :phone-number/cost  k})))
        (all-arg k)))))
 
 (defn generate-sample

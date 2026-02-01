@@ -125,5 +125,8 @@
    (if (nil? k)
      default-val
      (let [k (util/ns-infer "phone-number.tz-format" k use-infer)]
-       (assert (valid-arg? k) (str "Time zone format " k " is not valid"))
+       (when-not (valid-arg? k)
+         (throw (ex-info (str "Time zone format " k " is not valid")
+                         {:phone-number/error    :phone-number.tz-format/invalid
+                          :phone-number/tz-format k})))
        (all k)))))

@@ -142,7 +142,10 @@
    (if (nil? k)
      default-val
      (let [k (util/ns-infer "phone-number.format" k use-infer)]
-       (assert (valid-arg? k) (str "Format specification " k " is not valid"))
+       (when-not (valid-arg? k)
+         (throw (ex-info (str "Format specification " k " is not valid")
+                         {:phone-number/error  :phone-number.format/invalid
+                          :phone-number/format k})))
        (all k)))))
 
 (defn global?

@@ -123,7 +123,10 @@
    (if (nil? k)
      default-val
      (let [k (util/ns-infer "phone-number.type" k use-infer)]
-       (assert (valid-arg? k) (str "Type " k " is not valid"))
+       (when-not (valid-arg? k)
+         (throw (ex-info (str "Type " k " is not valid")
+                         {:phone-number/error :phone-number.type/invalid
+                          :phone-number/type  k})))
        (all-arg k)))))
 
 (defn generate-sample

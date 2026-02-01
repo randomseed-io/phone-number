@@ -104,7 +104,10 @@
    (if (nil? k)
      default-val
      (let [k (util/ns-infer "phone-number.leniency" k use-infer)]
-       (assert (valid-arg? k) (str "Leniency specification " k " is not valid"))
+       (when-not (valid-arg? k)
+         (throw (ex-info (str "Leniency specification " k " is not valid")
+                         {:phone-number/error    :phone-number.leniency/invalid
+                          :phone-number/leniency k})))
        (all k)))))
 
 (defn generate-sample

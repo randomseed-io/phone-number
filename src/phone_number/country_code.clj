@@ -86,8 +86,10 @@
   Libphonenumber methods."
   {:added "8.12.4-0" :tag Integer}
   ([^Integer calling-code]
-   (assert (valid-arg? calling-code)
-           (str "Country code " calling-code " is not valid"))
+   (when-not (valid-arg? calling-code)
+     (throw (ex-info (str "Country code " calling-code " is not valid")
+                     {:phone-number/error        :phone-number.country-code/invalid
+                      :phone-number/country-code calling-code})))
    calling-code))
 
 (defn generate-sample
