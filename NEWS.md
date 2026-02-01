@@ -10,6 +10,13 @@
   * Input/argument validation now throws `ex-info` with `:phone-number/error` in `ex-data`
     (enriched with `:phone-number/value` and `:phone-number/value-type`).
 
+- Bug fixes:
+
+  * `phone-number.core/short-cost` no longer leaks libphonenumber parsing exceptions
+    (returns `:phone-number.cost/unknown` instead).
+  * `phone-number.util/char-ranges->set` is now safe to load under `*unchecked-math*`,
+    fixing `refresh-all`/reload failures in development REPL sessions.
+
 ## 8.13.6-3 (2023-02-26)
 
 - Improvements:

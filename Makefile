@@ -4,10 +4,10 @@ DEPLOY      := bin/deploy
 DOCS        := bin/docs
 UPREADME    := bin/update-readme
 
-VERSION     ?= 9.0.23-0
+VERSION     ?= 9.0.23-1
 GROUP       ?= io.randomseed
 APPNAME     ?= phone-number
-DESCRIPTION ?= Creation, inspection and validation of phone numbers for Clojure.
+DESCRIPTION ?= Phone numbers as data: validate, inspect, search, generate.
 URL         ?= https://randomseed.io/software/$(APPNAME)/
 SCM         ?= github.com/randomseed-io/$(APPNAME)
 AOTNS       ?= 'nil'

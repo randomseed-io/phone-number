@@ -1,57 +1,72 @@
-# Validation and inspection of phone numbers
+# Phone Number
+
+*Phone numbers as data: validate, inspect, search, generate.*
 
 [![Phone-number on Clojars](https://img.shields.io/clojars/v/io.randomseed/phone-number.svg)](https://clojars.org/io.randomseed/phone-number)
 [![Phone-number on cljdoc](https://cljdoc.org/badge/io.randomseed/phone-number)](https://cljdoc.org/d/io.randomseed/phone-number/CURRENT)
 [![CircleCI](https://circleci.com/gh/randomseed-io/phone-number.svg?style=svg)](https://circleci.com/gh/randomseed-io/phone-number)
 
-Clojure library which uses Google's Libphonenumber to validate, inspect and generate phone numbers.
+A pragmatic, data-oriented Clojure wrapper around Google's Libphonenumber for
+validating, inspecting, formatting, searching text, and generating phone numbers. It
+treats phone numbers as data: most functions accept strings, numbers, `PhoneNumber`
+instances, or keyword-keyed maps, and return values that are pleasant to pipe
+through.
 
 ## Features
 
-* Polymorphic interface (phone numbers can be expressed as numbers, strings,
-  `PhoneNumber` objects or maps).
+* Data-first, polymorphic API: phone numbers can be expressed as numbers, strings,
+  `PhoneNumber` objects, or maps.
 
-* Supported operations: creation, validation, generation, matching, string-searching,
-  formatting, specification testing and properties reporting.
+* Rich, keyword-keyed info maps with optional namespace inference
+  (e.g. a key can be `:phone-number/type` or just `:type`;
+  a type can be `:phone-number.type/mobile` or just `:mobile`).
 
-* Promotes keyword-indexed maps with namespace inference
-  (e.g. key can be `:phone-number/type` or just `:type`,
-  type can be `:phone-number.type/mobile` or just `:mobile`).
+* Optional enrichment with carrier, location, and time zone data (via libphonenumber add-on
+  modules), exposed through the same data-first API.
 
-* Uses lazily evaluated map values to store phone number information during
-  text-searching and samples generation.
+* Stable options-map API for text searching (`phone-number.core/find-numbers-opts`),
+  backed by lazy maps (LazyMap) so expensive info can be computed on demand.
 
-* Provides specs with generators.
+* Built-in support for short numbers (e.g. emergency numbers): validation, reachability,
+  and expected cost class.
+
+* Sample generation that returns both the `PhoneNumber` and reproducibility/debug data
+  (including `:phone-number.sample/random-seed` and sampler stats).
+
+* Specs with generators for generative testing, plus structured errors via `ex-info`
+  with `:phone-number/error` in `ex-data`.
 
 ## Caveats
 
 If your program processes a lot of phone numbers and your strategy is to keep them in
-a native format (a result of calling `phone-number.core/number`) then be aware that
-by default all `PhoneNumber` objects created will have raw input stored internally.
-This will affect **comparison** in a way that the object representing a number
-`+442920183133` will **not be equal** to the object representing the same number but
-with spaces (`+44 2920 183 133`). This is due to equality test based on, among
-others, raw input values which are used to generate the hash code of each object.
+a native format (a result of calling `phone-number.core/number`), then be aware that,
+by default, all created `PhoneNumber` objects will have their raw input stored
+internally.  This affects **comparison** in a way that the object representing
+a number `+442920183133` will **not be equal** to the object representing the same
+number but with spaces (`+44 2920 183 133`). This is because the equality test is
+based, among other things, on raw input values, which are also used to generate each
+object's hash code.
 
-To work around that you have 2 choices:
+To work around this, you have two options:
 
 * Use `phone-number.core/number-noraw` on input data to parse numbers without
   preserving raw inputs.
+
 * Use `phone-number.core/number-noraw` on existing objects to create raw-input-free
   copies.
 
-Optionally, `phone-number.core/number-optraw` may be used too, specifically in
-processing pipelines, in order to preserve raw input only when a created object is
-initialized with the existing one (an instance of `PhoneNumber`). In case of other
-argument types the protocol method behaves like `number-noraw`.
+Optionally, `phone-number.core/number-optraw` can also be used (especially in
+processing pipelines) to preserve raw input only when the created object is
+initialized from an existing one (an instance of `PhoneNumber`). For other argument
+types, the protocol method behaves like `number-noraw`.
 
-Some functions validate their arguments and may throw `clojure.lang.ExceptionInfo`
-on invalid inputs. Such exceptions include `:phone-number/error` in `ex-data` and
-can be used for error classification.
+Some functions validate their arguments and may throw `clojure.lang.ExceptionInfo` on
+invalid inputs. Such exceptions include `:phone-number/error` in `ex-data`, which can
+be used for error classification.
 
 ## Sneak peeks
 
-* It **shows information** about phone numbers:
+* It **can show information** about phone numbers:
 
 ```clojure
 (require '[phone-number.core :as phone])
@@ -153,22 +168,24 @@ can be used for error classification.
 (phone/possible? "8081570001" :pl) ; => true
 ```
 
-* It **searches** for phone numbers in text (recommended: stable options-map API):
+* It **searches** for phone numbers in text (recommended: the stable options-map API):
 
 ```clojure
 (require '[phone-number.core :as phone])
 
-(->> (phone/find-numbers-opts "Call me at +44 808 157 0001!" {:region-code :gb
-                                                              :leniency    :valid
-                                                              :max-tries   1})
+(->> (phone/find-numbers-opts
+      "Call me at +44 808 157 0001!" {:region-code :gb
+                                      :leniency    :valid
+                                      :max-tries   1})
      first
      (into {}) ;; materialize lazy-map (also forces :phone-number/info)
      (dissoc :phone-number/number))
 
-;; If you don’t want the info map to be generated at all:
-(->> (phone/find-numbers-opts "Call me at +44 808 157 0001!" {:region-code :gb
-                                                              :max-tries   1
-                                                              :locale-specification false})
+;; If you don't want the info map to be generated at all:
+(->> (phone/find-numbers-opts
+      "Call me at +44 808 157 0001!" {:region-code :gb
+                                      :max-tries   1
+                                      :locale-specification false})
      first
      (into {})
      (dissoc :phone-number/number))
@@ -225,6 +242,7 @@ phone/types
      :phone-number.format/rfc3966            "tel:+213-181525997",
      :phone.number.short/possible?           false,
      :phone.number.short/valid?              false},
+
  :phone-number/number #<com.google.i18n.phonenumbers.Phonenumber$PhoneNumber@3edea9e6>,
  :phone-number.sample/digits      ["+213" nil "181525997"],
  :phone-number.sample/hits        10,
@@ -261,29 +279,29 @@ And more…
 
 ## Installation
 
-To use phone-number in your project, add the following to dependencies section of
+To use phone-number in your project, add the following to the dependencies section of
 `project.clj` or `build.boot`:
 
 ```clojure
 [io.randomseed/phone-number "3.23-0"]
 ```
 
-For `deps.edn` add the following as an element of a map under `:deps` or
+For `deps.edn`, add the following as an element of a map under the `:deps` or
 `:extra-deps` key:
 
 ```clojure
 io.randomseed/phone-number {:mvn/version "3.23-0"}
 ```
 
-Additionally, if you want to utilize specs and generators provided by the
-phone-number you can use (in your development profile):
+Additionally, if you want to use the specs and generators provided by phone-number,
+add the following to your development profile:
 
 ```clojure
 org.clojure/spec.alpha {:mvn/version "0.6.249"}
 org.clojure/test.check {:mvn/version "1.1.3"}
 ```
 
-You can also download JAR from [Clojars](https://clojars.org/io.randomseed/phone-number).
+You can also download the JAR from [Clojars](https://clojars.org/io.randomseed/phone-number).
 
 ## Documentation
 
@@ -349,6 +367,6 @@ make deploy
 bin/repl
 ```
 
-Starts REPL and nREPL server (port number is stored in `.nrepl-port`).
+Starts a REPL and an nREPL server (the port is stored in `.nrepl-port`).
 
 [LICENSE]:    https://github.com/randomseed-io/phone-number/blob/master/LICENSE
