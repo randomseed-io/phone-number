@@ -1,6 +1,15 @@
 # History of phone-number releases
 
-## 3.23-0 (2026-02-01)
+## 9.0.23-1 (2026-02-01)
+
+- Bug fixes:
+
+  * `phone-number.core/short-cost` no longer leaks libphonenumber parsing exceptions
+    (returns `:phone-number.cost/unknown` instead).
+  * `phone-number.util/char-ranges->set` is now safe to load under `*unchecked-math*`,
+    fixing `refresh-all`/reload failures in development REPL sessions.
+
+## 9.0.23-0 (2026-02-01)
 
 - Improvements:
 
@@ -9,13 +18,6 @@
     (positional arities of `find-numbers` remain as wrappers).
   * Input/argument validation now throws `ex-info` with `:phone-number/error` in `ex-data`
     (enriched with `:phone-number/value` and `:phone-number/value-type`).
-
-- Bug fixes:
-
-  * `phone-number.core/short-cost` no longer leaks libphonenumber parsing exceptions
-    (returns `:phone-number.cost/unknown` instead).
-  * `phone-number.util/char-ranges->set` is now safe to load under `*unchecked-math*`,
-    fixing `refresh-all`/reload failures in development REPL sessions.
 
 ## 8.13.6-3 (2023-02-26)
 
