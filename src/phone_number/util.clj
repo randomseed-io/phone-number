@@ -314,7 +314,9 @@
   stop character, e.g.: [\\A \\Z][\\0 \\9]"
   {:added "8.12.4-1" :tag clojure.lang.PersistentHashSet}
   [& ranges]
-  (set (mapcat #(map char (range (byte (first %)) (inc (byte (second %))))) ranges)))
+  ;; NOTE: do not use `byte` here. With `*unchecked-math*` enabled (e.g. in dev REPL),
+  ;; `byte` compiles to `unchecked-byte`, which rejects `Character` inputs.
+  (set (mapcat #(map char (range (int (first %)) (inc (int (second %))))) ranges)))
 
 (def ^{:added "8.12.16-1" :tag clojure.lang.PersistentHashSet :private true}
   all-locales
