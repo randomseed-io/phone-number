@@ -22,10 +22,12 @@
                                      ch.qos.logback/logback-classic {:mvn/version "1.2.12"}
                                      lambdaisland/kaocha            {:mvn/version "1.91.1392"}
                                      lambdaisland/kaocha-cloverage  {:mvn/version "1.1.89"}
-                                     clj-commons/spyscope           {:mvn/version "0.1.48"} }
-                       :extra-paths ["dev/src" "dev/resources" "test/unit"]
+                                     lambdaisland/kaocha-midje      {:mvn/version "0.0-5"}
+                                     midje/midje                    {:mvn/version "1.10.10"}
+                                     clj-commons/spyscope           {:mvn/version "0.1.48"}}
+                       :extra-paths ["dev/src" "dev/resources" "test"]
                        :jvm-opts    ["-Dclojure.spec.compile-asserts=true"]}
-           :test      {:extra-paths ["test/unit" "dev/resources"]
+           :test      {:extra-paths ["test" "dev/resources"]
                        :extra-deps  {midje/midje                    {:mvn/version "1.10.10"}
                                      org.clojure/test.check         {:mvn/version "1.1.3"}
                                      orchestra/orchestra            {:mvn/version "2021.01.01-1"}
