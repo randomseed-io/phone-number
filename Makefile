@@ -10,7 +10,7 @@ APPNAME     ?= phone-number
 DESCRIPTION ?= Creation, inspection and validation of phone numbers for Clojure.
 URL         ?= https://randomseed.io/software/$(APPNAME)/
 SCM         ?= github.com/randomseed-io/$(APPNAME)
-#AOTNS       ?= '[io.randomseed.phone_number]'
+AOTNS       ?= 'nil'
 
 POMFILE     := pom.xml
 JARNAME     := $(APPNAME)-$(VERSION).jar
