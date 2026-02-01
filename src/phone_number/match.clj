@@ -9,10 +9,9 @@
   (:require [clojure.set]
             [io.randomseed.lazy-map :refer [lazy-map]])
 
-  (:import [com.google.i18n.phonenumbers
-            PhoneNumberUtil
-            PhoneNumberUtil$MatchType
-            PhoneNumberMatch]))
+  (:import (com.google.i18n.phonenumbers PhoneNumberUtil
+                                         PhoneNumberUtil$MatchType
+                                         PhoneNumberMatch)))
 
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentArrayMap}

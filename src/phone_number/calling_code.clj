@@ -11,9 +11,8 @@
             [phone-number.country-code :as country-code]
             [phone-number.net-code     :as     net-code])
 
-  (:import  [com.google.i18n.phonenumbers
-             PhoneNumberUtil
-             NumberParseException]))
+  (:import  (com.google.i18n.phonenumbers PhoneNumberUtil
+                                          NumberParseException)))
 
 ;;
 ;; Supported Calling Codes

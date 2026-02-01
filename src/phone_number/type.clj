@@ -9,9 +9,8 @@
   (:require [clojure.set]
             [phone-number.util :as util])
 
-  (:import  [com.google.i18n.phonenumbers
-             PhoneNumberUtil
-             PhoneNumberUtil$PhoneNumberType]))
+  (:import  (com.google.i18n.phonenumbers PhoneNumberUtil
+                                          PhoneNumberUtil$PhoneNumberType)))
 
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentHashMap}
@@ -99,7 +98,7 @@
   ([^clojure.lang.Keyword number-type]
    (contains? all number-type))
   ([^clojure.lang.Keyword number-type
-    ^Boolean use-infer]
+    use-infer]
    (contains? all (util/ns-infer "phone-number.type" number-type use-infer))))
 
 (defn valid-arg?
@@ -109,7 +108,7 @@
   ([^clojure.lang.Keyword number-type]
    (contains? all-arg number-type))
   ([^clojure.lang.Keyword number-type
-    ^Boolean use-infer]
+    use-infer]
    (contains? all-arg (util/ns-infer "phone-number.type" number-type use-infer))))
 
 (defn parse
@@ -119,16 +118,16 @@
   ([^clojure.lang.Keyword k]
    (parse k true))
   ([^clojure.lang.Keyword k
-    ^Boolean use-infer]
+    use-infer]
    (if (nil? k)
      default-val
      (let [k (util/ns-infer "phone-number.type" k use-infer)]
        (when-not (valid-arg? k)
          (throw (ex-info (str "Type " k " is not valid")
-                         {:phone-number/error :phone-number.type/invalid
-                          :phone-number/value k
+                         {:phone-number/error      :phone-number.type/invalid
+                          :phone-number/value      k
                           :phone-number/value-type (clojure.core/type k)
-                          :phone-number/type  k})))
+                          :phone-number/type       k})))
        (all-arg k)))))
 
 (defn generate-sample

@@ -9,9 +9,8 @@
   (:require [clojure.set]
             [phone-number.util :as util])
 
-  (:import  [com.google.i18n.phonenumbers
-             PhoneNumberUtil
-             NumberParseException]))
+  (:import  (com.google.i18n.phonenumbers PhoneNumberUtil
+                                          NumberParseException)))
 
 ;;
 ;; Supported Country Calling Codes

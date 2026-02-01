@@ -9,12 +9,11 @@
   (:require  [clojure.set]
              [phone-number.util :as util])
 
-  (:import [com.google.i18n.phonenumbers
-            ShortNumberInfo
-            ShortNumberInfo$ShortNumberCost]))
+  (:import (com.google.i18n.phonenumbers ShortNumberInfo
+                                         ShortNumberInfo$ShortNumberCost)))
 
 (def ^{:added "8.12.4-0"
-       :tag clojure.lang.PersistentArrayMap}
+       :tag   clojure.lang.PersistentArrayMap}
   all
   "Map of phone number cost (keywords) to ShortNumberCost values."
   #::{:toll-free ShortNumberInfo$ShortNumberCost/TOLL_FREE
@@ -91,7 +90,7 @@
   ([^clojure.lang.Keyword cost]
    (contains? all cost))
   ([^clojure.lang.Keyword cost
-    ^Boolean use-infer]
+    use-infer]
    (contains? all (util/ns-infer "phone-number.cost" cost use-infer))))
 
 (defn valid-arg?
@@ -100,7 +99,7 @@
   ([^clojure.lang.Keyword cost]
    (contains? all-arg cost))
   ([^clojure.lang.Keyword cost
-    ^Boolean use-infer]
+    use-infer]
    (contains? all-arg (util/ns-infer "phone-number.cost" cost use-infer))))
 
 (defn parse
@@ -110,16 +109,16 @@
   ([^clojure.lang.Keyword k]
    (parse k true))
   ([^clojure.lang.Keyword k
-    ^Boolean use-infer]
+    use-infer]
    (if (nil? k)
      default-val
      (let [k (util/ns-infer "phone-number.cost" k use-infer)]
        (when-not (valid-arg? k)
          (throw (ex-info (str "Cost class " k " is not valid")
-                         {:phone-number/error :phone-number.cost/invalid
-                          :phone-number/value k
+                         {:phone-number/error      :phone-number.cost/invalid
+                          :phone-number/value      k
                           :phone-number/value-type (clojure.core/type k)
-                          :phone-number/cost  k})))
+                          :phone-number/cost       k})))
        (all-arg k)))))
 
 (defn generate-sample

@@ -10,13 +10,12 @@
 
   (:require [trptr.java-wrapper.locale :as l])
 
-  (:import [com.google.i18n.phonenumbers
-            PhoneNumberUtil
-            ShortNumberInfo
-            geocoding.PhoneNumberOfflineGeocoder
-            PhoneNumberToCarrierMapper
-            PhoneNumberToTimeZonesMapper
-            NumberParseException]))
+  (:import  (com.google.i18n.phonenumbers           PhoneNumberUtil
+                                                    ShortNumberInfo
+                                                    PhoneNumberToCarrierMapper
+                                                    PhoneNumberToTimeZonesMapper
+                                                    NumberParseException)
+            (com.google.i18n.phonenumbers.geocoding PhoneNumberOfflineGeocoder)))
 
 ;; Singletons
 
@@ -96,7 +95,7 @@
   "Returns the collection if it's not empty. Otherwise returns `nil`."
   {:added "8.12.16-1"}
   [obj]
-  (if (seq obj) obj))
+  (when (seq obj) obj))
 
 (defn count-digits
   {:added "8.12.4-1" :tag 'long}
@@ -161,7 +160,7 @@
     ^clojure.lang.IPersistentMap m
     ^clojure.lang.IPersistentMap dst]
    (reduce-kv
-    (fn [^clojure.lang.IPersistentMap mp k v] (assoc mp k (f k)))
+    (fn [^clojure.lang.IPersistentMap mp k _v] (assoc mp k (f k)))
     dst m)))
 
 (defn fmap-v
@@ -236,11 +235,11 @@
   "Like rand-int but optionally uses random number generator."
   {:added "8.12.4-0"} ; was: :tag 'int
   ([^long n]
-   (if (some? n)
+   (when (some? n)
      (rand-int n)))
   ([^long n
     ^java.util.Random rng]
-   (if (some? n)
+   (when (some? n)
      (if (nil? rng)
        (get-rand-int n)
        (if (zero? n) (int n) (.nextInt rng n))))))
@@ -253,7 +252,7 @@
   ([^long x
     ^long iteration
     ^Boolean shrink-now]
-   (if (some? x)
+   (when (some? x)
      (if (zero? x) x
          (if-not shrink-now x
                  (if (zero? iteration) 1
@@ -263,7 +262,7 @@
     ^long iteration
     ^Boolean shrink-now
     ^java.util.Random rng]
-   (if (some? x)
+   (when (some? x)
      (if (nil? rng)
        (random-digits-len x iteration shrink-now)
        (if (zero? x) x
@@ -281,7 +280,7 @@
    (apply str (repeatedly num #(rand-int 10))))
   ([^long num
     ^java.util.Random rng]
-   (if (some? num)
+   (when (some? num)
      (if (nil? rng)
        (gen-digits num)
        (apply str (repeatedly num #(.nextInt rng 10)))))))
@@ -306,7 +305,7 @@
    (lazy-iterator-seq coll (.iterator coll)))
   ([^Iterable coll ^java.util.Iterator iter]
    (lazy-seq
-    (if (.hasNext iter)
+    (when (.hasNext iter)
       (cons (.next iter) (lazy-iterator-seq coll iter))))))
 
 (defn char-ranges->set
@@ -339,4 +338,4 @@
   (if (nil? locale-specification) true
       (try
         (contains? all-locales (l/locale locale-specification))
-        (catch Throwable e false))))
+        (catch Throwable _e false))))

@@ -10,12 +10,11 @@
             [phone-number.util         :as util]
             [trptr.java-wrapper.locale :as    l])
 
-  (:import [com.google.i18n.phonenumbers
-            PhoneNumberUtil]))
+  (:import (com.google.i18n.phonenumbers PhoneNumberUtil)))
 
 (def ^{:added "8.12.4-3"
        :const true
-       :tag clojure.lang.Keyword}
+       :tag   clojure.lang.Keyword}
   default ::default)
 
 (def ^{:added "8.12.4-3"
@@ -95,21 +94,21 @@
   ([^java.util.Locale locale-specification]
    (valid-arg? locale-specification true false))
   ([^java.util.Locale locale-specification
-    ^Boolean          use-infer]
+    use-infer]
    (if (nil? locale-specification) true
        (or
         (and (keyword? locale-specification)
              (contains? all (util/ns-infer "phone-number.locale" locale-specification use-infer)))
-        (try (contains? by-val (l/locale locale-specification)) (catch Throwable e false)))))
+        (try (contains? by-val (l/locale locale-specification)) (catch Throwable _e false)))))
   ([^java.util.Locale locale-specification
-    ^Boolean          use-infer
-    ^Boolean          strict]
+    use-infer
+    strict]
    (if-not strict
      (valid-arg? locale-specification use-infer)
      (if (nil? locale-specification) false
          (if (keyword? locale-specification)
            (contains? all (util/ns-infer "phone-number.locale" locale-specification use-infer))
-           (try (contains? by-val (l/locale locale-specification)) (catch Throwable e false)))))))
+           (try (contains? by-val (l/locale locale-specification)) (catch Throwable _e false)))))))
 
 (defn strictly-valid-arg?
   "Returns `true` if the given locale specification is valid and supported, `false`

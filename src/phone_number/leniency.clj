@@ -9,12 +9,11 @@
   (:require [clojure.set]
             [phone-number.util :as util])
 
-  (:import [com.google.i18n.phonenumbers
-            PhoneNumberUtil
-            PhoneNumberUtil$Leniency]))
+  (:import  (com.google.i18n.phonenumbers PhoneNumberUtil
+                                          PhoneNumberUtil$Leniency)))
 
 (def ^{:added "8.12.4-3"
-       :tag clojure.lang.PersistentArrayMap}
+       :tag   clojure.lang.PersistentArrayMap}
   all
   "Map of leniencies (keywords) to Leniency values."
   #::{:exact    PhoneNumberUtil$Leniency/EXACT_GROUPING
@@ -80,7 +79,7 @@
   ([^clojure.lang.Keyword leniency]
    (contains? all leniency))
   ([^clojure.lang.Keyword leniency
-    ^Boolean use-infer]
+    use-infer]
    (contains? all (util/ns-infer "phone-number.leniency" leniency use-infer))))
 
 (defn valid-arg?
@@ -90,7 +89,7 @@
   ([^clojure.lang.Keyword leniency]
    (contains? all-arg leniency))
   ([^clojure.lang.Keyword leniency
-    ^Boolean use-infer]
+    use-infer]
    (contains? all-arg (util/ns-infer "phone-number.leniency" leniency use-infer))))
 
 (defn parse
@@ -100,16 +99,16 @@
   ([^clojure.lang.Keyword k]
    (parse k true))
   ([^clojure.lang.Keyword k
-    ^Boolean use-infer]
+    use-infer]
    (if (nil? k)
      default-val
      (let [k (util/ns-infer "phone-number.leniency" k use-infer)]
        (when-not (valid-arg? k)
          (throw (ex-info (str "Leniency specification " k " is not valid")
-                         {:phone-number/error    :phone-number.leniency/invalid
-                          :phone-number/value    k
+                         {:phone-number/error      :phone-number.leniency/invalid
+                          :phone-number/value      k
                           :phone-number/value-type (clojure.core/type k)
-                          :phone-number/leniency k})))
+                          :phone-number/leniency   k})))
        (all k)))))
 
 (defn generate-sample

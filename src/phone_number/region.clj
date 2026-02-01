@@ -10,9 +10,8 @@
             [clojure.string]
             [phone-number.util :as util])
 
-  (:import  [com.google.i18n.phonenumbers
-             PhoneNumberUtil
-             NumberParseException]))
+  (:import  (com.google.i18n.phonenumbers PhoneNumberUtil
+                                          NumberParseException)))
 
 ;;
 ;; Supported Regions
@@ -119,14 +118,14 @@
    (parse k true))
   ([^clojure.lang.Keyword k
     ^Boolean use-infer]
-   (if (some? k)
+   (when (some? k)
      (let [k (util/ns-infer "phone-number.region" k use-infer)]
        (when-not (valid-arg? k)
          (throw (ex-info (str "Region code " k " is not valid")
-                         {:phone-number/error :phone-number.region/invalid
-                          :phone-number/value k
+                         {:phone-number/error      :phone-number.region/invalid
+                          :phone-number/value      k
                           :phone-number/value-type (clojure.core/type k)
-                          :phone-number/region k})))
+                          :phone-number/region     k})))
        (all k)))))
 
 (defn normalize-arg
@@ -137,14 +136,14 @@
    (normalize-arg k true))
   ([^clojure.lang.Keyword k
     ^Boolean use-infer]
-   (if (some? k)
+   (when (some? k)
      (let [k (util/ns-infer "phone-number.region" k use-infer)]
        (when-not (valid-arg? k)
          (throw (ex-info (str "Region code " k " is not valid")
-                         {:phone-number/error :phone-number.region/invalid
-                          :phone-number/value k
+                         {:phone-number/error      :phone-number.region/invalid
+                          :phone-number/value      k
                           :phone-number/value-type (clojure.core/type k)
-                          :phone-number/region k})))
+                          :phone-number/region     k})))
        k))))
 
 (defn normalize
@@ -154,14 +153,14 @@
    (normalize k true))
   ([^clojure.lang.Keyword k
     ^Boolean use-infer]
-   (if (some? k)
+   (when (some? k)
      (let [k (util/ns-infer "phone-number.region" k use-infer)]
        (when-not (valid? k)
          (throw (ex-info (str "Region code " k " is not valid")
-                         {:phone-number/error :phone-number.region/invalid
-                          :phone-number/value k
+                         {:phone-number/error      :phone-number.region/invalid
+                          :phone-number/value      k
                           :phone-number/value-type (clojure.core/type k)
-                          :phone-number/region k})))
+                          :phone-number/region     k})))
        k))))
 
 (defn generate-sample

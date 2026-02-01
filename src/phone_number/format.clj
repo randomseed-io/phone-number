@@ -9,9 +9,8 @@
   (:require [clojure.set]
             [phone-number.util :as util])
 
-  (:import  [com.google.i18n.phonenumbers
-             PhoneNumberUtil
-             PhoneNumberUtil$PhoneNumberFormat]))
+  (:import  (com.google.i18n.phonenumbers PhoneNumberUtil
+                                          PhoneNumberUtil$PhoneNumberFormat)))
 
 (def ^{:added "8.12.4-0"
        :tag clojure.lang.PersistentArrayMap}

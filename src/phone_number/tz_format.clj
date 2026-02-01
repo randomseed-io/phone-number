@@ -11,7 +11,7 @@
   (:require [clojure.set]
             [phone-number.util :as util])
 
-  (:import  [java.time.format TextStyle]))
+  (:import  (java.time.format TextStyle)))
 
 ;; Time Zone Formats
 
@@ -89,7 +89,7 @@
   ([^clojure.lang.Keyword tz-format]
    (contains? all tz-format))
   ([^clojure.lang.Keyword tz-format
-    ^Boolean use-infer]
+    use-infer]
    (contains? all (util/ns-infer "phone-number.tz-format" tz-format use-infer))))
 
 (defn valid-arg?
@@ -98,7 +98,7 @@
   ([^clojure.lang.Keyword tz-format]
    (contains? all-arg tz-format))
   ([^clojure.lang.Keyword tz-format
-    ^Boolean use-infer]
+    use-infer]
    (contains? all-arg (util/ns-infer "phone-number.tz-format" tz-format use-infer))))
 
 (defn transform
@@ -121,14 +121,14 @@
   ([^clojure.lang.Keyword k]
    (parse k true))
   ([^clojure.lang.Keyword k
-    ^Boolean use-infer]
+    use-infer]
    (if (nil? k)
      default-val
      (let [k (util/ns-infer "phone-number.tz-format" k use-infer)]
        (when-not (valid-arg? k)
          (throw (ex-info (str "Time zone format " k " is not valid")
-                         {:phone-number/error    :phone-number.tz-format/invalid
-                          :phone-number/value    k
+                         {:phone-number/error      :phone-number.tz-format/invalid
+                          :phone-number/value      k
                           :phone-number/value-type (clojure.core/type k)
-                          :phone-number/tz-format k})))
+                          :phone-number/tz-format  k})))
        (all k)))))
