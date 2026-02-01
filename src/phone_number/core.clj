@@ -8,26 +8,26 @@
 
   (:refer-clojure :exclude [format type])
 
-  (:require   [clojure.set]
-              [clojure.core.memoize         :as           memo]
-              [phone-number                 :as             PN]
-              [phone-number.db              :as             db]
-              [phone-number.util            :as           util]
-              [phone-number.type            :as           type]
-              [phone-number.match           :as          match]
-              [phone-number.format          :as         format]
-              [phone-number.tz-format       :as      tz-format]
-              [phone-number.leniency        :as       leniency]
-              [phone-number.locale          :as         locale]
-              [phone-number.region          :as         region]
-              [phone-number.cost            :as           cost]
-              [phone-number.net-code        :as       net-code]
-              [phone-number.country-code    :as   country-code]
-              [phone-number.calling-code    :as   calling-code]
-              [phone-number.short           :as          short]
-              [phone-number.sample          :as         sample]
-              [phone-number.dialing-region  :as dialing-region]
-              [io.randomseed.lazy-map       :refer  [lazy-map]])
+  (:require [clojure.set]
+            [clojure.core.memoize         :as           memo]
+            [phone-number                 :as             PN]
+            [phone-number.db              :as             db]
+            [phone-number.util            :as           util]
+            [phone-number.type            :as           type]
+            [phone-number.match           :as          match]
+            [phone-number.format          :as         format]
+            [phone-number.tz-format       :as      tz-format]
+            [phone-number.leniency        :as       leniency]
+            [phone-number.locale          :as         locale]
+            [phone-number.region          :as         region]
+            [phone-number.cost            :as           cost]
+            [phone-number.net-code        :as       net-code]
+            [phone-number.country-code    :as   country-code]
+            [phone-number.calling-code    :as   calling-code]
+            [phone-number.short           :as          short]
+            [phone-number.sample          :as         sample]
+            [phone-number.dialing-region  :as dialing-region]
+            [io.randomseed.lazy-map       :refer  [lazy-map]])
 
   (:import  [com.google.i18n.phonenumbers
              Phonenumber$PhoneNumber
@@ -37,9 +37,9 @@
 ;; Settings
 ;;
 
-(def ^{:added "8.12.4-0"
+(def ^{:added   "8.12.4-0"
        :dynamic true
-       :tag Boolean}
+       :tag     Boolean}
   *info-removed-nils*
   "Decides whether the results of the info function should contain properties having
   `nil` values. They are removed by default due to `true` value of this switch."
