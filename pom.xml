@@ -5,7 +5,7 @@
   <packaging>jar</packaging>
   <version>9.0.23-1</version>
   <name>phone-number</name>
-  <description>Creation, inspection and validation of phone numbers for Clojure.</description>
+  <description>Phone numbers as data: validate, inspect, search, generate.</description>
   <url>https://randomseed.io/software/phone-number/</url>
   <licenses>
     <license>
@@ -43,12 +43,12 @@
     <dependency>
       <groupId>io.randomseed</groupId>
       <artifactId>lazy-map</artifactId>
-      <version>1.0.3</version>
+      <version>1.0.4</version>
     </dependency>
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>core.memoize</artifactId>
-      <version>1.0.257</version>
+      <version>1.1.266</version>
     </dependency>
     <dependency>
       <groupId>trptr</groupId>
