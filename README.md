@@ -149,6 +149,27 @@ argument types the protocol method behaves like `number-noraw`.
 (phone/possible? "8081570001" :pl) ; => true
 ```
 
+* It **searches** for phone numbers in text (recommended: stable options-map API):
+
+```clojure
+(require '[phone-number.core :as phone])
+
+(->> (phone/find-numbers-opts "Call me at +44 808 157 0001!" {:region-code :gb
+                                                              :leniency    :valid
+                                                              :max-tries   1})
+     first
+     (into {}) ;; materialize lazy-map (also forces :phone-number/info)
+     (dissoc :phone-number/number))
+
+;; If you don’t want the info map to be generated at all:
+(->> (phone/find-numbers-opts "Call me at +44 808 157 0001!" {:region-code :gb
+                                                              :max-tries   1
+                                                              :locale-specification false})
+     first
+     (into {})
+     (dissoc :phone-number/number))
+```
+
 * It gives known phone number **formats** and **types**:
 
 ```clojure
@@ -240,14 +261,14 @@ To use phone-number in your project, add the following to dependencies section o
 `project.clj` or `build.boot`:
 
 ```clojure
-[io.randomseed/phone-number "8.13.6-3"]
+[io.randomseed/phone-number "3.23-0"]
 ```
 
 For `deps.edn` add the following as an element of a map under `:deps` or
 `:extra-deps` key:
 
 ```clojure
-io.randomseed/phone-number {:mvn/version "8.13.6-3"}
+io.randomseed/phone-number {:mvn/version "3.23-0"}
 ```
 
 Additionally, if you want to utilize specs and generators provided by the
