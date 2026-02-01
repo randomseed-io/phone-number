@@ -1,5 +1,15 @@
 # History of phone-number releases
 
+## 3.23-0 (2026-02-01)
+
+- Improvements:
+
+  * Libphonenumber dependency update (and related data modules).
+  * Added stable options-map API for text searching: `phone-number.core/find-numbers-opts`
+    (positional arities of `find-numbers` remain as wrappers).
+  * Input/argument validation now throws `ex-info` with `:phone-number/error` in `ex-data`
+    (enriched with `:phone-number/value` and `:phone-number/value-type`).
+
 ## 8.13.6-3 (2023-02-26)
 
 - Improvements:
@@ -202,4 +212,3 @@
 ## 8.12.4-0 (2020-06-11)
 
 - Initial release.
-

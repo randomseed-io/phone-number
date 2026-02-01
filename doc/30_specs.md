@@ -113,7 +113,7 @@ phone-number does not depend on spec nor test library. Example, minimal `deps.ed
 ``` clojure
 {:paths ["src" "resources"]
 
- :deps {io.randomseed/phone-number {:mvn/version "8.12.16-1"}}
+ :deps {io.randomseed/phone-number {:mvn/version "9.0.23-0"}}
 
  :aliases {
            :dev {

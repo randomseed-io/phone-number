@@ -4,7 +4,7 @@ DEPLOY      := bin/deploy
 DOCS        := bin/docs
 UPREADME    := bin/update-readme
 
-VERSION     ?= 3.23-0
+VERSION     ?= 9.0.23-0
 GROUP       ?= io.randomseed
 APPNAME     ?= phone-number
 DESCRIPTION ?= Creation, inspection and validation of phone numbers for Clojure.

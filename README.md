@@ -45,6 +45,10 @@ processing pipelines, in order to preserve raw input only when a created object
 initialized with the existing one (an instance of `PhoneNumber`). In case of other
 argument types the protocol method behaves like `number-noraw`.
 
+Some functions validate their arguments and may throw `clojure.lang.ExceptionInfo`
+on invalid inputs. Such exceptions include `:phone-number/error` in `ex-data` and
+can be used for error classification.
+
 ## Sneak peeks
 
 * It **shows information** about phone numbers:
@@ -275,8 +279,8 @@ Additionally, if you want to utilize specs and generators provided by the
 phone-number you can use (in your development profile):
 
 ```clojure
-org.clojure/spec.alpha {:mvn/version "0.2.194"}
-org.clojure/test.check {:mvn/version "1.1.1"}
+org.clojure/spec.alpha {:mvn/version "0.6.249"}
+org.clojure/test.check {:mvn/version "1.1.3"}
 ```
 
 You can also download JAR from [Clojars](https://clojars.org/io.randomseed/phone-number).
@@ -289,7 +293,7 @@ Full documentation including usage examples is available at:
 
 ## License
 
-Copyright © 2020–2023 Paweł Wilk
+Copyright © 2020–2026 Paweł Wilk
 
 Phone-number is copyrighted software owned by Paweł Wilk (pw@gnu.org). You may
 redistribute and/or modify this software as long as you comply with the terms of
