@@ -117,6 +117,8 @@
        (when-not (valid-arg? k)
          (throw (ex-info (str "Cost class " k " is not valid")
                          {:phone-number/error :phone-number.cost/invalid
+                          :phone-number/value k
+                          :phone-number/value-type (clojure.core/type k)
                           :phone-number/cost  k})))
        (all-arg k)))))
 

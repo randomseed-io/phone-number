@@ -107,6 +107,8 @@
        (when-not (valid-arg? k)
          (throw (ex-info (str "Leniency specification " k " is not valid")
                          {:phone-number/error    :phone-number.leniency/invalid
+                          :phone-number/value    k
+                          :phone-number/value-type (clojure.core/type k)
                           :phone-number/leniency k})))
        (all k)))))
 

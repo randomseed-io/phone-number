@@ -128,5 +128,7 @@
        (when-not (valid-arg? k)
          (throw (ex-info (str "Time zone format " k " is not valid")
                          {:phone-number/error    :phone-number.tz-format/invalid
+                          :phone-number/value    k
+                          :phone-number/value-type (clojure.core/type k)
                           :phone-number/tz-format k})))
        (all k)))))

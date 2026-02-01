@@ -87,6 +87,8 @@
    (when-not (valid-arg? calling-code)
      (throw (ex-info (str "Global network calling code " calling-code " is not valid")
                      {:phone-number/error    :phone-number.net-code/invalid
+                      :phone-number/value    calling-code
+                      :phone-number/value-type (clojure.core/type calling-code)
                       :phone-number/net-code calling-code})))
    calling-code))
 

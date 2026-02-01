@@ -387,6 +387,8 @@
   (when-not (valid-input? phone-number)
     (throw (ex-info "Phone number string should begin with at least 2 digits"
                     {:phone-number/error :phone-number.input/invalid
+                     :phone-number/value phone-number
+                     :phone-number/value-type (clojure.core/type phone-number)
                      :phone-number/input phone-number
                      :phone-number/region region-code})))
   (.parseAndKeepRawInput ^PhoneNumberUtil (util/instance)
@@ -398,6 +400,8 @@
   (when-not (valid-input? phone-number)
     (throw (ex-info "Phone number string should begin with at least 2 digits"
                     {:phone-number/error :phone-number.input/invalid
+                     :phone-number/value phone-number
+                     :phone-number/value-type (clojure.core/type phone-number)
                      :phone-number/input phone-number
                      :phone-number/region region-code})))
   (.parse ^PhoneNumberUtil (util/instance)
@@ -537,16 +541,22 @@
     (^Phonenumber$PhoneNumber [phone-number]
      (throw (ex-info "Numeric phone number must have region code argument supplied"
                      {:phone-number/error :phone-number.input/missing-region
+                      :phone-number/value phone-number
+                      :phone-number/value-type (clojure.core/type phone-number)
                       :phone-number/input phone-number})))
     (^Phonenumber$PhoneNumber [phone-number
                                ^clojure.lang.Keyword region-code]
      (when-not (valid-input? phone-number)
        (throw (ex-info "Numeric phone number should be a positive natural number having at least 2 digits"
                        {:phone-number/error :phone-number.input/invalid
+                        :phone-number/value phone-number
+                        :phone-number/value-type (clojure.core/type phone-number)
                         :phone-number/input phone-number})))
      (when-not (region/valid? region-code *inferred-namespaces*)
        (throw (ex-info "Region code must be valid"
                        {:phone-number/error :phone-number.region/invalid
+                        :phone-number/value region-code
+                        :phone-number/value-type (clojure.core/type region-code)
                         :phone-number/region region-code})))
      (number-noraw (str phone-number) region-code)))
 
@@ -554,16 +564,22 @@
     (^Phonenumber$PhoneNumber [phone-number]
      (throw (ex-info "Numeric phone number must have some region code argument supplied"
                      {:phone-number/error :phone-number.input/missing-region
+                      :phone-number/value phone-number
+                      :phone-number/value-type (clojure.core/type phone-number)
                       :phone-number/input phone-number})))
     (^Phonenumber$PhoneNumber [phone-number
                                ^clojure.lang.Keyword region-code]
      (when-not (valid-input? phone-number)
        (throw (ex-info "Numeric phone number should be a positive natural number having at least 2 digits"
                        {:phone-number/error :phone-number.input/invalid
+                        :phone-number/value phone-number
+                        :phone-number/value-type (clojure.core/type phone-number)
                         :phone-number/input phone-number})))
      (when-not (region/valid? region-code *inferred-namespaces*)
        (throw (ex-info "Region code must be valid"
                        {:phone-number/error :phone-number.region/invalid
+                        :phone-number/value region-code
+                        :phone-number/value-type (clojure.core/type region-code)
                         :phone-number/region region-code})))
      (number (str phone-number) region-code)))
 
@@ -678,6 +694,7 @@
      (throw (ex-info (str "Unable to create phone number from instance of a "
                           (clojure.core/type phone-number) ": " phone-number)
                      {:phone-number/error :phone-number.input/unsupported-type
+                      :phone-number/value phone-number
                       :phone-number/value-type  (clojure.core/type phone-number)
                       :phone-number/input phone-number}))))
 
@@ -688,6 +705,7 @@
      (throw (ex-info (str "Unable to create phone number from instance of a "
                           (clojure.core/type phone-number) ": " phone-number)
                      {:phone-number/error :phone-number.input/unsupported-type
+                      :phone-number/value phone-number
                       :phone-number/value-type  (clojure.core/type phone-number)
                       :phone-number/input phone-number}))))
 
@@ -703,6 +721,7 @@
      (throw (ex-info (str "Unable to create phone number from instance of a "
                           (clojure.core/type phone-number) ": " phone-number)
                      {:phone-number/error :phone-number.input/unsupported-type
+                      :phone-number/value phone-number
                       :phone-number/value-type  (clojure.core/type phone-number)
                       :phone-number/input phone-number}))))
 
@@ -1476,6 +1495,8 @@
      (when-not (region/valid? dialing-region *inferred-namespaces*)
        (throw (ex-info "Dialing region code must be valid and not nil"
                        {:phone-number/error  :phone-number.dialing-region/invalid
+                        :phone-number/value  dialing-region
+                        :phone-number/value-type (clojure.core/type dialing-region)
                         :phone-number/dialing-region dialing-region})))
      (util/try-parse-or-false
       (when-some-input phone-number

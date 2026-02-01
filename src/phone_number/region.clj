@@ -124,6 +124,8 @@
        (when-not (valid-arg? k)
          (throw (ex-info (str "Region code " k " is not valid")
                          {:phone-number/error :phone-number.region/invalid
+                          :phone-number/value k
+                          :phone-number/value-type (clojure.core/type k)
                           :phone-number/region k})))
        (all k)))))
 
@@ -140,6 +142,8 @@
        (when-not (valid-arg? k)
          (throw (ex-info (str "Region code " k " is not valid")
                          {:phone-number/error :phone-number.region/invalid
+                          :phone-number/value k
+                          :phone-number/value-type (clojure.core/type k)
                           :phone-number/region k})))
        k))))
 
@@ -155,6 +159,8 @@
        (when-not (valid? k)
          (throw (ex-info (str "Region code " k " is not valid")
                          {:phone-number/error :phone-number.region/invalid
+                          :phone-number/value k
+                          :phone-number/value-type (clojure.core/type k)
                           :phone-number/region k})))
        k))))
 

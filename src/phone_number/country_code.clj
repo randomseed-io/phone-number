@@ -89,6 +89,8 @@
    (when-not (valid-arg? calling-code)
      (throw (ex-info (str "Country code " calling-code " is not valid")
                      {:phone-number/error        :phone-number.country-code/invalid
+                      :phone-number/value        calling-code
+                      :phone-number/value-type   (clojure.core/type calling-code)
                       :phone-number/country-code calling-code})))
    calling-code))
 
