@@ -78,6 +78,10 @@
                         (partial into {})
                         first (partial find-numbers)))
 
+(def find-number-opts (comp #(dissoc % :phone-number/number)
+                            (partial into {})
+                            first (partial find-numbers-opts)))
+
 (facts "about `number`"
        (fact "when it returns nil for nil or empty"
              (number nil) => nil
@@ -89,13 +93,13 @@
              (class (number "8081570001" :phone-number.region/gb)) => Phonenumber$PhoneNumber
              (number "+448081570001")                              => native?)
        (fact "when it fails on bad input"
-             (number "abc1")                                       => (throws AssertionError)
-             (number "")                                           => (throws AssertionError)
-             (number 1)                                            => (throws AssertionError)
-             (number 12)                                           => (throws AssertionError)
-             (number 998)                                          => (throws AssertionError)
+             (number "abc1")                                       => (throws clojure.lang.ExceptionInfo)
+             (number "")                                           => (throws clojure.lang.ExceptionInfo)
+             (number 1)                                            => (throws clojure.lang.ExceptionInfo)
+             (number 12)                                           => (throws clojure.lang.ExceptionInfo)
+             (number 998)                                          => (throws clojure.lang.ExceptionInfo)
              (number "998")                                        => (throws NumberParseException)
-             (number {:a 1})                                       =future=> (throws AssertionError)))
+             (number {:a 1})                                       =future=> (throws clojure.lang.ExceptionInfo)))
 
 (facts "about `info`"
        (fact "when it returns nil for nil or empty"
@@ -237,3 +241,17 @@
              (find-number text :gb :strict 0 :pl :de) => {}
              (find-number text :gb :valid  2 :pl :de) => found-number-pl-dial-de
              (find-number text :gb :valid  2 :en :de) => found-number-en-dial-de))
+
+(facts "about `find-numbers-opts`"
+       (fact "when it finds a single number in text"
+             (find-number-opts text {:region-code :gb
+                                    :leniency    :valid
+                                    :max-tries   2}) => found-number)
+       (fact "when it disables info generation"
+             (find-number-opts text {:region-code :gb
+                                    :leniency    :valid
+                                    :max-tries   2
+                                    :locale-specification false})
+             => {:phone-number.match/raw-string "+448081570 001"
+                 :phone-number.match/start      18
+                 :phone-number.match/end        32}))

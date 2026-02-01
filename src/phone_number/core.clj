@@ -2029,6 +2029,14 @@
 ;; Finding numbers
 ;;
 
+(defn- normalize-locale-specification
+  {:added "8.13.6-4" :tag java.util.Locale}
+  [locale-specification]
+  (if (and (keyword? locale-specification)
+           (not (locale/valid? locale-specification *inferred-namespaces*)))
+    nil
+    locale-specification))
+
 (defn- enrich-match
   "Used to enrich the results of find-numbers with phone number information map.
   The whole map is put under the :phone-number/info key and it is a delay object,
@@ -2043,6 +2051,58 @@
         (if-some [n (::PN/number m)]
           (assoc m ::PN/info (delay (info n nil locale-specification dialing-region)))
           m))))
+
+(def ^{:private true
+       :const true
+       :tag clojure.lang.PersistentArrayMap}
+  find-numbers-defaults
+  {:dialing-region false})
+
+(defn find-numbers-opts
+  "Searches for phone numbers in the given text.
+
+  This is the stable, non-ambiguous API for searching. Prefer it over positional
+  arities of `find-numbers` when you want explicitness.
+
+  Options:
+
+  - `:region-code`           – region code hint (keyword) used when searching numbers
+                               without any calling code prefix
+  - `:leniency`              – matching leniency (keyword, defaults to `:valid`)
+  - `:max-tries`             – maximum number of delivered matches (number, defaults
+                               to `Long/MAX_VALUE`)
+  - `:locale-specification`  – passed to `info` when building `:phone-number/info`
+                               in result maps (use `false` to disable info generation)
+  - `:dialing-region`        – passed to `info` as dialing region; if the key is not
+                               present it defaults to `false` to preserve the legacy
+                               behaviour (derive dialing region from detected region
+                               when possible and also allow `*default-dialing-region*`)
+
+  Returns a lazy sequence of maps (or nil for nil text)."
+  {:added "8.13.6-4" :tag clojure.lang.LazySeq
+   :arglists '([^String text]
+               [^String text ^clojure.lang.IPersistentMap opts])}
+  ([^String text]
+   (find-numbers-opts text nil))
+  ([^String text
+    ^clojure.lang.IPersistentMap opts]
+   (when (some? text)
+     (let [opts                (merge find-numbers-defaults (or opts {}))
+           region-code         (:region-code         opts)
+           leniency            (:leniency            opts)
+           max-tries           (:max-tries           opts)
+           locale-specification (:locale-specification opts)
+           dialing-region      (if (contains? opts :dialing-region)
+                                (:dialing-region opts)
+                                (:dialing-region find-numbers-defaults))]
+       (->> (.findNumbers (util/instance)
+                          text
+                          (region/parse   region-code *inferred-namespaces*)
+                          (leniency/parse leniency    *inferred-namespaces*)
+                          (long (if (nil? max-tries) Long/MAX_VALUE max-tries)))
+            util/lazy-iterator-seq
+            (map #(enrich-match locale-specification dialing-region %))
+            seq)))))
 
 (defn find-numbers
   "Searches for phone numbers in the given text. Returns a lazy sequence of maps where
@@ -2154,28 +2214,37 @@
   ([]
    nil)
   ([^String               text]
-   (find-numbers text nil nil nil nil false))
+   (find-numbers-opts text nil))
   ([^String               text
     ^clojure.lang.Keyword region-code-or-leniency]
    (if (nil? region-code-or-leniency)
-     (find-numbers text nil nil nil nil false)
+     (find-numbers-opts text nil)
      (if (leniency/valid? region-code-or-leniency *inferred-namespaces*)
-       (find-numbers text nil region-code-or-leniency nil nil false)     ; region code
-       (find-numbers text region-code-or-leniency nil nil nil false))))  ; leniency
+       (find-numbers-opts text {:leniency region-code-or-leniency})
+       (find-numbers-opts text {:region-code region-code-or-leniency}))))
   ([^String               text
     ^clojure.lang.Keyword region-code-or-leniency
     ^clojure.lang.Keyword leniency-or-max-tries-or-locale-spec]
    (if (nil? leniency-or-max-tries-or-locale-spec)
      (find-numbers text region-code-or-leniency)
-     (if (region/valid? region-code-or-leniency *inferred-namespaces*)
+       (if (region/valid? region-code-or-leniency *inferred-namespaces*)
        (if (leniency/valid? leniency-or-max-tries-or-locale-spec *inferred-namespaces*)
-         (find-numbers text region-code-or-leniency leniency-or-max-tries-or-locale-spec nil nil false)         ; region code, leniency
+         (find-numbers-opts text {:region-code region-code-or-leniency
+                                 :leniency    leniency-or-max-tries-or-locale-spec})
          (if (number? leniency-or-max-tries-or-locale-spec)
-           (find-numbers text region-code-or-leniency nil leniency-or-max-tries-or-locale-spec nil false)       ; region code, max-tries
-           (find-numbers text region-code-or-leniency nil nil leniency-or-max-tries-or-locale-spec false)))     ; region code, locale spec
+           (find-numbers-opts text {:region-code region-code-or-leniency
+                                   :max-tries   leniency-or-max-tries-or-locale-spec})
+           (find-numbers-opts text {:region-code          region-code-or-leniency
+                                   :locale-specification (normalize-locale-specification
+                                                         leniency-or-max-tries-or-locale-spec)
+                                   :dialing-region       false})))
        (if (number? leniency-or-max-tries-or-locale-spec)
-         (find-numbers text nil region-code-or-leniency leniency-or-max-tries-or-locale-spec nil false)         ; leniency, max-tries
-         (find-numbers text nil region-code-or-leniency nil leniency-or-max-tries-or-locale-spec false)))))     ; leniency, locale spec
+         (find-numbers-opts text {:leniency   region-code-or-leniency
+                                 :max-tries  leniency-or-max-tries-or-locale-spec})
+         (find-numbers-opts text {:leniency             region-code-or-leniency
+                                 :locale-specification (normalize-locale-specification
+                                                       leniency-or-max-tries-or-locale-spec)
+                                 :dialing-region       false})))))
   ([^String               text
     ^clojure.lang.Keyword region-code
     ^clojure.lang.Keyword leniency-or-locale-spec
@@ -2183,33 +2252,44 @@
    (if (and                                    ; backward compatibility
         (number? max-tries-or-dialing-region)
         (leniency/valid? leniency-or-locale-spec *inferred-namespaces*))
-     (find-numbers text region-code leniency-or-locale-spec max-tries-or-dialing-region nil false)               ; max-tries, leniency
-     (find-numbers text region-code nil  nil leniency-or-locale-spec max-tries-or-dialing-region)))              ; locale spec, dialing region code
+     (find-numbers-opts text {:region-code region-code
+                             :leniency    leniency-or-locale-spec
+                             :max-tries   max-tries-or-dialing-region})
+     (find-numbers-opts text {:region-code          region-code
+                             :locale-specification (normalize-locale-specification
+                                                   leniency-or-locale-spec)
+                             :dialing-region       max-tries-or-dialing-region})))
   ([^String               text
     ^clojure.lang.Keyword region-code
     ^clojure.lang.Keyword leniency
     ^Long                 max-tries
     ^clojure.lang.Keyword locale-specification-or-dialing-region]
    (if (nil? locale-specification-or-dialing-region)
-     (find-numbers text region-code leniency max-tries nil false)
+     (find-numbers-opts text {:region-code region-code
+                             :leniency    leniency
+                             :max-tries   max-tries})
      (if (region/valid? locale-specification-or-dialing-region false)
-       (find-numbers text region-code leniency max-tries nil locale-specification-or-dialing-region)             ; dialing region code
-       (find-numbers text region-code leniency max-tries locale-specification-or-dialing-region false))))        ; locale specification
+       (find-numbers-opts text {:region-code    region-code
+                               :leniency       leniency
+                               :max-tries      max-tries
+                               :dialing-region locale-specification-or-dialing-region})
+       (find-numbers-opts text {:region-code          region-code
+                               :leniency             leniency
+                               :max-tries            max-tries
+                               :locale-specification (normalize-locale-specification
+                                                     locale-specification-or-dialing-region)
+                               :dialing-region       false}))))
   ([^String               text
     ^clojure.lang.Keyword region-code
     ^clojure.lang.Keyword leniency
     ^Long                 max-tries
     ^clojure.lang.Keyword locale-specification
     ^clojure.lang.Keyword dialing-region]
-   (if (some? text)
-     (->> (.findNumbers (util/instance)
-                        text
-                        (region/parse   region-code *inferred-namespaces*)
-                        (leniency/parse leniency    *inferred-namespaces*)
-                        (long (if (nil? max-tries) Long/MAX_VALUE max-tries)))
-          util/lazy-iterator-seq
-          (map #(enrich-match locale-specification dialing-region %))
-          seq))))
+   (find-numbers-opts text {:region-code          region-code
+                           :leniency             leniency
+                           :max-tries            max-tries
+                           :locale-specification locale-specification
+                           :dialing-region       dialing-region})))
 
 ;;
 ;; Example numbers generation
