@@ -4,7 +4,7 @@
 
 [![Phone-number on Clojars](https://img.shields.io/clojars/v/io.randomseed/phone-number.svg)](https://clojars.org/io.randomseed/phone-number)
 [![Phone-number on cljdoc](https://cljdoc.org/badge/io.randomseed/phone-number)](https://cljdoc.org/d/io.randomseed/phone-number/CURRENT)
-[![CircleCI](https://circleci.com/gh/randomseed-io/phone-number.svg?style=svg)](https://circleci.com/gh/randomseed-io/phone-number)
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/randomseed-io/phone-number/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/randomseed-io/phone-number/tree/master)
 
 A pragmatic, data-oriented Clojure wrapper around Google's Libphonenumber for
 validating, inspecting, formatting, searching text, and generating phone numbers. It
