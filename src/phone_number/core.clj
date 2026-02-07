@@ -2068,7 +2068,7 @@
    ^clojure.lang.Keyword  dialing-region
    ^io.randomseed.lazy_map.LazyMap m]
   (when-some [m (match/mapper m)]
-    (if (= locale-specification false) m
+    (if (false? locale-specification) m
         (if-some [n (::PN/number m)]
           (assoc m ::PN/info (delay (info n nil locale-specification dialing-region)))
           m))))
@@ -2387,7 +2387,7 @@
     preserve-raw]
    (let [number-fn (if preserve-raw number-g number-g-noraw)]
      (when-some [template (number-fn phone-number region-code)]
-       (let [min-digits     (if (nil? min-digits) 3 min-digits)
+       (let [min-digits     (unchecked-long min-digits)
              calling-code   (.getCountryCode ^Phonenumber$PhoneNumber template)
              prefix         (subs (.format (util/instance) template (format/all ::format/e164))
                                   (unchecked-inc (util/count-digits calling-code)))
@@ -2403,7 +2403,7 @@
                 prefix      prefix
                 iteration   (unchecked-long 1)
                 valid-hits  (unchecked-long 0)]
-           (if (or (and (some? retries) (= iteration retries))
+           (if (or (and (== iteration retries))
                    (and (nil? prefix) (some? last-valid)))
              {::PN/number      last-valid
               ::sample/hits    valid-hits
@@ -2581,7 +2581,8 @@
          random-seed     (long (if (nil? random-seed) (rand Long/MAX_VALUE) random-seed))
          rng             (java.util.Random. random-seed)
          predicate       (if (nil? predicate) any? predicate)
-         retries         (if (nil? retries) 1000 (if (false? retries) nil retries))
+         retries         (unchecked-long (if (nil? retries) 1000 (if (false? retries)    0 retries)))
+         min-digits      (unchecked-long (if (nil? min-digits) 3 (if (false? min-digits) 0 min-digits)))
          lspec           (locale/parse locale-specification *inferred-namespaces*)]
      (loop [tried-combos   #{}
             region-code    (util/ns-infer "phone-number.region" region-code *inferred-namespaces*)
