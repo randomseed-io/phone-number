@@ -4,7 +4,7 @@ DEPLOY      := bin/deploy
 DOCS        := bin/docs
 UPREADME    := bin/update-readme
 
-VERSION     ?= 9.0.23-1
+VERSION     ?= 9.0.23-2
 GROUP       ?= io.randomseed
 APPNAME     ?= phone-number
 DESCRIPTION ?= Phone numbers as data: validate, inspect, search, generate.

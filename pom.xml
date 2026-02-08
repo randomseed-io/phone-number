@@ -3,7 +3,7 @@
   <groupId>io.randomseed</groupId>
   <artifactId>phone-number</artifactId>
   <packaging>jar</packaging>
-  <version>9.0.23-1</version>
+  <version>9.0.23-2</version>
   <name>phone-number</name>
   <description>Phone numbers as data: validate, inspect, search, generate.</description>
   <url>https://randomseed.io/software/phone-number/</url>
@@ -16,7 +16,7 @@
   <scm>
     <connection>scm:git:git://github.com/randomseed-io/phone-number.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/randomseed-io/phone-number.git</developerConnection>
-    <tag>9.0.23-1</tag>
+    <tag>9.0.23-2</tag>
     <url>https://github.com/randomseed-io/phone-number/</url>
   </scm>
   <dependencies>

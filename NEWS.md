@@ -1,5 +1,11 @@
 # History of phone-number releases
 
+## 9.0.23-2 (2026-02-08)
+
+- Improvements:
+
+  * Type hints improved in sample generator.
+
 ## 9.0.23-1 (2026-02-01)
 
 - Bug fixes:
