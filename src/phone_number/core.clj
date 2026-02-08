@@ -2403,7 +2403,7 @@
                 prefix      prefix
                 iteration   (unchecked-long 1)
                 valid-hits  (unchecked-long 0)]
-           (if (or (and (== iteration retries))
+           (if (or (== iteration retries)
                    (and (nil? prefix) (some? last-valid)))
              {::PN/number      last-valid
               ::sample/hits    valid-hits
