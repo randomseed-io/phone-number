@@ -1,5 +1,11 @@
 # History of phone-number releases
 
+## 9.0.23-3 (2026-03-02)
+
+- Improvements:
+
+  * Added `next.jdbc` settable parameter adapter for automatic conversion to E164 format.
+
 ## 9.0.23-2 (2026-02-08)
 
 - Improvements:
