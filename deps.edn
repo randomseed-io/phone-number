@@ -1,14 +1,14 @@
 {
  :paths ["src" "resources"]
 
- :deps {trptr/java-wrapper                           {:mvn/version "0.2.3"}
-        io.randomseed/lazy-map                       {:mvn/version "1.0.4"}
-        org.clojure/core.memoize                     {:mvn/version "1.1.266"}
-        com.googlecode.libphonenumber/libphonenumber {:mvn/version "9.0.23"}
-        com.googlecode.libphonenumber/geocoder       {:mvn/version "3.23"}
-        com.googlecode.libphonenumber/carrier        {:mvn/version "2.23"}
-        com.googlecode.libphonenumber/prefixmapper   {:mvn/version "3.23"}}
-
+ :deps    {trptr/java-wrapper                           {:mvn/version "0.2.3"}
+           io.randomseed/lazy-map                       {:mvn/version "1.0.4"}
+           org.clojure/core.memoize                     {:mvn/version "1.1.266"}
+           com.github.seancorfield/next.jdbc            {:mvn/version "1.3.1086"}
+           com.googlecode.libphonenumber/libphonenumber {:mvn/version "9.0.23"}
+           com.googlecode.libphonenumber/geocoder       {:mvn/version "3.23"}
+           com.googlecode.libphonenumber/carrier        {:mvn/version "2.23"}
+           com.googlecode.libphonenumber/prefixmapper   {:mvn/version "3.23"}}
  :aliases {:dev       {:extra-deps  {org.clojure/tools.namespace    {:mvn/version "1.5.1"}
                                      org.clojure/tools.deps         {:mvn/version "0.28.1569"}
                                      org.clojure/spec.alpha         {:mvn/version "0.6.249"}
