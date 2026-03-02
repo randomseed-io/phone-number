@@ -2,7 +2,7 @@
 
     ^{:doc    "phone-number library, util tests."
       :author "Paweł Wilk"
-      :added  "3.23-0"
+      :added  "9.0.23-0"
       :no-doc true}
 
     phone-number.util-test
