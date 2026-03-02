@@ -551,7 +551,7 @@
                         :phone-number/value      phone-number
                         :phone-number/value-type (clojure.core/type phone-number)
                         :phone-number/input      phone-number})))
-     (when-not (region/valid? region-code *inferred-namespaces*)
+     (when-not (region/valid-arg? region-code *inferred-namespaces*)
        (throw (ex-info "Region code must be valid"
                        {:phone-number/error      :phone-number.region/invalid
                         :phone-number/value      region-code
@@ -574,7 +574,7 @@
                         :phone-number/value      phone-number
                         :phone-number/value-type (clojure.core/type phone-number)
                         :phone-number/input      phone-number})))
-     (when-not (region/valid? region-code *inferred-namespaces*)
+     (when-not (region/valid-arg? region-code *inferred-namespaces*)
        (throw (ex-info "Region code must be valid"
                        {:phone-number/error      :phone-number.region/invalid
                         :phone-number/value      region-code
@@ -686,7 +686,13 @@
     [_phone-number] false)
 
   (number-noraw
-    (^Phonenumber$PhoneNumber [phone-number] phone-number)
+    (^Phonenumber$PhoneNumber [phone-number]
+     (throw (ex-info (str "Unable to create phone number from instance of a "
+                          (clojure.core/type phone-number) ": " phone-number)
+                     {:phone-number/error      :phone-number.input/unsupported-type
+                      :phone-number/value      phone-number
+                      :phone-number/value-type (clojure.core/type phone-number)
+                      :phone-number/input      phone-number})))
     (^Phonenumber$PhoneNumber [phone-number
                                ^clojure.lang.Keyword _region-code]
      (throw (ex-info (str "Unable to create phone number from instance of a "
@@ -697,7 +703,13 @@
                       :phone-number/input      phone-number}))))
 
   (number
-    (^Phonenumber$PhoneNumber [phone-number] phone-number)
+    (^Phonenumber$PhoneNumber [phone-number]
+     (throw (ex-info (str "Unable to create phone number from instance of a "
+                          (clojure.core/type phone-number) ": " phone-number)
+                     {:phone-number/error      :phone-number.input/unsupported-type
+                      :phone-number/value      phone-number
+                      :phone-number/value-type (clojure.core/type phone-number)
+                      :phone-number/input      phone-number})))
     (^Phonenumber$PhoneNumber [phone-number
                                ^clojure.lang.Keyword _region-code]
      (throw (ex-info (str "Unable to create phone number from instance of a "
@@ -2576,7 +2588,7 @@
     ^Long                 random-seed
     early-shrinking
     preserve-raw]
-   (type/parse number-type *inferred-namespaces*) ; assert check
+   (type/parse number-type *inferred-namespaces*) ; validate number-type early; throws ex-info if invalid
    (let [early-shrinking (if (nil? early-shrinking) false (or (and early-shrinking true) false))
          random-seed     (long (if (nil? random-seed) (rand Long/MAX_VALUE) random-seed))
          rng             (java.util.Random. random-seed)

@@ -1,5 +1,25 @@
 # History of phone-number releases
 
+## 9.0.23-4 (2026-03-02)
+
+- Bug fixes:
+
+  * `phone-number.core/Phoneable` protocol: `number` and `number-noraw` for unsupported
+    types (`Object`) now consistently throw `ex-info` with `:phone-number.input/unsupported-type`
+    in both arities (previously the 1-arity variant silently returned the object as-is,
+    causing a downstream `ClassCastException` instead of a descriptive error).
+  * `phone-number.core/Phoneable` protocol: region code guard in `Number` implementation
+    of `number` and `number-noraw` now uses `region/valid-arg?` instead of `region/valid?`,
+    correctly rejecting `:phone-number.region/world` as a region argument for numeric phone
+    numbers (previously the guard passed but `region/parse` raised a different error later).
+  * `phone-number.util/try-parse` and `phone-number.util/try-parse-or-false`: removed
+    `AssertionError` catch clause — Java assertions are disabled by default in production
+    (JVM without `-ea`), making the clause dead code, while in development it masked
+    potential assertion failures from Libphonenumber internals.
+  * `phone-number.util/count-digits`: non-positive values (`n ≤ 0`) are now handled
+    explicitly (returns `1`), avoiding silent `NaN` propagation through `Math/log10`
+    for negative inputs.
+
 ## 9.0.23-3 (2026-03-02)
 
 - Improvements:

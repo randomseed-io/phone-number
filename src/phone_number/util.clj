@@ -57,7 +57,6 @@
             (if (and (map? d#) (contains? d# :phone-number/error))
               nil
               (throw e#))))
-        (catch AssertionError        e# nil)
         (catch NumberParseException  e# nil)
         (catch NumberFormatException e# nil)))
 
@@ -72,7 +71,6 @@
             (if (and (map? d#) (contains? d# :phone-number/error))
               false
               (throw e#))))
-        (catch AssertionError        e# false)
         (catch NumberParseException  e# false)
         (catch NumberFormatException e# false)))
 
@@ -98,9 +96,11 @@
   (when (seq obj) obj))
 
 (defn count-digits
+  "Returns the number of decimal digits of a non-negative integer `n`.
+   For `n` equal to `0` or any non-positive value, returns `1`."
   {:added "8.12.4-1" :tag 'long}
   [^long n]
-  (if (zero? n) 1
+  (if (not (pos? n)) 1
       (unchecked-inc
        (long (Math/floor (Math/log10 n))))))
 
